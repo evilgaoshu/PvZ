@@ -27,7 +27,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+
+      - name: Check lock file
+        run: |
+          if [ ! -f package-lock.json ]; then
+            echo "package-lock.json not found, running npm install"
+            npm install
+          fi
 
       - name: Install dependencies
         run: npm ci
