@@ -31,5 +31,6 @@ jobs:
     - name: Build
       run: npm run build
 
-    - name: Test
-      run: npm run test -- --run
+    # TODO: 添加测试文件后启用
+    # - name: Test
+    #   run: npm run test -- --run
