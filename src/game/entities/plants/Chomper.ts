@@ -124,7 +124,7 @@ export class Chomper extends Plant {
     this.isChewing = true;
     this.entityState = EntityState.IDLE;
 
-    const chewDuration = (this.config.attackInterval || 42) * 1000;
+    const chewDuration = this.config.attackInterval || 42000; // 配置中已是毫秒
     this.chewEndTime = time + chewDuration;
 
     // 播放吞食音效

@@ -38,6 +38,11 @@ export class WaveSystem {
   // 波次检查定时器
   private checkInterval: Phaser.Time.TimerEvent | null = null;
 
+  // 僵尸生成和击杀跟踪
+  private waveZombieCount: number = 0;
+  private waveZombieKilled: number = 0;
+  private waveSpawnComplete: boolean = false;
+
   // 僵尸生成定时器列表
   private spawnTimers: Phaser.Time.TimerEvent[] = [];
 
@@ -124,9 +129,11 @@ export class WaveSystem {
    */
   private spawnWaveZombies(waveConfig: WaveConfig): void {
     let totalDelay = 0;
+    let totalZombies = 0;
 
     waveConfig.zombies.forEach(zombieGroup => {
       const { type, count, delay = 3000, row } = zombieGroup;
+      totalZombies += count;
 
       for (let i = 0; i < count; i++) {
         const spawnDelay = totalDelay + i * delay;
@@ -138,6 +145,16 @@ export class WaveSystem {
       }
 
       totalDelay += count * delay;
+    });
+
+    // 记录本波次僵尸总数
+    this.waveZombieCount = totalZombies;
+    this.waveZombieKilled = 0;
+    this.waveSpawnComplete = false;
+
+    // 所有僵尸生成完成后标记为完成
+    this.scene.time.delayedCall(totalDelay + 1000, () => {
+      this.waveSpawnComplete = true;
     });
 
     // 波次结束后检查
@@ -182,10 +199,8 @@ export class WaveSystem {
    * 检查波次是否完成
    */
   private checkWaveComplete(): boolean {
-    // 这里应该检查当前波次的所有僵尸是否都被消灭
-    // 简化处理：检查一定时间后波次自动结束
-    // 实际游戏中需要跟踪每个生成的僵尸
-    return false; // 由外部系统通知
+    // 需要满足两个条件：所有僵尸已生成，且所有僵尸被消灭
+    return this.waveSpawnComplete && this.waveZombieKilled >= this.waveZombieCount;
   }
 
   /**
@@ -323,6 +338,16 @@ export class WaveSystem {
    */
   public update(delta: number): void {
     // 波次逻辑更新
+  }
+
+  /**
+   * 通知僵尸被击杀（由外部调用）
+   */
+  public onZombieKilled(): void {
+    if (this.isWaveInProgress) {
+      this.waveZombieKilled++;
+      console.log(`Zombie killed: ${this.waveZombieKilled}/${this.waveZombieCount}`);
+    }
   }
 
   /**

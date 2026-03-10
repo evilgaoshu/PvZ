@@ -7,7 +7,7 @@ import { PlantFactory } from '@entities/plants/PlantFactory';
 import { ZombieFactory } from '@entities/zombies/ZombieFactory';
 import { Pea, SnowPea } from '@entities/projectiles/Projectile';
 import { GRID_CONFIG, GameEvents, ECONOMY_CONFIG } from '@/types/index';
-import { plantConfigs, zombieConfigs } from '@data/plants/plantConfigs';
+import { plantConfigs, zombieConfigs, levelConfigs } from '@data/plants/plantConfigs';
 import type { LevelConfig } from '@/types/config';
 import { Plant } from '@entities/plants/Plant';
 import { Zombie } from '@entities/zombies/Zombie';
@@ -395,6 +395,11 @@ export class GameScene extends BaseScene {
       this.time.delayedCall(3000, () => {
         this.gameOver(true);
       });
+    });
+
+    // 僵尸死亡
+    this.game.events.on(GameEvents.ZOMBIE_DIED, () => {
+      this.waveSystem.onZombieKilled();
     });
   }
 
@@ -889,8 +894,8 @@ export class GameScene extends BaseScene {
     this.audioManager?.playBgm(BackgroundMusic.GAME_DAY);
 
     // 加载第一关
-    const levelConfig = plantConfigs['1-1'];
-    this.waveSystem.loadLevel(levelConfig as any);
+    const levelConfig = levelConfigs['1-1'];
+    this.waveSystem.loadLevel(levelConfig);
     this.waveSystem.start();
   }
 

@@ -155,7 +155,7 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   protected attack(time: number): void {
     if (this.isCooldown) return;
 
-    const attackInterval = (this.config.attackInterval || 1.5) * 1000;
+    const attackInterval = this.config.attackInterval || 1500; // 配置中已是毫秒
     if (time - this.lastAttackTime < attackInterval) return;
 
     this.lastAttackTime = time;

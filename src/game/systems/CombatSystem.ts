@@ -8,15 +8,6 @@ import { GameEvents } from '@/types/index';
 export class CombatSystem {
   private scene: Phaser.Scene;
 
-  // 投射物列表
-  private projectiles: Phaser.GameObjects.GameObject[] = [];
-
-  // 僵尸列表
-  private zombies: Phaser.GameObjects.GameObject[] = [];
-
-  // 植物列表
-  private plants: Phaser.GameObjects.GameObject[] = [];
-
   // 碰撞组
   private projectileGroup: Phaser.Physics.Arcade.Group | null = null;
   private zombieGroup: Phaser.Physics.Arcade.Group | null = null;
@@ -65,17 +56,8 @@ export class CombatSystem {
    * 设置事件监听
    */
   private setupEventListeners(): void {
-    // 监听投射物发射
-    this.scene.game.events.on(GameEvents.PROJECTILE_FIRED, (data: {
-      x: number;
-      y: number;
-      type: string;
-      damage: number;
-      speed: number;
-      row: number;
-    }) => {
-      this.spawnProjectile(data);
-    });
+    // 注意：PROJECTILE_FIRED 事件由 GameScene 处理，不在此处重复监听
+    // 避免生成重复的投射物
 
     // 监听僵尸生成
     this.scene.game.events.on(GameEvents.ZOMBIE_SPAWNED, (data: {
@@ -200,42 +182,6 @@ export class CombatSystem {
   }
 
   /**
-   * 生成投射物
-   */
-  private spawnProjectile(data: {
-    x: number;
-    y: number;
-    type: string;
-    damage: number;
-    speed: number;
-    row: number;
-  }): void {
-    // 创建投射物
-    const projectile = this.scene.physics.add.image(data.x, data.y, 'pea');
-
-    // 设置数据
-    projectile.setData('damage', data.damage);
-    projectile.setData('type', data.type);
-    projectile.setData('row', data.row);
-
-    // 设置速度（向右飞行）
-    projectile.setVelocityX(data.speed);
-
-    // 添加到组
-    this.projectileGroup?.add(projectile);
-    this.projectiles.push(projectile);
-
-    // 超出边界自动销毁
-    const checkBounds = () => {
-      if (projectile.x > 900) {
-        projectile.destroy();
-        this.scene.events.off('update', checkBounds);
-      }
-    };
-    this.scene.events.on('update', checkBounds);
-  }
-
-  /**
    * 检查僵尸是否到达房屋
    */
   public checkZombieReachedHouse(zombie: Phaser.GameObjects.Sprite): boolean {
@@ -255,10 +201,6 @@ export class CombatSystem {
    * 清理
    */
   public destroy(): void {
-    // 清理所有投射物
-    this.projectiles.forEach(p => p.destroy());
-    this.projectiles = [];
-
     // 销毁组
     this.projectileGroup?.destroy();
     this.zombieGroup?.destroy();
