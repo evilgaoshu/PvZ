@@ -36,14 +36,19 @@ export class AudioManager {
    * 预加载音频资源
    */
   public preload(): void {
-    // 加载音效
+    // 加载音效（设置失败回调）
     SFX_CONFIGS.forEach(config => {
       this.scene.load.audio(config.key, config.path);
     });
 
-    // 加载背景音乐
+    // 加载背景音乐（设置失败回调）
     BGM_CONFIGS.forEach(config => {
       this.scene.load.audio(config.key, config.path);
+    });
+
+    // 监听加载错误，不抛出异常
+    this.scene.load.on('fileerror', (file: any) => {
+      console.warn(`Audio file load failed: ${file.key}, will use procedural fallback`);
     });
   }
 
@@ -51,8 +56,15 @@ export class AudioManager {
    * 初始化音频
    */
   public init(): void {
-    // 创建音效实例
+    // 创建音效实例（仅当资源存在时）
     SFX_CONFIGS.forEach(config => {
+      // 检查资源是否成功加载
+      const isLoaded = this.scene.cache.audio.has(config.key);
+      if (!isLoaded) {
+        console.warn(`Audio resource not found: ${config.key}, will use procedural fallback`);
+        return;
+      }
+
       const sound = this.scene.sound.add(config.key, {
         volume: config.volume ?? 1.0,
         loop: config.loop ?? false,
@@ -61,8 +73,15 @@ export class AudioManager {
       this.sfx.set(config.key, sound);
     });
 
-    // 创建背景音乐实例
+    // 创建背景音乐实例（仅当资源存在时）
     BGM_CONFIGS.forEach(config => {
+      // 检查资源是否成功加载
+      const isLoaded = this.scene.cache.audio.has(config.key);
+      if (!isLoaded) {
+        console.warn(`BGM resource not found: ${config.key}`);
+        return;
+      }
+
       const sound = this.scene.sound.add(config.key, {
         volume: (config.volume ?? 1.0) * this.bgmVolume,
         loop: config.loop ?? true,
