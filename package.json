@@ -3,6 +3,28 @@
   "version": "1.0.0",
   "description": "A web-based Plants vs Zombies game built with TypeScript and Phaser 3",
   "type": "module",
+  "author": "evilgaoshu",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/evilgaoshu/PvZ#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evilgaoshu/PvZ.git"
+  },
+  "bugs": {
+    "url": "https://github.com/evilgaoshu/PvZ/issues"
+  },
+  "keywords": [
+    "game",
+    "plants-vs-zombies",
+    "pvz",
+    "tower-defense",
+    "phaser",
+    "phaser3",
+    "typescript",
+    "web-game",
+    "browser-game",
+    "html5-game"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
