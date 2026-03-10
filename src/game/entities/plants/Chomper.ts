@@ -78,6 +78,10 @@ export class Chomper extends Plant {
 
     // 立即杀死僵尸（秒杀）
     const zombie = this.attackTarget;
+
+    // 实际造成伤害确保僵尸死亡
+    (zombie as any).takeDamage(9999, 'instakill');
+
     this.scene.game.events.emit(GameEvents.ZOMBIE_DIED, {
       zombie: zombie,
       instantKill: true,

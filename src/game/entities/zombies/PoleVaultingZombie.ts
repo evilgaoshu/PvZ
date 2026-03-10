@@ -43,7 +43,8 @@ export class PoleVaultingZombie extends Zombie {
    * 检查特殊能力
    */
   protected checkSpecialAbility(): void {
-    if (this.hasVaulted || !this.usedSpecialAbility) {
+    // 只有还没跳过且没用过特殊能力时才检查
+    if (!this.hasVaulted && !this.usedSpecialAbility) {
       // 检查前方是否有植物
       this.checkForPlantToVault();
     }

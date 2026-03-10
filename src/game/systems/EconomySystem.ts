@@ -185,7 +185,13 @@ export class EconomySystem {
 
     hitArea.setInteractive({ useHandCursor: true });
 
+    // 标记是否已被收集，防止重复点击
+    let isCollected = false;
+
     hitArea.on('pointerdown', () => {
+      if (isCollected) return;
+      isCollected = true;
+      hitArea.disableInteractive();
       this.collectSun(container, amount, source);
     });
 
@@ -241,7 +247,7 @@ export class EconomySystem {
   /**
    * 增加阳光
    */
-  public addSun(amount: number, source: SunSource = 'cheat'): void {
+  public addSun(amount: number, source: SunSource = 'plant'): void {
     this.sun = Math.min(this.sun + amount, this.maxSun);
     this.emitSunChanged();
 

@@ -194,6 +194,7 @@ export class BootScene extends BaseScene {
     // 清理资源
     this.registry.remove('progressBar');
     this.registry.remove('progressText');
-    this.audioManager?.destroy();
+    // 注意：不销毁 audioManager，因为它被注册到 game.registry 供全局使用
+    // 其生命周期应由全局管理
   }
 }

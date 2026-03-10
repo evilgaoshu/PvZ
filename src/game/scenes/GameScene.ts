@@ -42,6 +42,8 @@ export class GameScene extends BaseScene {
   // 游戏状态
   private plants: Map<string, Plant> = new Map();
   private zombies: Zombie[] = [];
+  private lawnMowers: Phaser.GameObjects.Container[] = [];
+  private activeMowerRows: Set<number> = new Set(); // 记录还有割草机的行
   private selectedPlant: string | null = null;
   private selectedPlantCost: number = 0;
   private isPaused: boolean = false;
@@ -114,6 +116,9 @@ export class GameScene extends BaseScene {
 
     // 设置事件监听
     this.setupEventListeners();
+
+    // 设置碰撞检测
+    this.setupCollisions();
 
     // 开始游戏
     this.startGame();
@@ -254,9 +259,12 @@ export class GameScene extends BaseScene {
   private addLawnDecorations(): void {
     // 添加割草机
     const { OFFSET_Y, CELL_HEIGHT, ROWS } = GRID_CONFIG;
+    this.lawnMowers = [];
+    this.activeMowerRows.clear();
     for (let row = 0; row < ROWS; row++) {
       const y = OFFSET_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2;
       this.createLawnMower(180, y, row);
+      this.activeMowerRows.add(row);
     }
   }
 
@@ -280,12 +288,7 @@ export class GameScene extends BaseScene {
     mower.setData('row', row);
     mower.setData('isActive', false);
 
-    // 割草机激活时触发
-    this.events.on('zombie:reached_house', (zombie: Zombie) => {
-      if (zombie.getRow() === row && !mower.getData('isActive')) {
-        this.activateLawnMower(mower, row);
-      }
-    });
+    this.lawnMowers.push(mower);
   }
 
   /**
@@ -310,6 +313,16 @@ export class GameScene extends BaseScene {
       },
       onComplete: () => {
         mower.destroy();
+        // 从数组中移除割草机
+        const index = this.lawnMowers.indexOf(mower);
+        if (index > -1) {
+          this.lawnMowers.splice(index, 1);
+        }
+        // 检查该行是否还有其他割草机
+        const hasOtherMowerInRow = this.lawnMowers.some(m => m.getData('row') === row);
+        if (!hasOtherMowerInRow) {
+          this.activeMowerRows.delete(row);
+        }
       }
     });
 
@@ -401,6 +414,76 @@ export class GameScene extends BaseScene {
     this.game.events.on(GameEvents.ZOMBIE_DIED, () => {
       this.waveSystem.onZombieKilled();
     });
+
+    // 僵尸检查是否可以撑杆跳
+    this.events.on('zombie:check_vault', (data: {
+      zombie: Zombie;
+      x: number;
+      row: number;
+      callback: (hasPlant: boolean) => void;
+    }) => {
+      // 检查前方一格内是否有植物
+      const checkDistance = GRID_CONFIG.CELL_WIDTH;
+      const hasPlant = this.plants.has(`${data.row}_${Math.floor((data.x - GRID_CONFIG.OFFSET_X + checkDistance) / GRID_CONFIG.CELL_WIDTH)}`);
+      data.callback(hasPlant);
+    });
+
+    // 僵尸到达房屋
+    this.events.on('zombie:reached_house', (zombie: Zombie) => {
+      this.handleZombieReachedHouse(zombie);
+    });
+  }
+
+  /**
+   * 处理僵尸到达房屋
+   */
+  private handleZombieReachedHouse(zombie: Zombie): void {
+    if (this.isGameOver) return;
+
+    const row = zombie.getRow();
+    const mower = this.lawnMowers.find(m => m.getData('row') === row && !m.getData('isActive'));
+
+    if (mower) {
+      // 该行还有未激活的割草机，激活它
+      this.activateLawnMower(mower, row);
+    } else if (this.activeMowerRows.has(row)) {
+      // 割草机已激活或已用完，但行仍标记为有割草机
+      // 检查该行是否还有任何割草机（包括激活中的）
+      const anyMowerInRow = this.lawnMowers.some(m => m.getData('row') === row);
+      if (!anyMowerInRow) {
+        // 该行割草机已用完，僵尸到达房屋，游戏失败
+        this.activeMowerRows.delete(row);
+        this.gameOver(false);
+      }
+    } else {
+      // 该行没有割草机了，游戏失败
+      this.gameOver(false);
+    }
+  }
+
+  /**
+   * 设置碰撞检测（组级别，只需调用一次）
+   */
+  private setupCollisions(): void {
+    // 投射物与僵尸的碰撞
+    this.physics.add.overlap(
+      this.projectileLayer!,
+      this.zombieLayer!,
+      (proj, zombie) => {
+        const projectile = proj as unknown as Pea | SnowPea;
+        projectile.hit(zombie as Phaser.Physics.Arcade.Sprite);
+        this.handleProjectileHit(zombie as Zombie, projectile);
+      }
+    );
+
+    // 僵尸与植物的碰撞
+    this.physics.add.overlap(
+      this.zombieLayer!,
+      this.plantLayer!,
+      (zombieObj, plantObj) => {
+        this.handleZombieMeetPlant(zombieObj as Zombie, plantObj as Plant);
+      }
+    );
   }
 
   /**
@@ -457,15 +540,7 @@ export class GameScene extends BaseScene {
     // 播放射击音效
     this.audioManager?.playSfx(SoundEffect.SHOOT);
 
-    // 设置碰撞
-    this.physics.add.overlap(
-      projectile,
-      this.zombieLayer!,
-      (proj, zombie) => {
-        projectile.hit(zombie as Phaser.Physics.Arcade.Sprite);
-        this.handleProjectileHit(zombie as Zombie, projectile);
-      }
-    );
+    // 碰撞检测已在 setupCollisions 中设置
   }
 
   /**
@@ -517,14 +592,7 @@ export class GameScene extends BaseScene {
         this.audioManager?.playRandomZombieSound();
       }
 
-      // 设置碰撞 - 僵尸与植物
-      this.physics.add.overlap(
-        zombie,
-        this.plantLayer!,
-        (zombieObj, plantObj) => {
-          this.handleZombieMeetPlant(zombieObj as Zombie, plantObj as Plant);
-        }
-      );
+      // 碰撞检测已在 setupCollisions 中设置
     }
   }
 
@@ -941,6 +1009,18 @@ export class GameScene extends BaseScene {
   }
 
   protected onShutdown(): void {
+    // 清理事件监听
+    this.game.events.off(GameEvents.PLANT_SELECTED);
+    this.game.events.off(GameEvents.ZOMBIE_SPAWNED);
+    this.game.events.off(GameEvents.PROJECTILE_FIRED);
+    this.game.events.off(GameEvents.PROJECTILE_HIT);
+    this.game.events.off('plant:check_target');
+    this.game.events.off('economy:spawn_plant_sun');
+    this.game.events.off(GameEvents.ALL_WAVES_COMPLETED);
+    this.game.events.off(GameEvents.ZOMBIE_DIED);
+    this.events.off('zombie:check_vault');
+    this.events.off('zombie:reached_house');
+
     // 清理系统
     this.gridSystem?.destroy();
     this.economySystem?.destroy();

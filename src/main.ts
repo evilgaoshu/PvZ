@@ -50,8 +50,12 @@ window.addEventListener('DOMContentLoaded', () => {
   // 创建游戏实例
   const game = new Game();
 
-  // 暴露到全局以便调试
-  (window as any).game = game;
+  // 仅在开发模式下暴露到全局以便调试
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const env = (import.meta as any).env;
+  if (env && env.DEV) {
+    (window as any).__debugGame = game;
+  }
 });
 
 export default Game;

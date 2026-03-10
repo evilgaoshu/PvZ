@@ -258,6 +258,8 @@ export abstract class BaseScene extends Phaser.Scene {
   shutdown(): void {
     this.onShutdown();
     this.gameEvents.removeAllListeners();
+    // 重置初始化标志，允许场景重新初始化
+    this.isInitialized = false;
   }
 
   /**

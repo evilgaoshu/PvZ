@@ -138,19 +138,47 @@ export class ErrorHandler {
       z-index: 9999;
       font-family: monospace;
     `;
-    errorDiv.innerHTML = `
-      <h3 style="margin: 0 0 10px 0;">⚠️ Error: ${context}</h3>
-      <pre style="white-space: pre-wrap; word-break: break-word;">${error.message}</pre>
-      <button onclick="this.parentElement.remove()" style="
-        margin-top: 10px;
-        padding: 8px 16px;
-        background: #ef4444;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      ">关闭</button>
+    errorDiv.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #1a1a2e;
+      color: #ef4444;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #ef4444;
+      max-width: 500px;
+      z-index: 9999;
+      font-family: monospace;
     `;
+
+    // 使用 textContent 避免 XSS
+    const title = document.createElement('h3');
+    title.style.margin = '0 0 10px 0';
+    title.textContent = `⚠️ Error: ${context}`;
+
+    const pre = document.createElement('pre');
+    pre.style.whiteSpace = 'pre-wrap';
+    pre.style.wordBreak = 'break-word';
+    pre.textContent = error.message;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '关闭';
+    closeBtn.style.cssText = `
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    `;
+    closeBtn.onclick = () => errorDiv.remove();
+
+    errorDiv.appendChild(title);
+    errorDiv.appendChild(pre);
+    errorDiv.appendChild(closeBtn);
     document.body.appendChild(errorDiv);
   }
 }
