@@ -216,10 +216,7 @@ pvz-web/
 
 ## 📧 联系我们
 
-如有问题或建议，欢迎通过以下方式联系：
-
-- 提交 [GitHub Issue](https://github.com/yourusername/pvz-web/issues)
-- 发送邮件至: your.email@example.com
+如有问题或建议，欢迎提交 [GitHub Issue](https://github.com/evilgaoshu/PvZ/issues)
 
 ---
 
