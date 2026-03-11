@@ -1,11 +1,16 @@
 import Phaser from 'phaser';
-import { Pea, SnowPea, Projectile } from '@entities/projectiles/Projectile';
+import { Pea, SnowPea } from '@entities/projectiles/Projectile';
 
 /**
  * 对象池管理器
  * 用于复用游戏对象，减少GC压力
  */
-export class ObjectPool<T extends Phaser.GameObjects.GameObject & { setVisible: (visible: boolean) => void; setActive: (active: boolean) => void }> {
+export class ObjectPool<
+  T extends Phaser.GameObjects.GameObject & {
+    setVisible: (visible: boolean) => void;
+    setActive: (active: boolean) => void;
+  },
+> {
   private scene: Phaser.Scene;
   private pool: T[] = [];
   private active: T[] = [];
@@ -53,6 +58,18 @@ export class ObjectPool<T extends Phaser.GameObjects.GameObject & { setVisible: 
       this.active.splice(index, 1);
     }
 
+    const body = (
+      obj as Phaser.GameObjects.GameObject & {
+        body?: { enable?: boolean; stop?: () => void };
+      }
+    ).body;
+    if (body?.stop) {
+      body.stop();
+    }
+    if (body && 'enable' in body) {
+      body.enable = false;
+    }
+
     // 如果池未满，回收对象
     if (this.pool.length < this.maxSize) {
       obj.setActive(false);
@@ -78,7 +95,7 @@ export class ObjectPool<T extends Phaser.GameObjects.GameObject & { setVisible: 
    */
   public destroy(): void {
     this.recycleAll();
-    this.pool.forEach(obj => obj.destroy());
+    this.pool.forEach((obj) => obj.destroy());
     this.pool = [];
     this.active = [];
   }
@@ -116,7 +133,14 @@ export class ProjectilePool {
       (p) => {
         p.setPosition(-100, -100);
         p.setVelocityX(0);
+        p.setAlpha(1);
+        p.setScale(1);
+        p.setAngle(0);
         p.clearTint();
+        const body = p.body as Phaser.Physics.Arcade.Body | undefined;
+        if (body) {
+          body.enable = true;
+        }
       },
       30
     );
@@ -128,7 +152,14 @@ export class ProjectilePool {
       (p) => {
         p.setPosition(-100, -100);
         p.setVelocityX(0);
-        p.clearTint();
+        p.setAlpha(1);
+        p.setScale(1);
+        p.setAngle(0);
+        p.setTint(0xaaddff);
+        const body = p.body as Phaser.Physics.Arcade.Body | undefined;
+        if (body) {
+          body.enable = true;
+        }
       },
       20
     );

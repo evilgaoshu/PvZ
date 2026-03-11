@@ -5,6 +5,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    include: ['src/**/*.test.ts', 'tests/unit/**/*.test.ts'],
+    exclude: ['tests/e2e/**', 'node_modules/**', 'dist/**'],
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@game': path.resolve(__dirname, 'src/game'),

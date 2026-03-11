@@ -8,6 +8,7 @@ import { AudioManager } from '@managers/AudioManager';
  */
 export class BootScene extends BaseScene {
   private audioManager: AudioManager | null = null;
+  private bootCompleted: boolean = false;
 
   constructor() {
     super({ key: 'BootScene' });
@@ -31,24 +32,6 @@ export class BootScene extends BaseScene {
 
     this.load.on('progress', (value: number) => {
       this.updateLoadingProgress(value);
-    });
-
-    // 增加超时保护，防止加载永久卡住
-    this.time.delayedCall(10000, () => {
-      if (this.load.isLoading()) {
-        console.warn('Loading timeout, forcing completion');
-        this.onLoadComplete();
-      }
-    });
-
-    this.load.on('complete', () => {
-      try {
-        this.createProceduralAssets();
-        this.onLoadComplete();
-      } catch (error) {
-        console.error('Error creating procedural assets:', error);
-        this.onLoadComplete(); // 即使报错也尝试继续
-      }
     });
   }
 
@@ -76,20 +59,28 @@ export class BootScene extends BaseScene {
   private createPlantTexture(key: string, color: number): void {
     const graphics = this.make.graphics({ x: 0, y: 0 }, false);
     const center = 32;
-    
+
     // 基础根茎
     graphics.fillStyle(0x15803d, 1);
     graphics.fillRect(center - 5, center + 10, 10, 20);
-    
+
     if (key.includes('sunflower')) {
       graphics.fillStyle(0xfde047, 1);
       for (let i = 0; i < 8; i++) {
         const angle = (i / 8) * Math.PI * 2;
-        graphics.fillCircle(center + Math.cos(angle) * 15, center - 5 + Math.sin(angle) * 15, 10);
+        graphics.fillCircle(
+          center + Math.cos(angle) * 15,
+          center - 5 + Math.sin(angle) * 15,
+          10
+        );
       }
       graphics.fillStyle(0x78350f, 1);
       graphics.fillCircle(center, center - 5, 12);
-    } else if (key.includes('peashooter') || key.includes('repeater') || key.includes('snow_pea')) {
+    } else if (
+      key.includes('peashooter') ||
+      key.includes('repeater') ||
+      key.includes('snow_pea')
+    ) {
       graphics.fillStyle(color, 1);
       graphics.fillCircle(center, center - 5, 18);
       graphics.fillRect(center, center - 10, 25, 10); // 简化喷管
@@ -110,17 +101,21 @@ export class BootScene extends BaseScene {
     graphics.destroy();
   }
 
-  private createZombieTexture(key: string, color: number, armorColor?: number): void {
+  private createZombieTexture(
+    key: string,
+    color: number,
+    armorColor?: number
+  ): void {
     const graphics = this.make.graphics({ x: 0, y: 0 }, false);
     const centerX = 32;
-    
+
     graphics.fillStyle(0x1e3a8a, 1);
     graphics.fillRect(centerX - 15, 60, 30, 30);
     graphics.fillStyle(0x451a03, 1);
     graphics.fillRect(centerX - 18, 30, 36, 35);
     graphics.fillStyle(color, 1);
     graphics.fillCircle(centerX, 20, 18);
-    
+
     if (armorColor) {
       graphics.fillStyle(armorColor, 1);
       graphics.fillRect(centerX - 15, 0, 30, 15);
@@ -157,11 +152,25 @@ export class BootScene extends BaseScene {
     const centerX = width / 2;
     const centerY = height / 2;
     this.add.rectangle(centerX, centerY, width, height, 0x1a1a2e);
-    this.createText(centerX, centerY - 100, '植物大战僵尸', { fontSize: '48px', color: '#4ade80' }).setOrigin(0.5);
-    const progressBarBg = this.add.rectangle(centerX, centerY + 50, 400, 30, 0x334155);
-    const progressBar = this.add.rectangle(centerX - 195, centerY + 50, 0, 20, 0x4ade80).setOrigin(0, 0.5);
+    this.createText(centerX, centerY - 100, '植物大战僵尸', {
+      fontSize: '48px',
+      color: '#4ade80',
+    }).setOrigin(0.5);
+    const progressBarBg = this.add.rectangle(
+      centerX,
+      centerY + 50,
+      400,
+      30,
+      0x334155
+    );
+    const progressBar = this.add
+      .rectangle(centerX - 195, centerY + 50, 0, 20, 0x4ade80)
+      .setOrigin(0, 0.5);
     this.registry.set('progressBar', progressBar);
-    const progressText = this.createText(centerX, centerY + 100, '0%', { fontSize: '18px', color: '#94a3b8' }).setOrigin(0.5);
+    const progressText = this.createText(centerX, centerY + 100, '0%', {
+      fontSize: '18px',
+      color: '#94a3b8',
+    }).setOrigin(0.5);
     this.registry.set('progressText', progressText);
   }
 
@@ -175,24 +184,41 @@ export class BootScene extends BaseScene {
   private loadGameAssets(): void {
     // 模拟一些小资源确保加载队列不为空
     for (let i = 0; i < 10; i++) {
-      this.load.image(`load_tick_${i}`, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+      this.load.image(
+        `load_tick_${i}`,
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+      );
     }
   }
 
+  private finishBoot(): void {
+    if (this.bootCompleted) return;
+    this.bootCompleted = true;
+
+    this.updateLoadingProgress(1);
+
+    try {
+      this.createProceduralAssets();
+    } catch (error) {
+      console.error('Error creating procedural assets:', error);
+    }
+
+    this.onLoadComplete();
+  }
+
   private onLoadComplete(): void {
-    if (!this.scene.isActive(this.sceneKey)) return;
     this.audioManager?.init();
     this.game.registry.set('audioManager', this.audioManager);
-    this.time.delayedCall(500, () => {
-      this.transitionToMenu();
-    });
+    this.transitionToMenu();
   }
 
   private transitionToMenu(): void {
     this.scene.start('MenuScene');
   }
 
-  protected onCreate(): void {}
+  protected onCreate(): void {
+    this.finishBoot();
+  }
   protected onUpdate(): void {}
   protected onShutdown(): void {
     this.registry.remove('progressBar');

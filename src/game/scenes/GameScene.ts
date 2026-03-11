@@ -7,18 +7,32 @@ import { PlantFactory } from '@entities/plants/PlantFactory';
 import { ZombieFactory } from '@entities/zombies/ZombieFactory';
 import { Pea, SnowPea } from '@entities/projectiles/Projectile';
 import { GRID_CONFIG, GameEvents, ECONOMY_CONFIG } from '@/types/index';
-import { plantConfigs, zombieConfigs, levelConfigs } from '@data/plants/plantConfigs';
+import {
+  plantConfigs,
+  zombieConfigs,
+  levelConfigs,
+} from '@data/plants/plantConfigs';
 import type { LevelConfig } from '@/types/config';
 import { Plant } from '@entities/plants/Plant';
 import { Zombie } from '@entities/zombies/Zombie';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect, BackgroundMusic } from '@config/AudioConfig';
+import { ProjectilePool } from '@game/utils/ObjectPool';
 
 /**
  * 游戏场景
  * 主游戏战斗场景
  */
 export class GameScene extends BaseScene {
+  private readonly gameEventListeners: Array<{
+    event: string;
+    handler: (...args: any[]) => void;
+  }> = [];
+  private readonly sceneEventListeners: Array<{
+    event: string;
+    handler: (...args: any[]) => void;
+  }> = [];
+
   // 游戏系统
   private gridSystem!: GridSystem;
   private economySystem!: EconomySystem;
@@ -28,6 +42,7 @@ export class GameScene extends BaseScene {
   // 工厂
   private plantFactory!: PlantFactory;
   private zombieFactory!: ZombieFactory;
+  private projectilePool!: ProjectilePool;
 
   // 音频管理器
   private audioManager!: AudioManager;
@@ -81,21 +96,33 @@ export class GameScene extends BaseScene {
    * 创建投射物纹理
    */
   private createProjectileTextures(): void {
+    if (this.textures.exists('pea') && this.textures.exists('snow_pea')) {
+      return;
+    }
+
     // 豌豆纹理
-    const peaGraphics = this.make.graphics({ fillStyle: { color: 0x4ade80, alpha: 1 } }, false);
+    const peaGraphics = this.make.graphics(
+      { fillStyle: { color: 0x4ade80, alpha: 1 } },
+      false
+    );
     peaGraphics.fillStyle(0x4ade80, 1);
     peaGraphics.fillCircle(10, 10, 8);
     peaGraphics.fillStyle(0xffffff, 0.3);
     peaGraphics.fillCircle(7, 7, 3);
     peaGraphics.generateTexture('pea', 20, 20);
+    peaGraphics.destroy();
 
     // 冰冻豌豆纹理
-    const snowPeaGraphics = this.make.graphics({ fillStyle: { color: 0xaaddff, alpha: 1 } }, false);
+    const snowPeaGraphics = this.make.graphics(
+      { fillStyle: { color: 0xaaddff, alpha: 1 } },
+      false
+    );
     snowPeaGraphics.fillStyle(0xaaddff, 1);
     snowPeaGraphics.fillCircle(10, 10, 8);
     snowPeaGraphics.fillStyle(0xffffff, 0.5);
     snowPeaGraphics.fillCircle(10, 10, 5);
     snowPeaGraphics.generateTexture('snow_pea', 20, 20);
+    snowPeaGraphics.destroy();
   }
 
   protected onCreate(): void {
@@ -136,14 +163,14 @@ export class GameScene extends BaseScene {
     this.combatSystem.update(delta);
 
     // 更新植物
-    this.plants.forEach(plant => {
+    this.plants.forEach((plant) => {
       if (plant.active) {
         plant.update(time, delta);
       }
     });
 
     // 更新僵尸
-    this.zombies = this.zombies.filter(zombie => {
+    this.zombies = this.zombies.filter((zombie) => {
       if (zombie.active && zombie.isZombieAlive()) {
         zombie.update(time, delta);
         return true;
@@ -152,13 +179,15 @@ export class GameScene extends BaseScene {
     });
 
     // 更新投射物
-    this.projectileLayer?.children.iterate((child: Phaser.GameObjects.GameObject) => {
-      const projectile = child as any;
-      if (projectile.active && projectile.update) {
-        projectile.update();
+    this.projectileLayer?.children.iterate(
+      (child: Phaser.GameObjects.GameObject) => {
+        const projectile = child as any;
+        if (projectile.active && projectile.update) {
+          projectile.update();
+        }
+        return true;
       }
-      return true;
-    });
+    );
 
     // 更新植物预览位置
     this.updatePlantPreview();
@@ -173,7 +202,7 @@ export class GameScene extends BaseScene {
     // 背景层
     const bgLayer = this.add.container(0, 0);
     this.gameContainer.add(bgLayer);
-    
+
     // 添加精致的草地背景纹理
     const bgImage = this.add.image(400, 300, 'day-grass');
     bgLayer.add(bgImage);
@@ -196,7 +225,8 @@ export class GameScene extends BaseScene {
    * 创建网格背景
    */
   private createGrid(): void {
-    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT } = GRID_CONFIG;
+    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT } =
+      GRID_CONFIG;
 
     // 创建柔和的网格线
     const graphics = this.add.graphics();
@@ -219,7 +249,7 @@ export class GameScene extends BaseScene {
         graphics.lineTo(x, y);
         graphics.lineTo(x + CELL_WIDTH, y);
         graphics.strokePath();
-        
+
         graphics.lineStyle(1, 0x000000, 0.15);
         graphics.beginPath();
         graphics.moveTo(x + CELL_WIDTH, y);
@@ -310,7 +340,10 @@ export class GameScene extends BaseScene {
   /**
    * 激活割草机
    */
-  private activateLawnMower(mower: Phaser.GameObjects.Container, row: number): void {
+  private activateLawnMower(
+    mower: Phaser.GameObjects.Container,
+    row: number
+  ): void {
     mower.setData('isActive', true);
 
     // 割草机动画
@@ -321,7 +354,7 @@ export class GameScene extends BaseScene {
       ease: 'Linear',
       onUpdate: () => {
         // 清理该行所有僵尸
-        this.zombies.forEach(zombie => {
+        this.zombies.forEach((zombie) => {
           if (zombie.getRow() === row && zombie.x < mower.x + 50) {
             zombie.takeDamage(9999, 'explosion');
           }
@@ -335,11 +368,13 @@ export class GameScene extends BaseScene {
           this.lawnMowers.splice(index, 1);
         }
         // 检查该行是否还有其他割草机
-        const hasOtherMowerInRow = this.lawnMowers.some(m => m.getData('row') === row);
+        const hasOtherMowerInRow = this.lawnMowers.some(
+          (m) => m.getData('row') === row
+        );
         if (!hasOtherMowerInRow) {
           this.activeMowerRows.delete(row);
         }
-      }
+      },
     });
 
     // 播放割草机音效
@@ -369,6 +404,17 @@ export class GameScene extends BaseScene {
   private initializeFactories(): void {
     this.plantFactory = new PlantFactory(this);
     this.zombieFactory = new ZombieFactory(this);
+    this.projectilePool = new ProjectilePool(this);
+  }
+
+  private registerGameEvent(event: string, handler: (...args: any[]) => void): void {
+    this.game.events.on(event, handler);
+    this.gameEventListeners.push({ event, handler });
+  }
+
+  private registerSceneEvent(event: string, handler: (...args: any[]) => void): void {
+    this.events.on(event, handler);
+    this.sceneEventListeners.push({ event, handler });
   }
 
   /**
@@ -376,76 +422,99 @@ export class GameScene extends BaseScene {
    */
   private setupEventListeners(): void {
     // 植物选择
-    this.game.events.on(GameEvents.PLANT_SELECTED, (data: { plantId: string; cost: number }) => {
-      this.selectPlant(data.plantId, data.cost);
-    });
+    this.registerGameEvent(
+      GameEvents.PLANT_SELECTED,
+      (data: { plantId: string; cost: number }) => {
+        this.selectPlant(data.plantId, data.cost);
+      }
+    );
 
     // 僵尸生成
-    this.game.events.on(GameEvents.ZOMBIE_SPAWNED, (data: { zombieType: string; row: number }) => {
-      this.spawnZombie(data.zombieType, data.row);
-    });
+    this.registerGameEvent(
+      GameEvents.ZOMBIE_SPAWNED,
+      (data: { zombieType: string; row: number }) => {
+        this.spawnZombie(data.zombieType, data.row);
+      }
+    );
 
     // 投射物发射
-    this.game.events.on(GameEvents.PROJECTILE_FIRED, (data: {
-      x: number;
-      y: number;
-      type: string;
-      damage: number;
-      speed: number;
-      row: number;
-    }) => {
-      this.fireProjectile(data);
-    });
+    this.registerGameEvent(
+      GameEvents.PROJECTILE_FIRED,
+      (data: {
+        x: number;
+        y: number;
+        type: string;
+        damage: number;
+        speed: number;
+        row: number;
+      }) => {
+        this.fireProjectile(data);
+      }
+    );
 
     // 投射物命中
-    this.game.events.on(GameEvents.PROJECTILE_HIT, (data: {
-      damage: number;
-      x: number;
-      y: number;
-      type: string;
-      row: number;
-      col: number;
-    }) => {
-      this.handleExplosion(data);
-    });
+    this.registerGameEvent(
+      GameEvents.PROJECTILE_HIT,
+      (data: {
+        damage: number;
+        x: number;
+        y: number;
+        type: string;
+        row: number;
+        col: number;
+      }) => {
+        this.handleExplosion(data);
+      }
+    );
 
     // 植物检查目标
-    this.game.events.on('plant:check_target', (data: { row: number; plant: Plant }) => {
-      this.findTargetForPlant(data.row, data.plant);
-    });
+    this.registerGameEvent(
+      'plant:check_target',
+      (data: { row: number; plant: Plant }) => {
+        this.findTargetForPlant(data.row, data.plant);
+      }
+    );
 
     // 经济系统请求
-    this.game.events.on('economy:spawn_plant_sun', (data: { x: number; y: number; amount: number }) => {
-      this.economySystem.spawnPlantSun(data.x, data.y, data.amount);
-    });
+    this.registerGameEvent(
+      'economy:spawn_plant_sun',
+      (data: { x: number; y: number; amount: number }) => {
+        this.economySystem.spawnPlantSun(data.x, data.y, data.amount);
+      }
+    );
 
     // 波次完成
-    this.game.events.on(GameEvents.ALL_WAVES_COMPLETED, () => {
+    this.registerGameEvent(GameEvents.ALL_WAVES_COMPLETED, () => {
       this.time.delayedCall(3000, () => {
         this.gameOver(true);
       });
     });
 
     // 僵尸死亡
-    this.game.events.on(GameEvents.ZOMBIE_DIED, () => {
+    this.registerGameEvent(GameEvents.ZOMBIE_DIED, () => {
       this.waveSystem.onZombieKilled();
     });
 
     // 僵尸检查是否可以撑杆跳
-    this.events.on('zombie:check_vault', (data: {
-      zombie: Zombie;
-      x: number;
-      row: number;
-      callback: (hasPlant: boolean) => void;
-    }) => {
-      // 检查前方一格内是否有植物
-      const checkDistance = GRID_CONFIG.CELL_WIDTH;
-      const hasPlant = this.plants.has(`${data.row}_${Math.floor((data.x - GRID_CONFIG.OFFSET_X + checkDistance) / GRID_CONFIG.CELL_WIDTH)}`);
-      data.callback(hasPlant);
-    });
+    this.registerSceneEvent(
+      'zombie:check_vault',
+      (data: {
+        zombie: Zombie;
+        x: number;
+        row: number;
+        callback: (hasPlant: boolean) => void;
+      }) => {
+        // 检查前方一格内是否有植物
+        const checkDistance = GRID_CONFIG.CELL_WIDTH;
+        const hasPlant = this.plants.has(
+          `${data.row}_${Math.floor((data.x - GRID_CONFIG.OFFSET_X + checkDistance) / GRID_CONFIG.CELL_WIDTH)}`
+        );
+        data.callback(hasPlant);
+      }
+    );
 
     // 僵尸到达房屋
-    this.events.on('zombie:reached_house', (zombie: Zombie) => {
+    this.registerSceneEvent('zombie:reached_house', (zombie: Zombie) => {
       this.handleZombieReachedHouse(zombie);
     });
   }
@@ -457,7 +526,9 @@ export class GameScene extends BaseScene {
     if (this.isGameOver) return;
 
     const row = zombie.getRow();
-    const mower = this.lawnMowers.find(m => m.getData('row') === row && !m.getData('isActive'));
+    const mower = this.lawnMowers.find(
+      (m) => m.getData('row') === row && !m.getData('isActive')
+    );
 
     if (mower) {
       // 该行还有未激活的割草机，激活它
@@ -465,7 +536,9 @@ export class GameScene extends BaseScene {
     } else if (this.activeMowerRows.has(row)) {
       // 割草机已激活或已用完，但行仍标记为有割草机
       // 检查该行是否还有任何割草机（包括激活中的）
-      const anyMowerInRow = this.lawnMowers.some(m => m.getData('row') === row);
+      const anyMowerInRow = this.lawnMowers.some(
+        (m) => m.getData('row') === row
+      );
       if (!anyMowerInRow) {
         // 该行割草机已用完，僵尸到达房屋，游戏失败
         this.activeMowerRows.delete(row);
@@ -510,7 +583,7 @@ export class GameScene extends BaseScene {
     let closestZombie: Zombie | null = null;
     let minDistance = Infinity;
 
-    this.zombies.forEach(zombie => {
+    this.zombies.forEach((zombie) => {
       if (zombie.getRow() === row && zombie.x > plant.x) {
         const distance = zombie.x - plant.x;
         if (distance < minDistance) {
@@ -536,22 +609,24 @@ export class GameScene extends BaseScene {
     speed: number;
     row: number;
   }): void {
-    let projectile: Pea | SnowPea;
-
-    if (data.type === 'snow_pea') {
-      projectile = new SnowPea(this, data.x, data.y);
-    } else {
-      projectile = new Pea(this, data.x, data.y);
-    }
+    const projectile = this.projectilePool.get(
+      data.type === 'snow_pea' ? 'snow_pea' : 'pea'
+    );
+    projectile.setRecycleHandler((instance) => {
+      this.projectilePool.recycle(instance as Pea | SnowPea);
+    });
+    projectile.setPosition(data.x, data.y);
 
     projectile.setProjectileData({
       damage: data.damage,
       speed: data.speed,
       row: data.row,
-      type: data.type
+      type: data.type,
     });
 
-    this.projectileLayer?.add(projectile);
+    if (this.projectileLayer && !this.projectileLayer.contains(projectile)) {
+      this.projectileLayer.add(projectile);
+    }
 
     // 播放射击音效
     this.audioManager?.playSfx(SoundEffect.SHOOT);
@@ -581,14 +656,25 @@ export class GameScene extends BaseScene {
   /**
    * 处理爆炸效果
    */
-  private handleExplosion(data: { damage: number; x: number; y: number; row: number }): void {
+  private handleExplosion(data: {
+    damage: number;
+    x: number;
+    y: number;
+    row: number;
+  }): void {
     // 播放爆炸音效
     this.audioManager?.playSfx(SoundEffect.EXPLOSION);
 
     // 对范围内僵尸造成伤害
-    this.zombies.forEach(zombie => {
-      const distance = Phaser.Math.Distance.Between(data.x, data.y, zombie.x, zombie.y);
-      if (distance <= 120) { // 3x3范围
+    this.zombies.forEach((zombie) => {
+      const distance = Phaser.Math.Distance.Between(
+        data.x,
+        data.y,
+        zombie.x,
+        zombie.y
+      );
+      if (distance <= 120) {
+        // 3x3范围
         zombie.takeDamage(data.damage, 'explosion');
       }
     });
@@ -617,9 +703,11 @@ export class GameScene extends BaseScene {
    */
   private handleZombieMeetPlant(zombie: Zombie, plant: Plant): void {
     // 检查是否同一行且僵尸在攻击范围内
-    if (zombie.getRow() === plant.getRow() &&
-        Math.abs(zombie.x - plant.x) < 40 &&
-        plant.isPlantAlive()) {
+    if (
+      zombie.getRow() === plant.getRow() &&
+      Math.abs(zombie.x - plant.x) < 40 &&
+      plant.isPlantAlive()
+    ) {
       zombie.startAttacking(plant);
 
       // 播放咬击音效（随机间隔）
@@ -665,15 +753,20 @@ export class GameScene extends BaseScene {
     sunDisplay.add(sunIcon);
 
     // 阳光数值
-    const sunText = this.createText(55, 0, ECONOMY_CONFIG.INITIAL_SUN.toString(), {
-      fontSize: '20px',
-      color: '#ffffff'
-    });
+    const sunText = this.createText(
+      55,
+      0,
+      ECONOMY_CONFIG.INITIAL_SUN.toString(),
+      {
+        fontSize: '20px',
+        color: '#ffffff',
+      }
+    );
     sunText.setOrigin(0.5);
     sunDisplay.add(sunText);
 
     // 监听阳光变化
-    this.game.events.on(GameEvents.SUN_CHANGED, (sun: number) => {
+    this.registerGameEvent(GameEvents.SUN_CHANGED, (sun: number) => {
       sunText.setText(sun.toString());
     });
   }
@@ -691,12 +784,18 @@ export class GameScene extends BaseScene {
       { id: 'cherry_bomb', cost: 150, color: 0xff4444 },
       { id: 'snow_pea', cost: 175, color: 0xaaddff },
       { id: 'repeater', cost: 200, color: 0x22c55e },
-      { id: 'chomper', cost: 150, color: 0x4a0404 }
+      { id: 'chomper', cost: 150, color: 0x4a0404 },
     ];
 
     let xOffset = 0;
     availablePlants.forEach((plant) => {
-      const card = this.createPlantCard(xOffset, 0, plant.id, plant.cost, plant.color);
+      const card = this.createPlantCard(
+        xOffset,
+        0,
+        plant.id,
+        plant.cost,
+        plant.color
+      );
       plantBar.add(card);
       xOffset += 70;
     });
@@ -705,7 +804,13 @@ export class GameScene extends BaseScene {
   /**
    * 创建植物卡片
    */
-  private createPlantCard(x: number, y: number, plantId: string, cost: number, color: number): Phaser.GameObjects.Container {
+  private createPlantCard(
+    x: number,
+    y: number,
+    plantId: string,
+    cost: number,
+    color: number
+  ): Phaser.GameObjects.Container {
     const card = this.add.container(x, y);
 
     // 卡片背景
@@ -720,7 +825,7 @@ export class GameScene extends BaseScene {
     // 植物名称首字母
     const nameText = this.add.text(30, 30, plantId.charAt(0).toUpperCase(), {
       fontSize: '20px',
-      color: '#ffffff'
+      color: '#ffffff',
     });
     nameText.setOrigin(0.5);
     card.add(nameText);
@@ -728,7 +833,7 @@ export class GameScene extends BaseScene {
     // 阳光成本
     const costText = this.createText(30, 65, cost.toString(), {
       fontSize: '14px',
-      color: '#f59e0b'
+      color: '#f59e0b',
     });
     costText.setOrigin(0.5);
     card.add(costText);
@@ -785,10 +890,13 @@ export class GameScene extends BaseScene {
     progressBar.add(flagIcon);
 
     // 更新进度
-    this.game.events.on(GameEvents.WAVE_STARTED, (data: { waveNumber: number; totalWaves: number }) => {
-      const progressPercent = data.waveNumber / data.totalWaves;
-      progress.width = 110 * progressPercent;
-    });
+    this.registerGameEvent(
+      GameEvents.WAVE_STARTED,
+      (data: { waveNumber: number; totalWaves: number }) => {
+        const progressPercent = data.waveNumber / data.totalWaves;
+        progress.width = 110 * progressPercent;
+      }
+    );
   }
 
   /**
@@ -912,7 +1020,7 @@ export class GameScene extends BaseScene {
       scaleX: 1,
       scaleY: 1,
       duration: 300,
-      ease: 'Back.easeOut'
+      ease: 'Back.easeOut',
     });
   }
 
@@ -953,7 +1061,7 @@ export class GameScene extends BaseScene {
       fontSize: '24px',
       color: '#ef4444',
       stroke: '#000000',
-      strokeThickness: 4
+      strokeThickness: 4,
     });
     notification.setOrigin(0.5);
 
@@ -964,7 +1072,7 @@ export class GameScene extends BaseScene {
       duration: duration,
       onComplete: () => {
         notification.destroy();
-      }
+      },
     });
   }
 
@@ -1004,7 +1112,9 @@ export class GameScene extends BaseScene {
    */
   gameOver(isVictory: boolean): void {
     this.isGameOver = true;
-    this.game.events.emit(isVictory ? GameEvents.GAME_WON : GameEvents.GAME_OVER);
+    this.game.events.emit(
+      isVictory ? GameEvents.GAME_WON : GameEvents.GAME_OVER
+    );
 
     // 播放胜利/失败音效和音乐
     if (isVictory) {
@@ -1025,23 +1135,21 @@ export class GameScene extends BaseScene {
   }
 
   protected onShutdown(): void {
-    // 清理事件监听
-    this.game.events.off(GameEvents.PLANT_SELECTED);
-    this.game.events.off(GameEvents.ZOMBIE_SPAWNED);
-    this.game.events.off(GameEvents.PROJECTILE_FIRED);
-    this.game.events.off(GameEvents.PROJECTILE_HIT);
-    this.game.events.off('plant:check_target');
-    this.game.events.off('economy:spawn_plant_sun');
-    this.game.events.off(GameEvents.ALL_WAVES_COMPLETED);
-    this.game.events.off(GameEvents.ZOMBIE_DIED);
-    this.events.off('zombie:check_vault');
-    this.events.off('zombie:reached_house');
+    this.gameEventListeners.forEach(({ event, handler }) => {
+      this.game.events.off(event, handler);
+    });
+    this.sceneEventListeners.forEach(({ event, handler }) => {
+      this.events.off(event, handler);
+    });
+    this.gameEventListeners.length = 0;
+    this.sceneEventListeners.length = 0;
 
     // 清理系统
     this.gridSystem?.destroy();
     this.economySystem?.destroy();
     this.waveSystem?.destroy();
     this.combatSystem?.destroy();
+    this.projectilePool?.destroy();
 
     // 清理对象
     this.plants.clear();

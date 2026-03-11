@@ -16,13 +16,7 @@ class Game {
     // 配置游戏
     const config: Phaser.Types.Core.GameConfig = {
       ...gameConfig,
-      scene: [
-        BootScene,
-        MenuScene,
-        GameScene,
-        PauseScene,
-        GameOverScene
-      ]
+      scene: [BootScene, MenuScene, GameScene, PauseScene, GameOverScene],
     };
 
     // 创建Phaser游戏实例
@@ -51,8 +45,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const game = new Game();
 
   // 仅在开发模式下暴露到全局以便调试
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const env = (import.meta as any).env;
+  const env = import.meta.env;
   if (env && env.DEV) {
     (window as any).__debugGame = game;
   }

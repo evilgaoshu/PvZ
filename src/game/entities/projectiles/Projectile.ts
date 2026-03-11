@@ -11,6 +11,7 @@ export abstract class Projectile extends Phaser.Physics.Arcade.Image {
   protected source: Phaser.GameObjects.GameObject | null = null;
   protected isSlowing: boolean = false;
   protected projectileType: string = 'normal';
+  private recycleHandler: ((projectile: Projectile) => void) | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -61,12 +62,21 @@ export abstract class Projectile extends Phaser.Physics.Arcade.Image {
   }
 
   /**
+   * 设置回收处理器
+   */
+  public setRecycleHandler(
+    handler: ((projectile: Projectile) => void) | null
+  ): void {
+    this.recycleHandler = handler;
+  }
+
+  /**
    * 更新
    */
   public update(): void {
     // 检查是否超出屏幕
     if (this.x > 900) {
-      this.destroy();
+      this.recycle();
       return;
     }
 
@@ -85,13 +95,31 @@ export abstract class Projectile extends Phaser.Physics.Arcade.Image {
       damage: this.damage,
       type: this.projectileType,
       isSlowing: this.isSlowing,
-      row: this.row
+      row: this.row,
     });
 
     // 播放命中效果
     this.playHitEffect();
 
-    // 销毁
+    // 回收
+    this.recycle();
+  }
+
+  /**
+   * 回收投射物
+   */
+  public recycle(): void {
+    const body = this.body as Phaser.Physics.Arcade.Body | undefined;
+    if (body) {
+      body.stop();
+      body.enable = false;
+    }
+
+    if (this.recycleHandler) {
+      this.recycleHandler(this);
+      return;
+    }
+
     this.destroy();
   }
 
@@ -110,7 +138,7 @@ export abstract class Projectile extends Phaser.Physics.Arcade.Image {
       duration: 200,
       onComplete: () => {
         hit.destroy();
-      }
+      },
     });
   }
 
@@ -150,8 +178,10 @@ export class Pea extends Projectile {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
 
-    // 创建豌豆图形
-    this.createPeaGraphics(0x4ade80);
+    if (!this.scene.textures.exists('pea')) {
+      this.createPeaGraphics(0x4ade80);
+    }
+    this.setTexture('pea');
   }
 
   /**
@@ -171,9 +201,6 @@ export class Pea extends Projectile {
     // 生成纹理
     graphics.generateTexture('pea', 20, 20);
     graphics.destroy();
-
-    // 设置纹理
-    this.setTexture('pea');
   }
 
   /**
@@ -203,7 +230,7 @@ export class Pea extends Projectile {
         ease: 'Power2',
         onComplete: () => {
           particle.destroy();
-        }
+        },
       });
     }
   }
@@ -219,8 +246,11 @@ export class SnowPea extends Projectile {
     this.isSlowing = true;
     this.projectileType = 'snow_pea';
 
-    // 创建冰冻豌豆图形
-    this.createSnowPeaGraphics();
+    if (!this.scene.textures.exists('snow_pea')) {
+      this.createSnowPeaGraphics();
+    }
+    this.setTexture('snow_pea');
+    this.setTint(0xaaddff);
   }
 
   /**
@@ -249,12 +279,6 @@ export class SnowPea extends Projectile {
     // 生成纹理
     graphics.generateTexture('snow_pea', 20, 20);
     graphics.destroy();
-
-    // 设置纹理
-    this.setTexture('snow_pea');
-
-    // 添加光晕效果
-    this.setTint(0xaaddff);
   }
 
   /**
@@ -286,7 +310,7 @@ export class SnowPea extends Projectile {
         ease: 'Power2',
         onComplete: () => {
           particle.destroy();
-        }
+        },
       });
     }
 
@@ -300,7 +324,7 @@ export class SnowPea extends Projectile {
       duration: 400,
       onComplete: () => {
         frost.destroy();
-      }
+      },
     });
   }
 }
