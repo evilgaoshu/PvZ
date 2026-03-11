@@ -36,6 +36,16 @@ export class AudioManager {
    * 预加载音频资源
    */
   public preload(): void {
+    // 检查是否跳过外部资源加载（如果资产目录为空）
+    // 在本项目的当前状态下，我们知道外部音效文件不存在，为了避免 EncodingError，我们暂时跳过加载
+    // 开发者可以在添加实际资源后移除此检查
+    const skipExternalLoading = true; 
+
+    if (skipExternalLoading) {
+      console.info('Skipping external audio loading, using procedural fallback only.');
+      return;
+    }
+
     // 加载音效（设置失败回调）
     SFX_CONFIGS.forEach(config => {
       this.scene.load.audio(config.key, config.path);
@@ -172,7 +182,9 @@ export class AudioManager {
 
     const sound = this.bgm.get(key);
     if (!sound) {
-      console.warn(`Background music not found: ${key}`);
+      console.warn(`Background music not found: ${key}, using procedural fallback`);
+      this.proceduralAudio.startAmbientLoop();
+      this.currentBgm = key;
       return;
     }
 
@@ -201,7 +213,11 @@ export class AudioManager {
     if (!this.currentBgm) return;
 
     const sound = this.bgm.get(this.currentBgm);
-    if (!sound) return;
+    if (!sound) {
+      this.proceduralAudio.stopAmbientLoop();
+      this.currentBgm = null;
+      return;
+    }
 
     if (fadeDuration > 0 && sound instanceof Phaser.Sound.WebAudioSound) {
       this.scene.tweens.add({

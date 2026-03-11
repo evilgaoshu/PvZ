@@ -18,183 +18,184 @@ export class BootScene extends BaseScene {
   }
 
   protected onPreload(): void {
-    // 显示加载进度
     this.createLoadingScreen();
 
-    // 初始化音频管理器并预加载音频
     this.audioManager = new AudioManager(this);
 
-    // 设置加载错误处理
     this.load.on('loaderror', (file: any) => {
       console.warn(`Failed to load: ${file.key}, using fallback`);
     });
 
     this.audioManager.preload();
-
-    // 加载游戏资源
     this.loadGameAssets();
 
-    // 监听加载进度
     this.load.on('progress', (value: number) => {
       this.updateLoadingProgress(value);
     });
 
+    // 增加超时保护，防止加载永久卡住
+    this.time.delayedCall(10000, () => {
+      if (this.load.isLoading()) {
+        console.warn('Loading timeout, forcing completion');
+        this.onLoadComplete();
+      }
+    });
+
     this.load.on('complete', () => {
-      this.onLoadComplete();
+      try {
+        this.createProceduralAssets();
+        this.onLoadComplete();
+      } catch (error) {
+        console.error('Error creating procedural assets:', error);
+        this.onLoadComplete(); // 即使报错也尝试继续
+      }
     });
   }
 
-  protected onCreate(): void {
-    // 资源加载在preload完成，此处可做一些初始化
+  private createProceduralAssets(): void {
+    this.createPlantTexture('plants/sunflower', 0xfcd34d);
+    this.createPlantTexture('plants/peashooter', 0x4ade80);
+    this.createPlantTexture('plants/wallnut', 0x92400e);
+    this.createPlantTexture('plants/cherry_bomb', 0xef4444);
+    this.createPlantTexture('plants/snow_pea', 0x60a5fa);
+    this.createPlantTexture('plants/repeater', 0x166534);
+    this.createPlantTexture('plants/chomper', 0x7e22ce);
+
+    this.createZombieTexture('zombies/normal', 0x8fbc8f);
+    this.createZombieTexture('zombies/conehead', 0x8fbc8f, 0xf97316);
+    this.createZombieTexture('zombies/buckethead', 0x8fbc8f, 0x94a3b8);
+    this.createZombieTexture('zombies/pole_vaulting', 0x8fbc8f);
+    this.createZombieTexture('zombies/newspaper', 0x8fbc8f);
+    this.createZombieTexture('zombies/screendoor', 0x8fbc8f);
+
+    this.createProjectileTexture('pea', 0x4ade80);
+    this.createProjectileTexture('snow_pea', 0x60a5fa);
+    this.createBackgroundTexture('day-grass', 0x4ade80);
   }
 
-  protected onUpdate(): void {
-    // 启动场景无需每帧更新
+  private createPlantTexture(key: string, color: number): void {
+    const graphics = this.make.graphics({ x: 0, y: 0 }, false);
+    const center = 32;
+    
+    // 基础根茎
+    graphics.fillStyle(0x15803d, 1);
+    graphics.fillRect(center - 5, center + 10, 10, 20);
+    
+    if (key.includes('sunflower')) {
+      graphics.fillStyle(0xfde047, 1);
+      for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        graphics.fillCircle(center + Math.cos(angle) * 15, center - 5 + Math.sin(angle) * 15, 10);
+      }
+      graphics.fillStyle(0x78350f, 1);
+      graphics.fillCircle(center, center - 5, 12);
+    } else if (key.includes('peashooter') || key.includes('repeater') || key.includes('snow_pea')) {
+      graphics.fillStyle(color, 1);
+      graphics.fillCircle(center, center - 5, 18);
+      graphics.fillRect(center, center - 10, 25, 10); // 简化喷管
+      graphics.fillStyle(0x000000, 1);
+      graphics.fillCircle(center + 5, center - 10, 3);
+    } else if (key.includes('wallnut')) {
+      graphics.fillStyle(0x92400e, 1);
+      graphics.fillEllipse(center, center, 25, 32);
+      graphics.fillStyle(0xffffff, 1);
+      graphics.fillCircle(center - 8, center - 5, 6);
+      graphics.fillCircle(center + 8, center - 5, 6);
+    } else {
+      graphics.fillStyle(color, 1);
+      graphics.fillCircle(center, center, 25);
+    }
+
+    graphics.generateTexture(key, 64, 64);
+    graphics.destroy();
   }
 
-  /**
-   * 创建加载界面
-   */
+  private createZombieTexture(key: string, color: number, armorColor?: number): void {
+    const graphics = this.make.graphics({ x: 0, y: 0 }, false);
+    const centerX = 32;
+    
+    graphics.fillStyle(0x1e3a8a, 1);
+    graphics.fillRect(centerX - 15, 60, 30, 30);
+    graphics.fillStyle(0x451a03, 1);
+    graphics.fillRect(centerX - 18, 30, 36, 35);
+    graphics.fillStyle(color, 1);
+    graphics.fillCircle(centerX, 20, 18);
+    
+    if (armorColor) {
+      graphics.fillStyle(armorColor, 1);
+      graphics.fillRect(centerX - 15, 0, 30, 15);
+    }
+
+    graphics.generateTexture(key, 64, 100);
+    graphics.destroy();
+  }
+
+  private createProjectileTexture(key: string, color: number): void {
+    const graphics = this.make.graphics({ x: 0, y: 0 }, false);
+    graphics.fillStyle(color, 1);
+    graphics.fillCircle(10, 10, 8);
+    graphics.fillStyle(0xffffff, 0.5);
+    graphics.fillCircle(7, 7, 3);
+    graphics.generateTexture(key, 20, 20);
+    graphics.destroy();
+  }
+
+  private createBackgroundTexture(key: string, color: number): void {
+    const graphics = this.make.graphics({ x: 0, y: 0 }, false);
+    graphics.fillStyle(color, 1);
+    graphics.fillRect(0, 0, 800, 600);
+    graphics.fillStyle(0x166534, 0.3);
+    for (let i = 0; i < 100; i++) {
+      graphics.fillRect(Math.random() * 800, Math.random() * 600, 20, 5);
+    }
+    graphics.generateTexture(key, 800, 600);
+    graphics.destroy();
+  }
+
   private createLoadingScreen(): void {
     const { width, height } = this.getGameSize();
     const centerX = width / 2;
     const centerY = height / 2;
-
-    // 背景
     this.add.rectangle(centerX, centerY, width, height, 0x1a1a2e);
-
-    // 标题
-    const title = this.createText(centerX, centerY - 100, '植物大战僵尸', {
-      fontSize: '48px',
-      color: '#4ade80',
-      strokeThickness: 6
-    });
-    title.setOrigin(0.5);
-
-    // 副标题
-    const subtitle = this.createText(centerX, centerY - 40, 'Plants vs Zombies', {
-      fontSize: '20px',
-      color: '#94a3b8'
-    });
-    subtitle.setOrigin(0.5);
-
-    // 进度条背景
-    const progressBarBg = this.add.rectangle(
-      centerX,
-      centerY + 50,
-      400,
-      30,
-      0x334155
-    );
-    progressBarBg.setOrigin(0.5);
-
-    // 进度条
-    const progressBar = this.add.rectangle(
-      centerX - 195,
-      centerY + 50,
-      0,
-      20,
-      0x4ade80
-    );
-    progressBar.setOrigin(0, 0.5);
+    this.createText(centerX, centerY - 100, '植物大战僵尸', { fontSize: '48px', color: '#4ade80' }).setOrigin(0.5);
+    const progressBarBg = this.add.rectangle(centerX, centerY + 50, 400, 30, 0x334155);
+    const progressBar = this.add.rectangle(centerX - 195, centerY + 50, 0, 20, 0x4ade80).setOrigin(0, 0.5);
     this.registry.set('progressBar', progressBar);
-
-    // 进度文字
-    const progressText = this.createText(centerX, centerY + 100, '0%', {
-      fontSize: '18px',
-      color: '#94a3b8'
-    });
-    progressText.setOrigin(0.5);
+    const progressText = this.createText(centerX, centerY + 100, '0%', { fontSize: '18px', color: '#94a3b8' }).setOrigin(0.5);
     this.registry.set('progressText', progressText);
-
-    // 加载提示
-    const loadingTip = this.createText(centerX, centerY + 150, '正在加载资源...', {
-      fontSize: '16px',
-      color: '#64748b'
-    });
-    loadingTip.setOrigin(0.5);
   }
 
-  /**
-   * 更新加载进度
-   */
   private updateLoadingProgress(value: number): void {
-    const progressBar = this.registry.get('progressBar') as Phaser.GameObjects.Rectangle;
-    const progressText = this.registry.get('progressText') as Phaser.GameObjects.Text;
-
-    if (progressBar) {
-      progressBar.width = 390 * value;
-    }
-
-    if (progressText) {
-      progressText.setText(`${Math.floor(value * 100)}%`);
-    }
+    const progressBar = this.registry.get('progressBar');
+    const progressText = this.registry.get('progressText');
+    if (progressBar) progressBar.width = 390 * value;
+    if (progressText) progressText.setText(`${Math.floor(value * 100)}%`);
   }
 
-  /**
-   * 加载游戏资源
-   */
   private loadGameAssets(): void {
-    // 由于目前没有实际资源，我们使用程序化生成的资源
-    // 在实际开发中，这里会加载图片、音频等资源
-
-    // 加载植物精灵图
-    // this.load.spritesheet('sunflower', 'assets/images/plants/sunflower.png', {
-    //   frameWidth: 64,
-    //   frameHeight: 64
-    // });
-
-    // 加载僵尸精灵图
-    // this.load.spritesheet('zombie', 'assets/images/zombies/normal.png', {
-    //   frameWidth: 64,
-    //   frameHeight: 100
-    // });
-
-    // 加载UI图片
-    // this.load.image('button', 'assets/images/ui/button.png');
-
-    // 加载音频
-    // this.load.audio('bgm', 'assets/audio/bgm/menu.mp3');
-    // this.load.audio('plant', 'assets/audio/sfx/plant.mp3');
-
-    // 模拟加载延迟
-    for (let i = 0; i < 50; i++) {
-      this.load.image(`dummy_${i}`, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
+    // 模拟一些小资源确保加载队列不为空
+    for (let i = 0; i < 10; i++) {
+      this.load.image(`load_tick_${i}`, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
     }
   }
 
-  /**
-   * 加载完成回调
-   */
   private onLoadComplete(): void {
-    console.log('All assets loaded');
-
-    // 初始化音频
+    if (!this.scene.isActive(this.sceneKey)) return;
     this.audioManager?.init();
-
-    // 将音频管理器注册到游戏注册表，供其他场景使用
     this.game.registry.set('audioManager', this.audioManager);
-
-    // 延迟一点让用户看到100%
     this.time.delayedCall(500, () => {
       this.transitionToMenu();
     });
   }
 
-  /**
-   * 过渡到菜单场景
-   */
   private transitionToMenu(): void {
-    this.transitionOut(500, () => {
-      this.scene.start('MenuScene');
-    });
+    this.scene.start('MenuScene');
   }
 
+  protected onCreate(): void {}
+  protected onUpdate(): void {}
   protected onShutdown(): void {
-    // 清理资源
     this.registry.remove('progressBar');
     this.registry.remove('progressText');
-    // 注意：不销毁 audioManager，因为它被注册到 game.registry 供全局使用
-    // 其生命周期应由全局管理
   }
 }

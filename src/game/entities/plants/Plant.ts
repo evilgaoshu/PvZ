@@ -3,6 +3,7 @@ import type { PlantConfig } from '@/types/config';
 import { GameEvents, EntityState, GRID_CONFIG } from '@/types/index';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
+import { VisualEffects } from '@utils/VisualEffects';
 
 /**
  * 植物基类
@@ -64,6 +65,9 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
     this.setupPhysics();
     this.setupAnimations();
     this.setupEventListeners();
+
+    // 添加阴影
+    VisualEffects.addShadow(this.scene, this);
 
     // 播放空闲动画
     this.playIdleAnimation();
@@ -224,14 +228,9 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
    * 显示受伤效果
    */
   protected showDamageEffect(): void {
-    // 闪烁效果
-    this.scene.tweens.add({
-      targets: this,
-      alpha: 0.5,
-      duration: 50,
-      yoyo: true,
-      repeat: 1
-    });
+    // 使用统一的闪烁效果
+    VisualEffects.flashSprite(this, 0xffffff, 80);
+    VisualEffects.bounceScale(this, 1.05, 100);
   }
 
   /**

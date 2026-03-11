@@ -8,12 +8,34 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: true,
+    sourcemap: false, // 生产环境关闭 sourcemap 减小体积
     minify: 'terser',
+    chunkSizeWarningLimit: 1000, // 提升警告阈值到 1000kB
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info'] // 移除更多的调试日志
+      },
+      format: {
+        comments: false // 移除所有注释
+      }
+    },
+    rollupOptions: {
+      output: {
+        // 手动分包逻辑
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('phaser')) {
+              return 'phaser'; // Phaser 独立打包，因为它很大
+            }
+            return 'vendor'; // 其他第三方库打包到 vendor
+          }
+        },
+        // 资源文件名优化
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
       }
     }
   },

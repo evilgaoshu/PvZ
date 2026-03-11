@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { VisualEffects } from '@utils/VisualEffects';
 
 /**
  * 场景基类
@@ -234,18 +235,22 @@ export abstract class BaseScene extends Phaser.Scene {
 
     bg.on('pointerover', () => {
       bg.setFillStyle(0x22c55e);
+      VisualEffects.bounceScale(container, 1.05, 100);
     });
 
     bg.on('pointerout', () => {
       bg.setFillStyle(0x4ade80);
+      VisualEffects.bounceScale(container, 1.0, 100);
     });
 
     bg.on('pointerdown', () => {
       bg.setFillStyle(0x15803d);
+      VisualEffects.bounceScale(container, 0.95, 100);
     });
 
     bg.on('pointerup', () => {
       bg.setFillStyle(0x22c55e);
+      VisualEffects.bounceScale(container, 1.05, 100);
       callback();
     });
 

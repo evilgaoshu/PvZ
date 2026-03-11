@@ -3,6 +3,7 @@ import { ECONOMY_CONFIG, GameEvents } from '@/types/index';
 import type { SunSource, SunCollectedEventData } from '@/types/config';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
+import { VisualEffects } from '@utils/VisualEffects';
 
 /**
  * 经济系统
@@ -192,6 +193,11 @@ export class EconomySystem {
       if (isCollected) return;
       isCollected = true;
       hitArea.disableInteractive();
+      
+      // 点击时的反馈效果
+      VisualEffects.bounceScale(container, 1.3, 150);
+      VisualEffects.createSplat(this.scene, container.x, container.y, 0xfef08a, 6);
+      
       this.collectSun(container, amount, source);
     });
 
@@ -208,6 +214,12 @@ export class EconomySystem {
     // 播放阳光收集音效
     this.audioManager?.playSfx(SoundEffect.SUN_COLLECT);
 
+    // 漂浮文字
+    VisualEffects.floatText(this.scene, sun.x, sun.y, `+${amount}`, {
+      color: '#fbbf24',
+      fontSize: '24px'
+    });
+
     // 收集动画 - 飞向阳光计数器
     this.scene.tweens.add({
       targets: sun,
@@ -215,8 +227,8 @@ export class EconomySystem {
       y: 40,
       scaleX: 0.5,
       scaleY: 0.5,
-      duration: 300,
-      ease: 'Power2',
+      duration: 500,
+      ease: 'Back.easeIn',
       onComplete: () => {
         this.removeSun(sun);
         this.addSun(amount, source);

@@ -18,7 +18,27 @@ export class ProceduralAudio {
    */
   public playPlant(): void {
     if (!this.audioContext) return;
-    this.playTone(440, 0.1, 'sine', 0.3);
+    this.resume();
+    
+    // 两个振荡器层叠，一个是基础音调，一个是短暂的冲击音
+    const now = this.audioContext.currentTime;
+    
+    // 基础音
+    this.playTone(330, 0.15, 'sine', 0.2);
+    
+    // 冲击噪音
+    const noise = this.createNoiseBuffer(0.05);
+    const noiseSource = this.audioContext.createBufferSource();
+    const noiseGain = this.audioContext.createGain();
+    
+    noiseSource.buffer = noise;
+    noiseSource.connect(noiseGain);
+    noiseGain.connect(this.audioContext.destination);
+    
+    noiseGain.gain.setValueAtTime(0.1, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+    
+    noiseSource.start(now);
   }
 
   /**
@@ -26,20 +46,31 @@ export class ProceduralAudio {
    */
   public playShoot(): void {
     if (!this.audioContext) return;
+    this.resume();
+    
+    const now = this.audioContext.currentTime;
     const osc = this.audioContext.createOscillator();
     const gain = this.audioContext.createGain();
+    const filter = this.audioContext.createBiquadFilter();
 
-    osc.connect(gain);
+    osc.connect(filter);
+    filter.connect(gain);
     gain.connect(this.audioContext.destination);
 
-    osc.frequency.setValueAtTime(800, this.audioContext.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(400, this.audioContext.currentTime + 0.1);
+    // 频率快速下滑，模拟“噗”的一声
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
 
-    gain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+    // 滤波器
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(1000, now);
+    filter.frequency.exponentialRampToValueAtTime(100, now + 0.1);
 
-    osc.start(this.audioContext.currentTime);
-    osc.stop(this.audioContext.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+
+    osc.start(now);
+    osc.stop(now + 0.1);
   }
 
   /**
@@ -47,7 +78,26 @@ export class ProceduralAudio {
    */
   public playHit(): void {
     if (!this.audioContext) return;
-    this.playNoise(0.1, 0.3);
+    this.resume();
+    
+    const now = this.audioContext.currentTime;
+    
+    // 高频瞬时噪音
+    const noise = this.createNoiseBuffer(0.05);
+    const source = this.audioContext.createBufferSource();
+    const gain = this.audioContext.createGain();
+    
+    source.buffer = noise;
+    source.connect(gain);
+    gain.connect(this.audioContext.destination);
+    
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+    
+    source.start(now);
+    
+    // 配合一个低频打击音
+    this.playTone(150, 0.08, 'triangle', 0.2);
   }
 
   /**
@@ -55,20 +105,41 @@ export class ProceduralAudio {
    */
   public playExplosion(): void {
     if (!this.audioContext) return;
+    this.resume();
+    
+    const now = this.audioContext.currentTime;
+    
+    // 1. 低频冲击
     const osc = this.audioContext.createOscillator();
-    const gain = this.audioContext.createGain();
-
-    osc.connect(gain);
-    gain.connect(this.audioContext.destination);
-
-    osc.frequency.setValueAtTime(100, this.audioContext.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(10, this.audioContext.currentTime + 0.3);
-
-    gain.gain.setValueAtTime(0.5, this.audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
-
-    osc.start(this.audioContext.currentTime);
-    osc.stop(this.audioContext.currentTime + 0.3);
+    const oscGain = this.audioContext.createGain();
+    osc.connect(oscGain);
+    oscGain.connect(this.audioContext.destination);
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.4);
+    oscGain.gain.setValueAtTime(0.6, now);
+    oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+    osc.start(now);
+    osc.stop(now + 0.4);
+    
+    // 2. 持续白噪音
+    const noise = this.createNoiseBuffer(0.5);
+    const noiseSource = this.audioContext.createBufferSource();
+    const noiseGain = this.audioContext.createGain();
+    const filter = this.audioContext.createBiquadFilter();
+    
+    noiseSource.buffer = noise;
+    noiseSource.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(this.audioContext.destination);
+    
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2000, now);
+    filter.frequency.exponentialRampToValueAtTime(100, now + 0.5);
+    
+    noiseGain.gain.setValueAtTime(0.5, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+    
+    noiseSource.start(now);
   }
 
   /**
@@ -76,21 +147,20 @@ export class ProceduralAudio {
    */
   public playSunCollect(): void {
     if (!this.audioContext) return;
-    const osc = this.audioContext.createOscillator();
-    const gain = this.audioContext.createGain();
-
-    osc.connect(gain);
-    gain.connect(this.audioContext.destination);
-
-    osc.frequency.setValueAtTime(880, this.audioContext.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1760, this.audioContext.currentTime + 0.2);
-
-    gain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
-
-    osc.type = 'sine';
-    osc.start(this.audioContext.currentTime);
-    osc.stop(this.audioContext.currentTime + 0.2);
+    this.resume();
+    
+    const now = this.audioContext.currentTime;
+    
+    // 两个正弦波层叠，形成叮当声
+    this.playTone(880, 0.3, 'sine', 0.15); // A5
+    
+    setTimeout(() => {
+      this.playTone(1318.51, 0.4, 'sine', 0.1); // E6
+    }, 50);
+    
+    setTimeout(() => {
+      this.playTone(1760, 0.5, 'sine', 0.1); // A6
+    }, 100);
   }
 
   /**
@@ -98,7 +168,68 @@ export class ProceduralAudio {
    */
   public playButtonClick(): void {
     if (!this.audioContext) return;
-    this.playTone(600, 0.05, 'square', 0.2);
+    this.resume();
+    this.playTone(1200, 0.05, 'sine', 0.2);
+    setTimeout(() => this.playTone(800, 0.05, 'sine', 0.15), 20);
+  }
+
+  /**
+   * 停止当前背景循环
+   */
+  public stopAmbientLoop(): void {
+    if (this.currentBgmNodes) {
+      this.currentBgmNodes.forEach(node => {
+        try { node.stop(); } catch {}
+      });
+      this.currentBgmNodes = [];
+    }
+  }
+
+  private currentBgmNodes: AudioScheduledSourceNode[] = [];
+
+  /**
+   * 启动程序化背景音乐循环
+   */
+  public startAmbientLoop(): void {
+    if (!this.audioContext) return;
+    this.resume();
+    this.stopAmbientLoop();
+
+    const now = this.audioContext.currentTime;
+    
+    // 创建一个简单的氛围低音
+    const createDrone = (freq: number, vol: number) => {
+      const osc = this.audioContext!.createOscillator();
+      const gain = this.audioContext!.createGain();
+      osc.connect(gain);
+      gain.connect(this.audioContext!.destination);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vol, now + 2);
+      
+      osc.start(now);
+      this.currentBgmNodes.push(osc);
+    };
+
+    // 播放几个和谐的低频音
+    createDrone(110, 0.05); // A2
+    createDrone(164.81, 0.03); // E3
+  }
+
+  /**
+   * 辅助方法：创建指定时长的噪音缓存
+   */
+  private createNoiseBuffer(duration: number): AudioBuffer {
+    const sampleRate = this.audioContext!.sampleRate;
+    const buffer = this.audioContext!.createBuffer(1, sampleRate * duration, sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    return buffer;
   }
 
   /**

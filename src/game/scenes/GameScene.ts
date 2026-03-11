@@ -173,6 +173,10 @@ export class GameScene extends BaseScene {
     // 背景层
     const bgLayer = this.add.container(0, 0);
     this.gameContainer.add(bgLayer);
+    
+    // 添加精致的草地背景纹理
+    const bgImage = this.add.image(400, 300, 'day-grass');
+    bgLayer.add(bgImage);
 
     // 植物层
     this.plantLayer = this.physics.add.group();
@@ -192,9 +196,9 @@ export class GameScene extends BaseScene {
    * 创建网格背景
    */
   private createGrid(): void {
-    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT, GRASS_COLORS } = GRID_CONFIG;
+    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT } = GRID_CONFIG;
 
-    // 创建草地背景
+    // 创建柔和的网格线
     const graphics = this.add.graphics();
 
     for (let row = 0; row < ROWS; row++) {
@@ -202,14 +206,26 @@ export class GameScene extends BaseScene {
         const x = OFFSET_X + col * CELL_WIDTH;
         const y = OFFSET_Y + row * CELL_HEIGHT;
 
-        // 交替颜色
-        const colorIndex = (row + col) % 2;
-        graphics.fillStyle(GRASS_COLORS[colorIndex], 1);
-        graphics.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
+        // 仅在交替的格子上绘制非常微弱的阴影以区分格子，而不是完全覆盖背景
+        if ((row + col) % 2 === 0) {
+          graphics.fillStyle(0x000000, 0.05);
+          graphics.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
+        }
 
-        // 网格线
-        graphics.lineStyle(1, 0x3d7c36, 0.5);
-        graphics.strokeRect(x, y, CELL_WIDTH, CELL_HEIGHT);
+        // 细微的网格高光和阴影，增加立体感
+        graphics.lineStyle(1, 0xffffff, 0.1);
+        graphics.beginPath();
+        graphics.moveTo(x, y + CELL_HEIGHT);
+        graphics.lineTo(x, y);
+        graphics.lineTo(x + CELL_WIDTH, y);
+        graphics.strokePath();
+        
+        graphics.lineStyle(1, 0x000000, 0.15);
+        graphics.beginPath();
+        graphics.moveTo(x + CELL_WIDTH, y);
+        graphics.lineTo(x + CELL_WIDTH, y + CELL_HEIGHT);
+        graphics.lineTo(x, y + CELL_HEIGHT);
+        graphics.strokePath();
       }
     }
 
@@ -232,9 +248,9 @@ export class GameScene extends BaseScene {
         // 悬停效果
         cell.on('pointerover', () => {
           if (this.selectedPlant) {
-            cell.setFillStyle(0x4ade80, 0.3);
+            cell.setFillStyle(0xffffff, 0.3);
           } else {
-            cell.setFillStyle(0xffffff, 0.2);
+            cell.setFillStyle(0xffffff, 0.1);
           }
         });
 

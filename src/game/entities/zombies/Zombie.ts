@@ -3,6 +3,7 @@ import type { ZombieConfig } from '@/types/config';
 import { GameEvents, EntityState } from '@/types/index';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
+import { VisualEffects } from '@utils/VisualEffects';
 
 /**
  * 僵尸基类
@@ -71,6 +72,9 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.setupPhysics();
     this.setupAnimations();
     this.setupEventListeners();
+
+    // 添加阴影
+    VisualEffects.addShadow(this.scene, this);
 
     // 开始行走
     this.startWalking();
@@ -252,7 +256,15 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
 
     // 显示伤害效果
     this.showDamageEffect();
-    this.showDamageNumber(amount);
+    
+    // 使用统一的漂浮文字
+    VisualEffects.floatText(this.scene, this.x, this.y - 40, `-${Math.round(amount)}`, {
+      color: '#ef4444',
+      fontSize: '18px'
+    });
+
+    // 播放打击粒子效果
+    VisualEffects.createSplat(this.scene, this.x, this.y, 0xffcccc, 5);
 
     // 检查死亡
     if (this.currentHealth <= 0) {
@@ -265,16 +277,8 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
    */
   protected onArmorBreak(): void {
     // 播放护甲破碎效果
-    const debris = this.scene.add.particles(this.x, this.y, 'particle', {
-      speed: { min: 50, max: 150 },
-      scale: { start: 0.5, end: 0 },
-      quantity: 5,
-      lifespan: 500
-    });
-
-    this.scene.time.delayedCall(500, () => {
-      debris.destroy();
-    });
+    VisualEffects.createSplat(this.scene, this.x, this.y, 0xdddddd, 10);
+    VisualEffects.shakeCamera(this.scene, 0.003, 100);
   }
 
   /**
@@ -284,12 +288,11 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     // 播放金属击中音效
     this.audioManager?.playSfx(SoundEffect.METAL_HIT);
 
-    this.scene.tweens.add({
-      targets: this,
-      alpha: 0.7,
-      duration: 50,
-      yoyo: true
-    });
+    // 使用统一的闪烁效果
+    VisualEffects.flashSprite(this, 0xcccccc, 80);
+    
+    // 缩放回弹
+    VisualEffects.bounceScale(this, 1.05, 100);
   }
 
   /**
@@ -297,13 +300,11 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
    */
   protected showDamageEffect(): void {
     // 闪烁红色
-    this.setTint(0xff0000);
+    VisualEffects.flashSprite(this, 0xff0000, 100);
 
-    this.scene.time.delayedCall(100, () => {
-      this.clearTint();
-
+    this.scene.time.delayedCall(110, () => {
       // 如果有减速，恢复蓝色
-      if (this.isSlowed) {
+      if (this.isSlowed && this.active) {
         this.setTint(0x88ccff);
       }
     });
@@ -313,24 +314,7 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
    * 显示伤害数字
    */
   protected showDamageNumber(amount: number): void {
-    const text = this.scene.add.text(this.x, this.y - 50, amount.toString(), {
-      fontSize: '16px',
-      color: '#ef4444',
-      stroke: '#000000',
-      strokeThickness: 3
-    });
-    text.setOrigin(0.5);
-
-    this.scene.tweens.add({
-      targets: text,
-      y: this.y - 80,
-      alpha: 0,
-      duration: 800,
-      ease: 'Power1',
-      onComplete: () => {
-        text.destroy();
-      }
-    });
+    // 已被 VisualEffects.floatText 替代
   }
 
   /**
@@ -386,6 +370,9 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
 
     // 播放僵尸死亡音效
     this.audioManager?.playSfx(SoundEffect.ZOMBIE_DIE);
+
+    // 屏幕微抖动
+    VisualEffects.shakeCamera(this.scene, 0.005, 200);
 
     // 发送死亡事件
     this.scene.game.events.emit(GameEvents.ZOMBIE_DIED, {

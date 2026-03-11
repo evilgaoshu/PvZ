@@ -1,5 +1,6 @@
 import { Plant } from './Plant';
 import type { PlantConfig } from '@/types/config';
+import { VisualEffects } from '@utils/VisualEffects';
 
 /**
  * 豌豆射手
@@ -20,12 +21,7 @@ export class Peashooter extends Plant {
   protected fireProjectile(): void {
     super.fireProjectile();
 
-    // 嘴巴张开效果
-    this.scene.tweens.add({
-      targets: this,
-      scaleY: 1.1,
-      duration: 100,
-      yoyo: true
-    });
+    // 嘴巴张开回弹效果
+    VisualEffects.bounceScale(this, 1.15, 200);
   }
 }
