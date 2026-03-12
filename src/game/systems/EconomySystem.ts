@@ -4,6 +4,17 @@ import type { SunSource, SunCollectedEventData } from '@/types/config';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
 import { VisualEffects } from '@utils/VisualEffects';
+import { ObjectPool } from '@game/utils/ObjectPool';
+
+type PooledSun = Phaser.GameObjects.Container & {
+  sunGraphics: Phaser.GameObjects.Graphics;
+  sunText: Phaser.GameObjects.Text;
+  hitArea: Phaser.GameObjects.Rectangle;
+  despawnTimer: Phaser.Time.TimerEvent | null;
+  amount: number;
+  sourceType: SunSource;
+  isCollected: boolean;
+};
 
 /**
  * 经济系统
@@ -25,12 +36,9 @@ export class EconomySystem {
   // 天空掉落阳光的配置
   private readonly fallingSunConfig = ECONOMY_CONFIG.FALLING_SUN;
 
-  // 收集的阳光对象池（未实现，预留）
-  // private sunPool: Phaser.GameObjects.Container[] = [];
+  // 阳光对象池
+  private sunPool!: ObjectPool<PooledSun>;
   private activeSuns: Phaser.GameObjects.Container[] = [];
-
-  // 事件监听引用
-  private sunCollectedCallback: ((data: SunCollectedEventData) => void) | null = null;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -42,6 +50,8 @@ export class EconomySystem {
    * 初始化
    */
   private init(): void {
+    this.sunPool = this.createSunPool();
+
     // 发送初始阳光值
     this.emitSunChanged();
 
@@ -126,20 +136,21 @@ export class EconomySystem {
     });
   }
 
-  /**
-   * 创建阳光对象
-   */
-  private createSun(x: number, y: number, source: SunSource, amount: number = 25): Phaser.GameObjects.Container {
-    const container = this.scene.add.container(x, y);
+  private createSunPool(): ObjectPool<PooledSun> {
+    return new ObjectPool<PooledSun>(
+      this.scene,
+      (scene) => this.createSunObject(scene),
+      (sun) => this.resetSunObject(sun),
+      24
+    );
+  }
 
-    // 阳光图形
-    const sunGraphics = this.scene.add.graphics();
+  private createSunObject(scene: Phaser.Scene): PooledSun {
+    const container = scene.add.container(-100, -100) as PooledSun;
+
+    const sunGraphics = scene.add.graphics();
     sunGraphics.fillStyle(0xfcd34d, 1);
-
-    // 绘制阳光形状（圆形带光芒）
     sunGraphics.fillCircle(0, 0, 15);
-
-    // 光芒
     for (let i = 0; i < 8; i++) {
       const angle = (i / 8) * Math.PI * 2;
       const rayX = Math.cos(angle) * 25;
@@ -147,11 +158,9 @@ export class EconomySystem {
       sunGraphics.fillStyle(0xfcd34d, 0.6);
       sunGraphics.fillCircle(rayX, rayY, 5);
     }
-
     container.add(sunGraphics);
 
-    // 数值文字
-    const text = this.scene.add.text(0, 35, amount.toString(), {
+    const text = scene.add.text(0, 35, '25', {
       fontSize: '14px',
       color: '#f59e0b',
       stroke: '#000000',
@@ -160,9 +169,84 @@ export class EconomySystem {
     text.setOrigin(0.5);
     container.add(text);
 
-    // 缩放动画
+    const hitArea = scene.add.rectangle(0, 0, 60, 60, 0xffffff, 0);
+    hitArea.setInteractive({ useHandCursor: true });
+    container.add(hitArea);
+
+    container.sunGraphics = sunGraphics;
+    container.sunText = text;
+    container.hitArea = hitArea;
+    container.despawnTimer = null;
+    container.amount = 25;
+    container.sourceType = 'plant';
+    container.isCollected = false;
+
+    hitArea.on('pointerdown', () => {
+      if (container.isCollected || !container.active) return;
+
+      container.isCollected = true;
+      hitArea.disableInteractive();
+
+      VisualEffects.bounceScale(container, 1.3, 150);
+      VisualEffects.createSplat(this.scene, container.x, container.y, 0xfef08a, 6);
+
+      this.collectSun(container, container.amount, container.sourceType);
+    });
+
+    return container;
+  }
+
+  private resetSunObject(sun: PooledSun): void {
+    this.clearSunLifecycle(sun);
+    sun.setPosition(-100, -100);
+    sun.setAlpha(1);
+    sun.setScale(1);
+    sun.setAngle(0);
+    sun.sunGraphics.setRotation(0);
+    sun.sunText.setText('25');
+    sun.amount = 25;
+    sun.sourceType = 'plant';
+    sun.isCollected = false;
+    sun.hitArea.setInteractive({ useHandCursor: true });
+  }
+
+  private clearSunLifecycle(sun: PooledSun): void {
+    const index = this.activeSuns.indexOf(sun);
+    if (index > -1) {
+      this.activeSuns.splice(index, 1);
+    }
+
+    if (sun.despawnTimer) {
+      sun.despawnTimer.remove();
+      sun.despawnTimer = null;
+    }
+
+    this.scene.tweens.killTweensOf(sun);
+    this.scene.tweens.killTweensOf(sun.sunGraphics);
+  }
+
+  private recycleSun(sun: PooledSun): void {
+    this.clearSunLifecycle(sun);
+    this.sunPool.recycle(sun);
+  }
+
+  /**
+   * 创建阳光对象
+   */
+  private createSun(x: number, y: number, source: SunSource, amount: number = 25): PooledSun {
+    const sun = this.sunPool.get();
+
+    sun.setPosition(x, y);
+    sun.setAlpha(1);
+    sun.setScale(1);
+    sun.amount = amount;
+    sun.sourceType = source;
+    sun.isCollected = false;
+    sun.sunText.setText(amount.toString());
+    sun.hitArea.setInteractive({ useHandCursor: true });
+
     this.scene.tweens.add({
-      targets: container,
+      targets: sun,
       scaleX: 1.1,
       scaleY: 1.1,
       duration: 800,
@@ -171,48 +255,26 @@ export class EconomySystem {
       ease: 'Sine.easeInOut'
     });
 
-    // 旋转动画
     this.scene.tweens.add({
-      targets: sunGraphics,
+      targets: sun.sunGraphics,
       rotation: Math.PI * 2,
       duration: 10000,
       repeat: -1,
       ease: 'Linear'
     });
 
-    // 交互
-    const hitArea = this.scene.add.rectangle(0, 0, 60, 60, 0xffffff, 0);
-    container.add(hitArea);
-
-    hitArea.setInteractive({ useHandCursor: true });
-
-    // 标记是否已被收集，防止重复点击
-    let isCollected = false;
-
-    hitArea.on('pointerdown', () => {
-      if (isCollected) return;
-      isCollected = true;
-      hitArea.disableInteractive();
-      
-      // 点击时的反馈效果
-      VisualEffects.bounceScale(container, 1.3, 150);
-      VisualEffects.createSplat(this.scene, container.x, container.y, 0xfef08a, 6);
-      
-      this.collectSun(container, amount, source);
-    });
-
-    // 存储到活动列表
-    this.activeSuns.push(container);
-
-    return container;
+    this.activeSuns.push(sun);
+    return sun;
   }
 
   /**
    * 收集阳光
    */
-  private collectSun(sun: Phaser.GameObjects.Container, amount: number, source: SunSource): void {
+  private collectSun(sun: PooledSun, amount: number, source: SunSource): void {
     // 播放阳光收集音效
     this.audioManager?.playSfx(SoundEffect.SUN_COLLECT);
+
+    this.clearSunLifecycle(sun);
 
     // 漂浮文字
     VisualEffects.floatText(this.scene, sun.x, sun.y, `+${amount}`, {
@@ -230,7 +292,7 @@ export class EconomySystem {
       duration: 500,
       ease: 'Back.easeIn',
       onComplete: () => {
-        this.removeSun(sun);
+        this.recycleSun(sun);
         this.addSun(amount, source);
       }
     });
@@ -239,11 +301,10 @@ export class EconomySystem {
   /**
    * 移除阳光
    */
-  private removeSun(sun: Phaser.GameObjects.Container): void {
-    const index = this.activeSuns.indexOf(sun);
-    if (index > -1) {
-      this.activeSuns.splice(index, 1);
-    }
+  private removeSun(sun: PooledSun): void {
+    if (!sun.active) return;
+
+    this.clearSunLifecycle(sun);
 
     // 淡出动画
     this.scene.tweens.add({
@@ -251,7 +312,7 @@ export class EconomySystem {
       alpha: 0,
       duration: 200,
       onComplete: () => {
-        sun.destroy();
+        this.recycleSun(sun);
       }
     });
   }
@@ -326,11 +387,10 @@ export class EconomySystem {
       this.fallingSunTimer = null;
     }
 
-    // 停止所有阳光的动画
-    this.activeSuns.forEach(sun => {
-      this.scene.tweens.killTweensOf(sun);
-      sun.destroy();
+    [...this.activeSuns].forEach((sun) => {
+      this.recycleSun(sun as PooledSun);
     });
     this.activeSuns = [];
+    this.sunPool.destroy();
   }
 }
