@@ -15,15 +15,9 @@ export class Sunflower extends Plant {
   }
 
   protected setupAnimations(): void {
-    // 创建动画
-    if (!this.scene.anims.exists('sunflower_idle')) {
-      // 使用颜色渐变模拟动画
-      // 实际项目中应该有精灵图
-    }
-
-    if (!this.scene.anims.exists('sunflower_produce')) {
-      // 生产动画
-    }
+    // 动画现在由 plantConfigs.ts 定义并由 BootScene 加载
+    // 这里可以留空或实现特殊的缩放动画
+    this.playIdleAnimation();
   }
 
   /**
@@ -72,30 +66,17 @@ export class Sunflower extends Plant {
   }
 
   /**
-   * 播放生产动画
+   * 播放生产阳光动画
    */
   private playProduceAnimation(): void {
-    // 上下弹跳效果
+    // 简单的缩放发光感，不添加额外遮挡物
     this.scene.tweens.add({
       targets: this,
-      y: this.y - 10,
+      scaleX: 1.2,
+      scaleY: 1.2,
       duration: 200,
       yoyo: true,
-      repeat: 1,
-      ease: 'Power1',
-    });
-
-    // 发光效果
-    const glow = this.scene.add.ellipse(this.x, this.y, 80, 100, 0xfcd34d, 0.5);
-    this.scene.tweens.add({
-      targets: glow,
-      alpha: 0,
-      scaleX: 1.5,
-      scaleY: 1.5,
-      duration: 500,
-      onComplete: () => {
-        glow.destroy();
-      },
+      ease: 'Back.easeOut'
     });
   }
 

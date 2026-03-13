@@ -51,6 +51,10 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.initRenderer();
     scene.add.existing(this);
     scene.physics.add.existing(this);
+
+    // 设置基础显示大小
+    this.setDisplaySize(64, 96);
+
     this.init();
   }
 

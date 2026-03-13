@@ -8,9 +8,7 @@ import type { ZombieConfig } from '@/types/config';
 export class NormalZombie extends Zombie {
   constructor(scene: Phaser.Scene, x: number, y: number, config: ZombieConfig) {
     super(scene, x, y, config);
-
-    // 设置颜色 - 普通僵尸是绿色皮肤
-    this.setTint(0x8fbc8f);
+    // 移除强烈的 tint，保留原始贴图颜色
   }
 
   protected setupAnimations(): void {

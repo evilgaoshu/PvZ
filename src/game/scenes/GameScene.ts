@@ -139,24 +139,41 @@ export class GameScene extends BaseScene {
     this.gameContainer = this.add.container(0, 0);
     const bgLayer = this.add.container(0, 0);
     this.gameContainer.add(bgLayer);
+    
     const bgKey = this.levelData?.background || 'day-grass';
-    bgLayer.add(this.add.image(400, 300, bgKey));
+    const bgImage = this.add.image(400, 300, bgKey);
+    bgLayer.add(bgImage);
+    
+    // 显式设置背景深度
+    bgLayer.setDepth(-10);
 
     this.plantLayer = this.physics.add.group();
     this.zombieLayer = this.physics.add.group();
     this.projectileLayer = this.physics.add.group();
     this.uiLayer = this.add.container(0, 0);
+    this.uiLayer.setDepth(100);
     this.gameContainer.add(this.uiLayer);
   }
 
   private createGridVisuals(): void {
-    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT } =
-      GRID_CONFIG;
+    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT } = GRID_CONFIG;
+    
+    // 添加细微的网格线增加立体感
+    const graphics = this.add.graphics();
+    graphics.lineStyle(1, 0x000000, 0.1);
+    graphics.setDepth(-5);
+
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
+        const x = OFFSET_X + col * CELL_WIDTH;
+        const y = OFFSET_Y + row * CELL_HEIGHT;
+        
+        // 绘制矩形边框
+        graphics.strokeRect(x, y, CELL_WIDTH, CELL_HEIGHT);
+
         const cell = this.add.rectangle(
-          OFFSET_X + col * CELL_WIDTH + CELL_WIDTH / 2,
-          OFFSET_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2,
+          x + CELL_WIDTH / 2,
+          y + CELL_HEIGHT / 2,
           CELL_WIDTH,
           CELL_HEIGHT,
           0xffffff,
@@ -185,7 +202,9 @@ export class GameScene extends BaseScene {
 
   private createLawnMower(x: number, y: number, row: number): void {
     const mower = this.add.container(x, y);
-    mower.add(this.add.rectangle(0, 0, 30, 25, 0xff4444));
+    const sprite = this.add.image(0, 0, 'ui/lawn_mower');
+    sprite.setDisplaySize(60, 50);
+    mower.add(sprite);
     mower.setData('row', row).setData('isActive', false);
     this.lawnMowers.push(mower);
   }

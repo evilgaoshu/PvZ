@@ -30,24 +30,20 @@ export class PlantCard extends Phaser.GameObjects.Container {
 
     // 背景
     this.bg = scene.add.graphics();
-    this.drawBackground(0x1e293b);
+    this.drawBackground(0x422006); // 棕色木质感
     this.add(this.bg);
 
     // 植物图标（真实贴图）
     const iconKey = `plants/${config.id}`;
-    if (scene.textures.exists(iconKey)) {
-      const plantIcon = scene.add.image(0, -10, iconKey);
-      plantIcon.setDisplaySize(46, 46);
-      this.add(plantIcon);
-    } else {
-      // 后备方案：如果没有贴图则显示首字母
-      const nameInitial = scene.add.text(0, -10, config.id.charAt(0).toUpperCase(), {
-        fontSize: '24px',
-        color: '#ffffff',
-        fontStyle: 'bold'
-      });
-      nameInitial.setOrigin(0.5);
-      this.add(nameInitial);
+    const plantIcon = scene.add.image(0, -10, iconKey);
+    plantIcon.setDisplaySize(50, 50);
+    this.add(plantIcon);
+
+    if (!scene.textures.exists(iconKey)) {
+      console.warn(`Missing texture: ${iconKey}`);
+      // 调试用：显示一个明显的红色方块表示资源缺失
+      const debugRect = scene.add.rectangle(0, -10, 40, 40, 0xff0000, 0.8);
+      this.add(debugRect);
     }
 
     // 阳光成本
