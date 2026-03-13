@@ -36,7 +36,12 @@ export class NewspaperZombie extends Zombie {
     // 报纸文字线条
     for (let i = 0; i < 6; i++) {
       const line = this.scene.add.rectangle(
-        0, -15 + i * 5, 25, 2, 0x333333, 0.5
+        0,
+        -15 + i * 5,
+        25,
+        2,
+        0x333333,
+        0.5
       );
       this.newspaperGraphics.add(line);
     }
@@ -104,9 +109,9 @@ export class NewspaperZombie extends Zombie {
             onComplete: () => {
               this.newspaperGraphics?.destroy();
               this.newspaperGraphics = null;
-            }
+            },
           });
-        }
+        },
       });
     }
 
@@ -140,7 +145,7 @@ export class NewspaperZombie extends Zombie {
         ease: 'Power2',
         onComplete: () => {
           debris.destroy();
-        }
+        },
       });
     }
   }
@@ -160,7 +165,7 @@ export class NewspaperZombie extends Zombie {
 
     // 狂暴表情 - 愤怒符号
     const rageMark = this.scene.add.text(this.x, this.y - 60, '💢', {
-      fontSize: '24px'
+      fontSize: '24px',
     });
     rageMark.setOrigin(0.5);
 
@@ -171,7 +176,7 @@ export class NewspaperZombie extends Zombie {
       duration: 1000,
       onComplete: () => {
         rageMark.destroy();
-      }
+      },
     });
 
     // 播放狂暴音效
@@ -182,7 +187,7 @@ export class NewspaperZombie extends Zombie {
       fontSize: '16px',
       color: '#ef4444',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 3,
     });
     rageText.setOrigin(0.5);
 
@@ -193,7 +198,7 @@ export class NewspaperZombie extends Zombie {
       duration: 1500,
       onComplete: () => {
         rageText.destroy();
-      }
+      },
     });
   }
 

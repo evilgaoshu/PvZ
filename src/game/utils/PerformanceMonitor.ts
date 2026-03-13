@@ -155,7 +155,9 @@ export class PerformanceMonitor {
   public getReport(): string {
     const lines: string[] = [];
     lines.push('=== 性能报告 ===');
-    lines.push(`FPS: ${this.fps} (平均: ${this.getAverageFPS()}, 最低: ${this.getMinFPS()})`);
+    lines.push(
+      `FPS: ${this.fps} (平均: ${this.getAverageFPS()}, 最低: ${this.getMinFPS()})`
+    );
     lines.push(`内存: ${this.memoryUsage.toFixed(2)} MB`);
     lines.push('对象计数:');
     this.objectCounts.forEach((count, type) => {

@@ -31,7 +31,8 @@ export class Sunflower extends Plant {
    */
   protected updateSpecialAbility(time: number, _delta: number): void {
     // 检查是否可以生产阳光
-    const produceInterval = this.config.produceInterval || ECONOMY_CONFIG.SUNFLOWER.PRODUCE_INTERVAL;
+    const produceInterval =
+      this.config.produceInterval || ECONOMY_CONFIG.SUNFLOWER.PRODUCE_INTERVAL;
 
     if (time - this.lastProduceTime >= produceInterval && !this.isProducing) {
       this.produceSun(time);
@@ -51,12 +52,13 @@ export class Sunflower extends Plant {
     // 延迟生成阳光
     this.scene.time.delayedCall(500, () => {
       // 生成阳光
-      const sunAmount = this.config.produceAmount || ECONOMY_CONFIG.SUNFLOWER.PRODUCE_AMOUNT;
+      const sunAmount =
+        this.config.produceAmount || ECONOMY_CONFIG.SUNFLOWER.PRODUCE_AMOUNT;
 
       this.scene.game.events.emit('economy:spawn_plant_sun', {
         x: this.x,
         y: this.y - 30,
-        amount: sunAmount
+        amount: sunAmount,
       });
 
       // 恢复空闲
@@ -80,7 +82,7 @@ export class Sunflower extends Plant {
       duration: 200,
       yoyo: true,
       repeat: 1,
-      ease: 'Power1'
+      ease: 'Power1',
     });
 
     // 发光效果
@@ -93,7 +95,7 @@ export class Sunflower extends Plant {
       duration: 500,
       onComplete: () => {
         glow.destroy();
-      }
+      },
     });
   }
 

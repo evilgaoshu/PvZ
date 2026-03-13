@@ -21,10 +21,14 @@ export class GridSystem {
   private grid: GridCell[][] = [];
 
   // 每行僵尸列表
-  private zombiesInRow: Map<number, Phaser.GameObjects.GameObject[]> = new Map();
+  private zombiesInRow: Map<number, Phaser.GameObjects.GameObject[]> =
+    new Map();
 
   // 事件监听引用（用于清理）
-  private eventListeners: { event: string; callback: (...args: any[]) => void }[] = [];
+  private eventListeners: {
+    event: string;
+    callback: (...args: any[]) => void;
+  }[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -41,7 +45,8 @@ export class GridSystem {
       this.zombiesInRow.set(row, []);
 
       // 泳池关卡逻辑：中间两行为水（索引 2, 3）
-      const terrainType = (background === 'pool' && (row === 2 || row === 3)) ? 'water' : 'grass';
+      const terrainType =
+        background === 'pool' && (row === 2 || row === 3) ? 'water' : 'grass';
 
       for (let col = 0; col < this.cols; col++) {
         const x = this.offsetX + col * this.cellWidth;
@@ -55,7 +60,7 @@ export class GridSystem {
           plant: null,
           platform: null,
           isWalkable: true,
-          terrainType: terrainType
+          terrainType: terrainType,
         };
       }
     }
@@ -83,7 +88,11 @@ export class GridSystem {
    * 设置事件监听
    */
   private setupEventListeners(): void {
-    const plantPlacedCallback = (data: { row: number; col: number; plantId: string }) => {
+    const plantPlacedCallback = (data: {
+      row: number;
+      col: number;
+      plantId: string;
+    }) => {
       this.setPlant(data.row, data.col, data.plantId);
     };
 
@@ -200,7 +209,10 @@ export class GridSystem {
   /**
    * 注册僵尸到某行
    */
-  public registerZombieInRow(row: number, zombie: Phaser.GameObjects.GameObject): void {
+  public registerZombieInRow(
+    row: number,
+    zombie: Phaser.GameObjects.GameObject
+  ): void {
     if (row < 0 || row >= this.rows) return;
 
     const zombies = this.zombiesInRow.get(row);
@@ -212,7 +224,10 @@ export class GridSystem {
   /**
    * 从某行移除僵尸
    */
-  public unregisterZombieInRow(row: number, zombie: Phaser.GameObjects.GameObject): void {
+  public unregisterZombieInRow(
+    row: number,
+    zombie: Phaser.GameObjects.GameObject
+  ): void {
     if (row < 0 || row >= this.rows) return;
 
     const zombies = this.zombiesInRow.get(row);

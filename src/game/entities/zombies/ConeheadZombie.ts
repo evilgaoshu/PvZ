@@ -72,7 +72,7 @@ export class ConeheadZombie extends Zombie {
         onComplete: () => {
           this.coneGraphics?.destroy();
           this.coneGraphics = null;
-        }
+        },
       });
     }
   }

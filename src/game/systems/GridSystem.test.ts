@@ -9,8 +9,8 @@ vi.mock('phaser', () => {
       Scene: vi.fn(),
       GameObjects: {
         GameObject: vi.fn(),
-      }
-    }
+      },
+    },
   };
 });
 
@@ -23,9 +23,9 @@ describe('GridSystem', () => {
         events: {
           on: vi.fn(),
           off: vi.fn(),
-          emit: vi.fn()
-        }
-      }
+          emit: vi.fn(),
+        },
+      },
     };
   });
 
@@ -38,7 +38,9 @@ describe('GridSystem', () => {
   it('should correctly identify valid and invalid cells', () => {
     const gridSystem = new GridSystem(mockScene);
     expect(gridSystem.isValidCell(0, 0)).toBe(true);
-    expect(gridSystem.isValidCell(GRID_CONFIG.ROWS - 1, GRID_CONFIG.COLS - 1)).toBe(true);
+    expect(
+      gridSystem.isValidCell(GRID_CONFIG.ROWS - 1, GRID_CONFIG.COLS - 1)
+    ).toBe(true);
     expect(gridSystem.isValidCell(-1, 0)).toBe(false);
     expect(gridSystem.isValidCell(0, GRID_CONFIG.COLS)).toBe(false);
   });
@@ -49,7 +51,7 @@ describe('GridSystem', () => {
     const col = 1;
 
     expect(gridSystem.canPlant(row, col)).toBe(true);
-    
+
     gridSystem.setPlant(row, col, 'peashooter');
     expect(gridSystem.getPlant(row, col)).toBe('peashooter');
     expect(gridSystem.canPlant(row, col)).toBe(false);
@@ -61,7 +63,7 @@ describe('GridSystem', () => {
 
   it('should handle terrain types correctly after initialization', () => {
     const gridSystem = new GridSystem(mockScene);
-    
+
     // Default grass
     gridSystem.initializeGrid('day-grass');
     expect(gridSystem.getTerrainType(0, 0)).toBe('grass');
@@ -78,12 +80,12 @@ describe('GridSystem', () => {
   it('should handle lilypad platform logic', () => {
     const gridSystem = new GridSystem(mockScene);
     gridSystem.initializeGrid('pool');
-    
+
     expect(gridSystem.hasLilyPad(2, 2)).toBe(false);
-    
+
     gridSystem.setPlatform(2, 2, 'lilypad');
     expect(gridSystem.hasLilyPad(2, 2)).toBe(true);
-    
+
     gridSystem.removePlatform(2, 2);
     expect(gridSystem.hasLilyPad(2, 2)).toBe(false);
   });
@@ -97,7 +99,10 @@ describe('GridSystem', () => {
     expect(pos1).toEqual({ row: 0, col: 0 });
 
     // Test some middle cell
-    const pos2 = gridSystem.screenToGrid(OFFSET_X + CELL_WIDTH * 2 + 5, OFFSET_Y + CELL_HEIGHT * 3 + 5);
+    const pos2 = gridSystem.screenToGrid(
+      OFFSET_X + CELL_WIDTH * 2 + 5,
+      OFFSET_Y + CELL_HEIGHT * 3 + 5
+    );
     expect(pos2).toEqual({ row: 3, col: 2 });
 
     // Test out of bounds

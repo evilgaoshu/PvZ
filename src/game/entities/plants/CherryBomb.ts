@@ -55,7 +55,7 @@ export class CherryBomb extends Plant {
       range: range,
       type: 'explosion',
       row: this.getRow(),
-      col: this.getCol()
+      col: this.getCol(),
     });
 
     // 播放音效
@@ -72,7 +72,14 @@ export class CherryBomb extends Plant {
    */
   private playExplosionEffect(): void {
     // 创建爆炸圆形扩散效果
-    const explosion = this.scene.add.ellipse(this.x, this.y, 50, 50, 0xff4400, 0.8);
+    const explosion = this.scene.add.ellipse(
+      this.x,
+      this.y,
+      50,
+      50,
+      0xff4400,
+      0.8
+    );
 
     this.scene.tweens.add({
       targets: explosion,
@@ -83,13 +90,19 @@ export class CherryBomb extends Plant {
       ease: 'Power2',
       onComplete: () => {
         explosion.destroy();
-      }
+      },
     });
 
     // 添加粒子效果
     for (let i = 0; i < 12; i++) {
       const angle = (i / 12) * Math.PI * 2;
-      const particle = this.scene.add.rectangle(this.x, this.y, 10, 10, 0xff6600);
+      const particle = this.scene.add.rectangle(
+        this.x,
+        this.y,
+        10,
+        10,
+        0xff6600
+      );
 
       const targetX = this.x + Math.cos(angle) * 100;
       const targetY = this.y + Math.sin(angle) * 100;
@@ -103,7 +116,7 @@ export class CherryBomb extends Plant {
         ease: 'Power2',
         onComplete: () => {
           particle.destroy();
-        }
+        },
       });
     }
 

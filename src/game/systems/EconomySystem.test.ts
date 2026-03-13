@@ -36,9 +36,11 @@ vi.mock('phaser', () => {
         TimerEvent: vi.fn(),
       },
       Math: {
-        Between: vi.fn((min, max) => Math.floor(Math.random() * (max - min + 1) + min)),
-      }
-    }
+        Between: vi.fn((min, max) =>
+          Math.floor(Math.random() * (max - min + 1) + min)
+        ),
+      },
+    },
   };
 });
 
@@ -52,10 +54,10 @@ vi.mock('@game/utils/ObjectPool', () => {
         setVisible: vi.fn().mockReturnThis(),
         amount: 25,
         sourceType: 'plant',
-        isCollected: false
+        isCollected: false,
       })),
-      recycle: vi.fn()
-    }))
+      recycle: vi.fn(),
+    })),
   };
 });
 
@@ -66,17 +68,17 @@ describe('EconomySystem', () => {
     mockScene = {
       game: {
         registry: {
-          get: vi.fn()
+          get: vi.fn(),
         },
         events: {
           on: vi.fn(),
           off: vi.fn(),
-          emit: vi.fn()
-        }
+          emit: vi.fn(),
+        },
       },
       time: {
         delayedCall: vi.fn(),
-        addEvent: vi.fn()
+        addEvent: vi.fn(),
       },
       add: {
         container: vi.fn(() => ({
@@ -101,11 +103,11 @@ describe('EconomySystem', () => {
         })),
         rectangle: vi.fn(() => ({
           setOrigin: vi.fn().mockReturnThis(),
-        }))
+        })),
       },
       tweens: {
-        add: vi.fn()
-      }
+        add: vi.fn(),
+      },
     };
   });
 
@@ -118,7 +120,10 @@ describe('EconomySystem', () => {
     const economy = new EconomySystem(mockScene);
     economy.addSun(50, 'plant');
     expect(economy.getSun()).toBe(ECONOMY_CONFIG.INITIAL_SUN + 50);
-    expect(mockScene.game.events.emit).toHaveBeenCalledWith(GameEvents.SUN_CHANGED, expect.any(Number));
+    expect(mockScene.game.events.emit).toHaveBeenCalledWith(
+      GameEvents.SUN_CHANGED,
+      expect.any(Number)
+    );
   });
 
   it('should not exceed max sun', () => {
@@ -131,7 +136,7 @@ describe('EconomySystem', () => {
     const economy = new EconomySystem(mockScene);
     const initialSun = economy.getSun();
     const canSpend = initialSun >= 50;
-    
+
     if (canSpend) {
       const result = economy.spend(50);
       expect(result).toBe(true);

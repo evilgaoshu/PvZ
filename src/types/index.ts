@@ -12,7 +12,7 @@ export const GAME_CONFIG = {
   TITLE: '植物大战僵尸',
 
   // 调试模式
-  DEBUG: false
+  DEBUG: false,
 } as const;
 
 // 网格配置
@@ -30,7 +30,7 @@ export const GRID_CONFIG = {
   OFFSET_Y: 80,
 
   // 草坪颜色
-  GRASS_COLORS: [0x5c9c54, 0x6bae5e]
+  GRASS_COLORS: [0x5c9c54, 0x6bae5e],
 } as const;
 
 // 经济系统配置
@@ -47,14 +47,14 @@ export const ECONOMY_CONFIG = {
     MIN_INTERVAL: 5000, // 毫秒
     MAX_INTERVAL: 10000, // 毫秒
     FALL_DURATION: 8000, // 毫秒
-    LIFETIME: 12000 // 毫秒后消失
+    LIFETIME: 12000, // 毫秒后消失
   },
 
   // 向日葵生产
   SUNFLOWER: {
     PRODUCE_AMOUNT: 25,
-    PRODUCE_INTERVAL: 24000 // 毫秒
-  }
+    PRODUCE_INTERVAL: 24000, // 毫秒
+  },
 } as const;
 
 // 波次系统配置
@@ -69,7 +69,7 @@ export const WAVE_CONFIG = {
   WARNING_TIME: 5000, // 毫秒
 
   // 旗帜波次间隔
-  FLAG_WAVE_INTERVAL: 10 // 每10波一个大波
+  FLAG_WAVE_INTERVAL: 10, // 每10波一个大波
 } as const;
 
 // 游戏事件枚举
@@ -103,7 +103,7 @@ export enum GameEvents {
   GAME_WON = 'game:won',
 
   // 输入事件
-  CELL_CLICKED = 'cell:clicked'
+  CELL_CLICKED = 'cell:clicked',
 }
 
 // 实体状态枚举
@@ -113,7 +113,7 @@ export enum EntityState {
   HURT = 'hurt',
   DEAD = 'dead',
   WALK = 'walk',
-  EAT = 'eat'
+  EAT = 'eat',
 }
 
 // 植物类型
@@ -124,7 +124,7 @@ export enum PlantType {
   CHERRY_BOMB = 'cherry_bomb',
   SNOW_PEA = 'snow_pea',
   REPEATER = 'repeater',
-  CHOMPER = 'chomper'
+  CHOMPER = 'chomper',
 }
 
 // 僵尸类型
@@ -134,12 +134,12 @@ export enum ZombieType {
   BUCKETHEAD = 'buckethead',
   POLE_VAULTING = 'pole_vaulting',
   NEWSPAPER = 'newspaper',
-  SCREENDOOR = 'screendoor'
+  SCREENDOOR = 'screendoor',
 }
 
 // 投射物类型
 export enum ProjectileType {
   PEA = 'pea',
   SNOW_PEA = 'snow_pea',
-  CABBAGE = 'cabbage'
+  CABBAGE = 'cabbage',
 }

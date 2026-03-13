@@ -27,7 +27,7 @@ export class SunDisplay extends Phaser.GameObjects.Container {
       duration: 800,
       yoyo: true,
       repeat: -1,
-      ease: 'Sine.easeInOut'
+      ease: 'Sine.easeInOut',
     });
 
     // 数值文字
@@ -36,7 +36,7 @@ export class SunDisplay extends Phaser.GameObjects.Container {
       color: '#ffffff',
       fontStyle: 'bold',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 3,
     });
     this.sunText.setOrigin(0.5);
     this.add(this.sunText);
@@ -64,7 +64,7 @@ export class SunDisplay extends Phaser.GameObjects.Container {
         yoyo: true,
         onUpdate: () => {
           this.sunText.setText(Math.floor(amount).toString());
-        }
+        },
       });
     }
   }

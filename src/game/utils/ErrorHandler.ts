@@ -46,7 +46,7 @@ export class ErrorHandler {
     console.error(`[${context}] Error:`, errorObj);
 
     // 通知监听器
-    this.errorListeners.forEach(listener => {
+    this.errorListeners.forEach((listener) => {
       try {
         listener(errorObj, context);
       } catch (e) {
@@ -84,7 +84,9 @@ export class ErrorHandler {
     fn: T,
     context: string
   ): (...args: Parameters<T>) => Promise<ReturnType<T> | undefined> {
-    return async (...args: Parameters<T>): Promise<ReturnType<T> | undefined> => {
+    return async (
+      ...args: Parameters<T>
+    ): Promise<ReturnType<T> | undefined> => {
       try {
         return await fn(...args);
       } catch (error) {
@@ -104,7 +106,9 @@ export class ErrorHandler {
   /**
    * 移除错误监听器
    */
-  public removeListener(listener: (error: Error, context: string) => void): void {
+  public removeListener(
+    listener: (error: Error, context: string) => void
+  ): void {
     const index = this.errorListeners.indexOf(listener);
     if (index > -1) {
       this.errorListeners.splice(index, 1);
@@ -190,7 +194,11 @@ export const errorHandler = ErrorHandler.getInstance();
  * 装饰器：捕获方法错误
  */
 export function CatchErrors(context?: string) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
     const originalMethod = descriptor.value;
     const ctx = context || `${target.constructor.name}.${propertyKey}`;
 
@@ -200,7 +208,7 @@ export function CatchErrors(context?: string) {
 
         // 处理异步方法
         if (result instanceof Promise) {
-          return result.catch(error => {
+          return result.catch((error) => {
             errorHandler.handleError(error, ctx);
             throw error;
           });

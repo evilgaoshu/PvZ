@@ -7,7 +7,10 @@
 /**
  * 生成空音频 Blob URL（用于开发占位）
  */
-export function generateSilentAudio(duration: number = 1, type: 'mp3' | 'wav' = 'mp3'): string {
+export function generateSilentAudio(
+  duration: number = 1,
+  type: 'mp3' | 'wav' = 'mp3'
+): string {
   // 创建一个最小的有效音频数据（静音）
   // 实际项目中应该使用真实音频文件
   const sampleRate = 44100;

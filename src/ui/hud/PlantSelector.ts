@@ -9,7 +9,13 @@ export class PlantSelector extends Phaser.GameObjects.Container {
   private bg: Phaser.GameObjects.Graphics;
   private onSelect: (id: string, cost: number) => void;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, plants: PlantCardConfig[], onSelect: (id: string, cost: number) => void) {
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    plants: PlantCardConfig[],
+    onSelect: (id: string, cost: number) => void
+  ) {
     super(scene, x, y);
     this.onSelect = onSelect;
 
@@ -23,11 +29,11 @@ export class PlantSelector extends Phaser.GameObjects.Container {
 
   public updatePlants(plants: PlantCardConfig[]): void {
     // 清理旧卡片
-    this.cards.forEach(card => card.destroy());
+    this.cards.forEach((card) => card.destroy());
     this.cards.clear();
 
     const totalWidth = plants.length * 70 + 20;
-    
+
     this.bg.clear();
     this.bg.fillStyle(0x000000, 0.4);
     this.bg.fillRoundedRect(-10, -45, totalWidth, 90, 10);
@@ -35,7 +41,13 @@ export class PlantSelector extends Phaser.GameObjects.Container {
     this.bg.strokeRoundedRect(-10, -45, totalWidth, 90, 10);
 
     plants.forEach((config, index) => {
-      const card = new PlantCard(this.scene, index * 70 + 30, 0, config, this.onSelect);
+      const card = new PlantCard(
+        this.scene,
+        index * 70 + 30,
+        0,
+        config,
+        this.onSelect
+      );
       this.add(card);
       this.cards.set(config.id, card);
     });

@@ -24,7 +24,13 @@ export class GameButton extends Phaser.GameObjects.Container {
   private label: Phaser.GameObjects.Text;
   private config: Required<ButtonConfig>;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, config: ButtonConfig, callback: () => void) {
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    config: ButtonConfig,
+    callback: () => void
+  ) {
     super(scene, x, y);
 
     this.config = {
@@ -38,7 +44,7 @@ export class GameButton extends Phaser.GameObjects.Container {
       strokeColor: config.strokeColor ?? 0xffffff,
       strokeThickness: config.strokeThickness ?? 2,
       textColor: config.textColor || '#ffffff',
-      borderRadius: config.borderRadius ?? 10
+      borderRadius: config.borderRadius ?? 10,
     };
 
     // 创建背景（带圆角和渐变模拟）
@@ -53,7 +59,7 @@ export class GameButton extends Phaser.GameObjects.Container {
       fontFamily: 'Arial',
       fontStyle: 'bold',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 3,
     });
     this.label.setOrigin(0.5);
     this.add(this.label);
@@ -94,7 +100,7 @@ export class GameButton extends Phaser.GameObjects.Container {
 
   private drawBackground(color: number): void {
     this.bg.clear();
-    
+
     // 绘制阴影层
     this.bg.fillStyle(0x000000, 0.3);
     this.bg.fillRoundedRect(
@@ -130,7 +136,12 @@ export class GameButton extends Phaser.GameObjects.Container {
       -this.config.height / 2,
       this.config.width,
       this.config.height / 2,
-      { tl: this.config.borderRadius, tr: this.config.borderRadius, bl: 0, br: 0 }
+      {
+        tl: this.config.borderRadius,
+        tr: this.config.borderRadius,
+        bl: 0,
+        br: 0,
+      }
     );
   }
 

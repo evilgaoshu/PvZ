@@ -42,7 +42,9 @@ export class EconomySystem {
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.audioManager = this.scene.game.registry.get('audioManager') as AudioManager;
+    this.audioManager = this.scene.game.registry.get(
+      'audioManager'
+    ) as AudioManager;
     this.init();
   }
 
@@ -111,7 +113,7 @@ export class EconomySystem {
             this.removeSun(sun);
           }
         );
-      }
+      },
     });
   }
 
@@ -129,7 +131,7 @@ export class EconomySystem {
       targets: sun,
       x: targetX,
       duration: 600,
-      ease: 'Linear'
+      ease: 'Linear',
     });
 
     // Y轴先上后下（抛物线 + 弹跳）
@@ -149,9 +151,9 @@ export class EconomySystem {
             this.scene.time.delayedCall(8000, () => {
               this.removeSun(sun);
             });
-          }
+          },
         });
-      }
+      },
     });
   }
 
@@ -183,7 +185,7 @@ export class EconomySystem {
       fontSize: '14px',
       color: '#f59e0b',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 3,
     });
     text.setOrigin(0.5);
     container.add(text);
@@ -207,7 +209,13 @@ export class EconomySystem {
       hitArea.disableInteractive();
 
       VisualEffects.bounceScale(container, 1.3, 150);
-      VisualEffects.createSplat(this.scene, container.x, container.y, 0xfef08a, 6);
+      VisualEffects.createSplat(
+        this.scene,
+        container.x,
+        container.y,
+        0xfef08a,
+        6
+      );
 
       this.collectSun(container, container.amount, container.sourceType);
     });
@@ -252,7 +260,12 @@ export class EconomySystem {
   /**
    * 创建阳光对象
    */
-  private createSun(x: number, y: number, source: SunSource, amount: number = 25): PooledSun {
+  private createSun(
+    x: number,
+    y: number,
+    source: SunSource,
+    amount: number = 25
+  ): PooledSun {
     const sun = this.sunPool.get();
 
     sun.setPosition(x, y);
@@ -271,7 +284,7 @@ export class EconomySystem {
       duration: 800,
       yoyo: true,
       repeat: -1,
-      ease: 'Sine.easeInOut'
+      ease: 'Sine.easeInOut',
     });
 
     this.scene.tweens.add({
@@ -279,7 +292,7 @@ export class EconomySystem {
       rotation: Math.PI * 2,
       duration: 10000,
       repeat: -1,
-      ease: 'Linear'
+      ease: 'Linear',
     });
 
     this.activeSuns.push(sun);
@@ -298,7 +311,7 @@ export class EconomySystem {
     // 漂浮文字
     VisualEffects.floatText(this.scene, sun.x, sun.y, `+${amount}`, {
       color: '#fbbf24',
-      fontSize: '24px'
+      fontSize: '24px',
     });
 
     // 收集动画 - 飞向阳光计数器
@@ -313,7 +326,7 @@ export class EconomySystem {
       onComplete: () => {
         this.recycleSun(sun);
         this.addSun(amount, source);
-      }
+      },
     });
   }
 
@@ -332,7 +345,7 @@ export class EconomySystem {
       duration: 200,
       onComplete: () => {
         this.recycleSun(sun);
-      }
+      },
     });
   }
 
@@ -346,7 +359,7 @@ export class EconomySystem {
     // 发送收集事件
     const eventData: SunCollectedEventData = {
       amount,
-      source
+      source,
     };
     this.scene.game.events.emit(GameEvents.SUN_COLLECTED, eventData);
 

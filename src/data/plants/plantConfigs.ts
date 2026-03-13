@@ -1,4 +1,9 @@
-import type { PlantConfig, ZombieConfig, LevelConfig, AnimationConfig } from '@/types/config';
+import type {
+  PlantConfig,
+  ZombieConfig,
+  LevelConfig,
+  AnimationConfig,
+} from '@/types/config';
 
 // 植物动画配置模板
 const createPlantAnimations = (key: string): AnimationConfig[] => [
@@ -6,14 +11,14 @@ const createPlantAnimations = (key: string): AnimationConfig[] => [
     key: `${key}_idle`,
     frames: { start: 0, end: 7, prefix: `${key}_`, suffix: '.png' },
     frameRate: 8,
-    repeat: -1
+    repeat: -1,
   },
   {
     key: `${key}_attack`,
     frames: { start: 8, end: 15, prefix: `${key}_`, suffix: '.png' },
     frameRate: 12,
-    repeat: 0
-  }
+    repeat: 0,
+  },
 ];
 
 // 僵尸动画配置模板
@@ -22,20 +27,20 @@ const createZombieAnimations = (key: string): AnimationConfig[] => [
     key: `${key}_walk`,
     frames: { start: 0, end: 21, prefix: `${key}_walk_`, suffix: '.png' },
     frameRate: 12,
-    repeat: -1
+    repeat: -1,
   },
   {
     key: `${key}_eat`,
     frames: { start: 0, end: 10, prefix: `${key}_eat_`, suffix: '.png' },
     frameRate: 12,
-    repeat: -1
+    repeat: -1,
   },
   {
     key: `${key}_die`,
     frames: { start: 0, end: 9, prefix: `${key}_die_`, suffix: '.png' },
     frameRate: 10,
-    repeat: 0
-  }
+    repeat: 0,
+  },
 ];
 
 /**
@@ -57,15 +62,15 @@ export const plantConfigs: Record<string, PlantConfig> = {
         key: 'sunflower_idle',
         frames: { start: 0, end: 7, prefix: 'sunflower_', suffix: '.png' },
         frameRate: 8,
-        repeat: -1
+        repeat: -1,
       },
       {
         key: 'sunflower_produce',
         frames: { start: 8, end: 15, prefix: 'sunflower_', suffix: '.png' },
         frameRate: 12,
-        repeat: 0
-      }
-    ]
+        repeat: 0,
+      },
+    ],
   },
 
   peashooter: {
@@ -80,7 +85,7 @@ export const plantConfigs: Record<string, PlantConfig> = {
     attackRange: 9,
     projectileType: 'pea',
     spriteSheet: 'plants/peashooter',
-    animations: createPlantAnimations('peashooter')
+    animations: createPlantAnimations('peashooter'),
   },
 
   wallnut: {
@@ -97,21 +102,21 @@ export const plantConfigs: Record<string, PlantConfig> = {
         key: 'wallnut_idle',
         frames: { start: 0, end: 10, prefix: 'wallnut_', suffix: '.png' },
         frameRate: 8,
-        repeat: -1
+        repeat: -1,
       },
       {
         key: 'wallnut_hurt',
         frames: { start: 11, end: 20, prefix: 'wallnut_', suffix: '.png' },
         frameRate: 8,
-        repeat: -1
+        repeat: -1,
       },
       {
         key: 'wallnut_critical',
         frames: { start: 21, end: 30, prefix: 'wallnut_', suffix: '.png' },
         frameRate: 8,
-        repeat: -1
-      }
-    ]
+        repeat: -1,
+      },
+    ],
   },
 
   cherry_bomb: {
@@ -130,15 +135,15 @@ export const plantConfigs: Record<string, PlantConfig> = {
         key: 'cherry_bomb_idle',
         frames: { start: 0, end: 7, prefix: 'cherry_bomb_', suffix: '.png' },
         frameRate: 8,
-        repeat: -1
+        repeat: -1,
       },
       {
         key: 'cherry_bomb_explode',
         frames: { start: 8, end: 15, prefix: 'cherry_bomb_', suffix: '.png' },
         frameRate: 15,
-        repeat: 0
-      }
-    ]
+        repeat: 0,
+      },
+    ],
   },
 
   snow_pea: {
@@ -154,7 +159,7 @@ export const plantConfigs: Record<string, PlantConfig> = {
     projectileType: 'snow_pea',
     specialEffects: ['slow'],
     spriteSheet: 'plants/snow_pea',
-    animations: createPlantAnimations('snow_pea')
+    animations: createPlantAnimations('snow_pea'),
   },
 
   repeater: {
@@ -170,7 +175,7 @@ export const plantConfigs: Record<string, PlantConfig> = {
     projectileType: 'pea',
     specialEffects: ['double_shot'],
     spriteSheet: 'plants/repeater',
-    animations: createPlantAnimations('repeater')
+    animations: createPlantAnimations('repeater'),
   },
 
   chomper: {
@@ -191,21 +196,21 @@ export const plantConfigs: Record<string, PlantConfig> = {
         key: 'chomper_idle',
         frames: { start: 0, end: 7, prefix: 'chomper_', suffix: '.png' },
         frameRate: 8,
-        repeat: -1
+        repeat: -1,
       },
       {
         key: 'chomper_attack',
         frames: { start: 8, end: 20, prefix: 'chomper_', suffix: '.png' },
         frameRate: 15,
-        repeat: 0
+        repeat: 0,
       },
       {
         key: 'chomper_chewing',
         frames: { start: 21, end: 30, prefix: 'chomper_', suffix: '.png' },
         frameRate: 8,
-        repeat: -1
-      }
-    ]
+        repeat: -1,
+      },
+    ],
   },
 
   lilypad: {
@@ -223,14 +228,14 @@ export const plantConfigs: Record<string, PlantConfig> = {
         key: 'lilypad_idle',
         frames: { start: 0, end: 0, prefix: 'lilypad_', suffix: '.png' },
         frameRate: 1,
-        repeat: -1
-      }
-    ]
-  }
+        repeat: -1,
+      },
+    ],
+  },
 };
 
 // 为已有植物批量添加默认放置规则
-Object.values(plantConfigs).forEach(p => {
+Object.values(plantConfigs).forEach((p) => {
   if (!p.placement) p.placement = ['grass', 'lilypad'];
 });
 
@@ -247,7 +252,7 @@ export const zombieConfigs: Record<string, ZombieConfig> = {
     damage: 100,
     attackInterval: 1000,
     spriteSheet: 'zombies/normal',
-    animations: createZombieAnimations('normal')
+    animations: createZombieAnimations('normal'),
   },
 
   conehead: {
@@ -261,7 +266,7 @@ export const zombieConfigs: Record<string, ZombieConfig> = {
     armor: 370,
     armorType: 'cone',
     spriteSheet: 'zombies/conehead',
-    animations: createZombieAnimations('conehead')
+    animations: createZombieAnimations('conehead'),
   },
 
   buckethead: {
@@ -275,7 +280,7 @@ export const zombieConfigs: Record<string, ZombieConfig> = {
     armor: 1100,
     armorType: 'bucket',
     spriteSheet: 'zombies/buckethead',
-    animations: createZombieAnimations('buckethead')
+    animations: createZombieAnimations('buckethead'),
   },
 
   pole_vaulting: {
@@ -292,11 +297,16 @@ export const zombieConfigs: Record<string, ZombieConfig> = {
       ...createZombieAnimations('pole_vaulting'),
       {
         key: 'pole_vaulting_vault',
-        frames: { start: 0, end: 15, prefix: 'pole_vaulting_vault_', suffix: '.png' },
+        frames: {
+          start: 0,
+          end: 15,
+          prefix: 'pole_vaulting_vault_',
+          suffix: '.png',
+        },
         frameRate: 20,
-        repeat: 0
-      }
-    ]
+        repeat: 0,
+      },
+    ],
   },
 
   newspaper: {
@@ -314,11 +324,16 @@ export const zombieConfigs: Record<string, ZombieConfig> = {
       ...createZombieAnimations('newspaper'),
       {
         key: 'newspaper_rage',
-        frames: { start: 0, end: 10, prefix: 'newspaper_rage_', suffix: '.png' },
+        frames: {
+          start: 0,
+          end: 10,
+          prefix: 'newspaper_rage_',
+          suffix: '.png',
+        },
         frameRate: 15,
-        repeat: 0
-      }
-    ]
+        repeat: 0,
+      },
+    ],
   },
 
   screendoor: {
@@ -333,8 +348,8 @@ export const zombieConfigs: Record<string, ZombieConfig> = {
     armorType: 'screenDoor',
     abilities: ['shield_block'],
     spriteSheet: 'zombies/screendoor',
-    animations: createZombieAnimations('screendoor')
-  }
+    animations: createZombieAnimations('screendoor'),
+  },
 };
 
 /**
@@ -356,24 +371,24 @@ export const levelConfigs: Record<string, LevelConfig> = {
         waveNumber: 1,
         isFlagWave: false,
         zombies: [{ type: 'normal', count: 1, delay: 0 }],
-        timeBeforeWave: 30000
+        timeBeforeWave: 30000,
       },
       {
         waveNumber: 2,
         isFlagWave: false,
         zombies: [{ type: 'normal', count: 2, delay: 5000 }],
-        timeBeforeWave: 25000
+        timeBeforeWave: 25000,
       },
       {
         waveNumber: 3,
         isFlagWave: true,
         zombies: [
           { type: 'normal', count: 3, delay: 3000 },
-          { type: 'normal', count: 2, delay: 8000 }
+          { type: 'normal', count: 2, delay: 8000 },
         ],
-        timeBeforeWave: 25000
-      }
-    ]
+        timeBeforeWave: 25000,
+      },
+    ],
   },
 
   '1-2': {
@@ -391,25 +406,25 @@ export const levelConfigs: Record<string, LevelConfig> = {
         waveNumber: 1,
         isFlagWave: false,
         zombies: [{ type: 'normal', count: 2, delay: 3000 }],
-        timeBeforeWave: 30000
+        timeBeforeWave: 30000,
       },
       {
         waveNumber: 2,
         isFlagWave: false,
         zombies: [
           { type: 'normal', count: 3, delay: 3000 },
-          { type: 'conehead', count: 1, delay: 8000 }
+          { type: 'conehead', count: 1, delay: 8000 },
         ],
-        timeBeforeWave: 25000
+        timeBeforeWave: 25000,
       },
       {
         waveNumber: 3,
         isFlagWave: false,
         zombies: [
           { type: 'normal', count: 4, delay: 2000 },
-          { type: 'conehead', count: 1, delay: 6000 }
+          { type: 'conehead', count: 1, delay: 6000 },
         ],
-        timeBeforeWave: 25000
+        timeBeforeWave: 25000,
       },
       {
         waveNumber: 4,
@@ -417,11 +432,11 @@ export const levelConfigs: Record<string, LevelConfig> = {
         zombies: [
           { type: 'normal', count: 5, delay: 2000 },
           { type: 'conehead', count: 2, delay: 5000 },
-          { type: 'normal', count: 3, delay: 10000 }
+          { type: 'normal', count: 3, delay: 10000 },
         ],
-        timeBeforeWave: 25000
-      }
-    ]
+        timeBeforeWave: 25000,
+      },
+    ],
   },
 
   '1-3': {
@@ -440,18 +455,18 @@ export const levelConfigs: Record<string, LevelConfig> = {
         isFlagWave: false,
         zombies: [
           { type: 'normal', count: 3, delay: 2000 },
-          { type: 'conehead', count: 1, delay: 8000 }
+          { type: 'conehead', count: 1, delay: 8000 },
         ],
-        timeBeforeWave: 30000
+        timeBeforeWave: 30000,
       },
       {
         waveNumber: 2,
         isFlagWave: false,
         zombies: [
           { type: 'normal', count: 4, delay: 2000 },
-          { type: 'buckethead', count: 1, delay: 10000 }
+          { type: 'buckethead', count: 1, delay: 10000 },
         ],
-        timeBeforeWave: 25000
+        timeBeforeWave: 25000,
       },
       {
         waveNumber: 3,
@@ -459,9 +474,9 @@ export const levelConfigs: Record<string, LevelConfig> = {
         zombies: [
           { type: 'normal', count: 5, delay: 1500 },
           { type: 'conehead', count: 2, delay: 6000 },
-          { type: 'buckethead', count: 1, delay: 12000 }
+          { type: 'buckethead', count: 1, delay: 12000 },
         ],
-        timeBeforeWave: 25000
+        timeBeforeWave: 25000,
       },
       {
         waveNumber: 4,
@@ -469,11 +484,11 @@ export const levelConfigs: Record<string, LevelConfig> = {
         zombies: [
           { type: 'normal', count: 6, delay: 1500 },
           { type: 'conehead', count: 3, delay: 4000 },
-          { type: 'buckethead', count: 2, delay: 8000 }
+          { type: 'buckethead', count: 2, delay: 8000 },
         ],
-        timeBeforeWave: 25000
-      }
-    ]
+        timeBeforeWave: 25000,
+      },
+    ],
   },
 
   '1-4': {
@@ -492,19 +507,19 @@ export const levelConfigs: Record<string, LevelConfig> = {
         isFlagWave: false,
         zombies: [
           { type: 'normal', count: 3, delay: 2000, row: 2 },
-          { type: 'normal', count: 2, delay: 5000, row: 3 }
+          { type: 'normal', count: 2, delay: 5000, row: 3 },
         ],
-        timeBeforeWave: 30000
+        timeBeforeWave: 30000,
       },
       {
         waveNumber: 2,
         isFlagWave: true,
         zombies: [
           { type: 'normal', count: 5, delay: 1000 },
-          { type: 'conehead', count: 2, delay: 3000 }
+          { type: 'conehead', count: 2, delay: 3000 },
         ],
-        timeBeforeWave: 25000
-      }
-    ]
-  }
+        timeBeforeWave: 25000,
+      },
+    ],
+  },
 };

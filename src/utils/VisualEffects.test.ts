@@ -6,13 +6,15 @@ vi.mock('phaser', () => {
     default: {
       GameObjects: {
         Sprite: class {},
-        GameObject: class {}
+        GameObject: class {},
       },
       Math: {
-        Between: vi.fn((min, max) => Math.floor(Math.random() * (max - min + 1)) + min),
-        FloatBetween: vi.fn((min, max) => Math.random() * (max - min) + min)
-      }
-    }
+        Between: vi.fn(
+          (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
+        ),
+        FloatBetween: vi.fn((min, max) => Math.random() * (max - min) + min),
+      },
+    },
   };
 });
 
@@ -26,17 +28,17 @@ describe('VisualEffects', () => {
     mockScene = {
       cameras: {
         main: {
-          shake: vi.fn()
-        }
+          shake: vi.fn(),
+        },
       },
       add: {
         text: vi.fn(() => ({
           setOrigin: vi.fn().mockReturnThis(),
           setDepth: vi.fn().mockReturnThis(),
-          destroy: vi.fn()
+          destroy: vi.fn(),
         })),
         circle: vi.fn(() => ({
-          destroy: vi.fn()
+          destroy: vi.fn(),
         })),
         ellipse: vi.fn(() => ({
           setDepth: vi.fn().mockReturnThis(),
@@ -44,18 +46,18 @@ describe('VisualEffects', () => {
           active: true,
           x: 0,
           y: 0,
-          displayHeight: 100
-        }))
+          displayHeight: 100,
+        })),
       },
       tweens: {
-        add: vi.fn()
+        add: vi.fn(),
       },
       time: {
-        delayedCall: vi.fn((delay, callback) => callback())
+        delayedCall: vi.fn((delay, callback) => callback()),
       },
       events: {
-        on: vi.fn()
-      }
+        on: vi.fn(),
+      },
     };
 
     mockSprite = {
@@ -67,7 +69,7 @@ describe('VisualEffects', () => {
       x: 100,
       y: 100,
       displayHeight: 64,
-      depth: 10
+      depth: 10,
     };
   });
 
@@ -91,9 +93,11 @@ describe('VisualEffects', () => {
 
   it('should bounce scale', () => {
     VisualEffects.bounceScale(mockSprite, 1.2, 200);
-    expect(mockScene.tweens.add).toHaveBeenCalledWith(expect.objectContaining({
-      targets: mockSprite,
-      scale: 1.2
-    }));
+    expect(mockScene.tweens.add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        targets: mockSprite,
+        scale: 1.2,
+      })
+    );
   });
 });

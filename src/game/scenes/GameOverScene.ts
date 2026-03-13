@@ -50,7 +50,14 @@ export class GameOverScene extends BaseScene {
 
     // 胜利用绿色渐变，失败用红色渐变
     const bgColor = this.isVictory ? 0x1a2e1a : 0x2e1a1a;
-    const bg = this.add.rectangle(width / 2, height / 2, width, height, bgColor, 0.9);
+    const bg = this.add.rectangle(
+      width / 2,
+      height / 2,
+      width,
+      height,
+      bgColor,
+      0.9
+    );
 
     // 添加装饰粒子效果
     if (this.isVictory) {
@@ -72,7 +79,7 @@ export class GameOverScene extends BaseScene {
       scale: { min: 0.2, max: 0.6 },
       quantity: 2,
       frequency: 100,
-      tint: [0x4ade80, 0xfcd34d, 0x60a5fa]
+      tint: [0x4ade80, 0xfcd34d, 0x60a5fa],
     });
 
     // 如果没有粒子纹理，创建简单的飘落效果
@@ -81,7 +88,7 @@ export class GameOverScene extends BaseScene {
       loop: true,
       callback: () => {
         this.createConfetti();
-      }
+      },
     });
   }
 
@@ -105,7 +112,7 @@ export class GameOverScene extends BaseScene {
       ease: 'Power1',
       onComplete: () => {
         confetti.destroy();
-      }
+      },
     });
   }
 
@@ -120,7 +127,7 @@ export class GameOverScene extends BaseScene {
     // 图标
     const icon = this.isVictory ? '🏆' : '💀';
     const iconText = this.createText(centerX, centerY - 80, icon, {
-      fontSize: '72px'
+      fontSize: '72px',
     });
     iconText.setOrigin(0.5);
 
@@ -132,7 +139,7 @@ export class GameOverScene extends BaseScene {
       duration: 1000,
       yoyo: true,
       repeat: -1,
-      ease: 'Sine.easeInOut'
+      ease: 'Sine.easeInOut',
     });
 
     // 标题
@@ -141,7 +148,7 @@ export class GameOverScene extends BaseScene {
     const titleText = this.createText(centerX, centerY, title, {
       fontSize: '48px',
       color: titleColor,
-      strokeThickness: 6
+      strokeThickness: 6,
     });
     titleText.setOrigin(0.5);
 
@@ -151,7 +158,7 @@ export class GameOverScene extends BaseScene {
       : '僵尸吃掉了你的脑子！';
     const descText = this.createText(centerX, centerY + 60, description, {
       fontSize: '20px',
-      color: '#94a3b8'
+      color: '#94a3b8',
     });
     descText.setOrigin(0.5);
   }
@@ -178,13 +185,8 @@ export class GameOverScene extends BaseScene {
     container.add(restartBtn);
 
     // 返回菜单按钮
-    const menuBtn = this.createButton(
-      110,
-      0,
-      160,
-      45,
-      '主菜单',
-      () => this.returnToMenu()
+    const menuBtn = this.createButton(110, 0, 160, 45, '主菜单', () =>
+      this.returnToMenu()
     );
     container.add(menuBtn);
 
@@ -198,7 +200,7 @@ export class GameOverScene extends BaseScene {
       y: buttonY,
       duration: 400,
       delay: 500,
-      ease: 'Power2'
+      ease: 'Power2',
     });
   }
 

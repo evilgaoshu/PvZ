@@ -4,9 +4,17 @@ import { GameEvents, EntityState } from '@/types/index';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
 import { VisualEffects } from '@utils/VisualEffects';
-import { IEntityRenderer, SpineRenderer, SpriteRenderer } from '../EntityRenderer';
+import {
+  IEntityRenderer,
+  SpineRenderer,
+  SpriteRenderer,
+} from '../EntityRenderer';
 
-export enum DamageState { HEALTHY, HURT, CRITICAL }
+export enum DamageState {
+  HEALTHY,
+  HURT,
+  CRITICAL,
+}
 
 /**
  * 植物基类
@@ -32,7 +40,9 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
     super(scene, x, y, config.spriteSheet);
     this.config = config;
     this.currentHealth = config.health;
-    this.audioManager = this.scene.game.registry.get('audioManager') as AudioManager;
+    this.audioManager = this.scene.game.registry.get(
+      'audioManager'
+    ) as AudioManager;
 
     this.initRenderer();
     scene.add.existing(this);
@@ -42,7 +52,13 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   private initRenderer(): void {
     const spineKey = (this.config as any).spineKey;
     if (spineKey && (this.scene as any).spine) {
-      this.renderer = new SpineRenderer(this.scene, this.x, this.y, spineKey, spineKey);
+      this.renderer = new SpineRenderer(
+        this.scene,
+        this.x,
+        this.y,
+        spineKey,
+        spineKey
+      );
       this.setAlpha(0);
     } else {
       this.renderer = new SpriteRenderer(this);
@@ -58,7 +74,9 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
 
   protected setupPhysics(): void {
     this.scene.physics.add.existing(this, true);
-    (this.body as Phaser.Physics.Arcade.StaticBody).setSize(60, 80).setOffset(2, 10);
+    (this.body as Phaser.Physics.Arcade.StaticBody)
+      .setSize(60, 80)
+      .setOffset(2, 10);
   }
 
   protected setupAnimations(): void {}
@@ -81,7 +99,9 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   }
 
   protected canAttack(): boolean {
-    return this.config.attackDamage !== undefined && this.config.attackDamage > 0;
+    return (
+      this.config.attackDamage !== undefined && this.config.attackDamage > 0
+    );
   }
 
   protected isTargetInRange(): boolean {
@@ -91,7 +111,10 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   }
 
   protected checkForTarget(): void {
-    this.scene.game.events.emit('plant:check_target', { row: this.row, plant: this });
+    this.scene.game.events.emit('plant:check_target', {
+      row: this.row,
+      plant: this,
+    });
   }
 
   public setAttackTarget(target: Phaser.GameObjects.Sprite | null): void {
@@ -100,7 +123,8 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
 
   protected attack(time: number): void {
     if (this.isCooldown) return;
-    if (time - this.lastAttackTime < (this.config.attackInterval || 1500)) return;
+    if (time - this.lastAttackTime < (this.config.attackInterval || 1500))
+      return;
 
     this.lastAttackTime = time;
     this.entityState = EntityState.ATTACK;
@@ -108,15 +132,23 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
     this.fireProjectile();
 
     this.scene.time.delayedCall(300, () => {
-      if (this.isAlive) { this.entityState = EntityState.IDLE; this.playIdleAnimation(); }
+      if (this.isAlive) {
+        this.entityState = EntityState.IDLE;
+        this.playIdleAnimation();
+      }
     });
   }
 
   protected fireProjectile(): void {
     if (!this.config.projectileType) return;
     this.scene.game.events.emit(GameEvents.PROJECTILE_FIRED, {
-      x: this.x + 20, y: this.y - 10, type: this.config.projectileType,
-      damage: this.config.attackDamage || 20, speed: 300, row: this.row, source: this
+      x: this.x + 20,
+      y: this.y - 10,
+      type: this.config.projectileType,
+      damage: this.config.attackDamage || 20,
+      speed: 300,
+      row: this.row,
+      source: this,
     });
     this.scene.game.events.emit('audio:play', 'shoot');
   }
@@ -153,7 +185,8 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   }
 
   protected showDamageEffect(): void {
-    if (this.renderer instanceof SpriteRenderer) VisualEffects.flashSprite(this, 0xffffff, 80);
+    if (this.renderer instanceof SpriteRenderer)
+      VisualEffects.flashSprite(this, 0xffffff, 80);
     VisualEffects.bounceScale(this, 1.05, 100);
   }
 
@@ -161,21 +194,52 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
     if (!this.isAlive) return;
     this.isAlive = false;
     this.entityState = EntityState.DEAD;
-    this.scene.game.events.emit(GameEvents.PLANT_REMOVED, { row: this.row, col: this.col, plant: this });
+    this.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: this.row,
+      col: this.col,
+      plant: this,
+    });
     this.playDeathAnimation();
-    this.scene.time.delayedCall(500, () => { this.renderer?.destroy(); this.destroy(); });
+    this.scene.time.delayedCall(500, () => {
+      this.renderer?.destroy();
+      this.destroy();
+    });
   }
 
-  protected playIdleAnimation(): void { this.renderer?.play(`${this.config.id}_idle`, true); }
-  protected playAttackAnimation(): void { this.renderer?.play(`${this.config.id}_attack`, false); }
+  protected playIdleAnimation(): void {
+    this.renderer?.play(`${this.config.id}_idle`, true);
+  }
+  protected playAttackAnimation(): void {
+    this.renderer?.play(`${this.config.id}_attack`, false);
+  }
   protected playDeathAnimation(): void {
-    const target = this.renderer instanceof SpriteRenderer ? this : (this.renderer as any).getObject();
-    this.scene.tweens.add({ targets: target, scaleX: 0.1, scaleY: 0.1, alpha: 0, duration: 400 });
+    const target =
+      this.renderer instanceof SpriteRenderer
+        ? this
+        : (this.renderer as any).getObject();
+    this.scene.tweens.add({
+      targets: target,
+      scaleX: 0.1,
+      scaleY: 0.1,
+      alpha: 0,
+      duration: 400,
+    });
   }
 
-  public setGridPosition(r: number, c: number): void { this.row = r; this.col = c; }
-  public getRow(): number { return this.row; }
-  public getCol(): number { return this.col; }
-  public isPlantAlive(): boolean { return this.isAlive; }
-  public getMaxHealth(): number { return this.config.health; }
+  public setGridPosition(r: number, c: number): void {
+    this.row = r;
+    this.col = c;
+  }
+  public getRow(): number {
+    return this.row;
+  }
+  public getCol(): number {
+    return this.col;
+  }
+  public isPlantAlive(): boolean {
+    return this.isAlive;
+  }
+  public getMaxHealth(): number {
+    return this.config.health;
+  }
 }

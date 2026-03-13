@@ -15,7 +15,12 @@ import { Chomper } from './Chomper';
 import { LilyPad } from './LilyPad';
 
 // 植物创建函数类型
-type PlantCreator = (scene: Phaser.Scene, x: number, y: number, config: PlantConfig) => Plant;
+type PlantCreator = (
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  config: PlantConfig
+) => Plant;
 
 /**
  * 植物工厂
@@ -37,14 +42,18 @@ export class PlantFactory {
       ['snow_pea', (s, x, y, c) => new SnowPea(s, x, y, c)],
       ['repeater', (s, x, y, c) => new Repeater(s, x, y, c)],
       ['chomper', (s, x, y, c) => new Chomper(s, x, y, c)],
-      ['lilypad', (s, x, y, c) => new LilyPad(s, x, y, c)]
+      ['lilypad', (s, x, y, c) => new LilyPad(s, x, y, c)],
     ]);
   }
 
   /**
    * 创建植物
    */
-  public createPlant(plantType: string, row: number, col: number): Plant | null {
+  public createPlant(
+    plantType: string,
+    row: number,
+    col: number
+  ): Plant | null {
     const config = plantConfigs[plantType];
     if (!config) {
       console.error(`Unknown plant type: ${plantType}`);
@@ -52,8 +61,14 @@ export class PlantFactory {
     }
 
     // 计算位置
-    const x = GRID_CONFIG.OFFSET_X + col * GRID_CONFIG.CELL_WIDTH + GRID_CONFIG.CELL_WIDTH / 2;
-    const y = GRID_CONFIG.OFFSET_Y + row * GRID_CONFIG.CELL_HEIGHT + GRID_CONFIG.CELL_HEIGHT / 2;
+    const x =
+      GRID_CONFIG.OFFSET_X +
+      col * GRID_CONFIG.CELL_WIDTH +
+      GRID_CONFIG.CELL_WIDTH / 2;
+    const y =
+      GRID_CONFIG.OFFSET_Y +
+      row * GRID_CONFIG.CELL_HEIGHT +
+      GRID_CONFIG.CELL_HEIGHT / 2;
 
     // 获取植物创建函数
     const creator = this.plantCreators.get(plantType);

@@ -75,7 +75,7 @@ export class BucketheadZombie extends Zombie {
         onComplete: () => {
           this.bucketGraphics?.destroy();
           this.bucketGraphics = null;
-        }
+        },
       });
     }
   }

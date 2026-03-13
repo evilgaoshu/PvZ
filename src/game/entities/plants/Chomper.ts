@@ -54,8 +54,10 @@ export class Chomper extends Plant {
 
     // 检查目标是否在近战范围
     const distance = Phaser.Math.Distance.Between(
-      this.x, this.y,
-      this.attackTarget.x, this.attackTarget.y
+      this.x,
+      this.y,
+      this.attackTarget.x,
+      this.attackTarget.y
     );
 
     if (distance > 100) return; // 太近才攻击
@@ -85,7 +87,7 @@ export class Chomper extends Plant {
     this.scene.game.events.emit(GameEvents.ZOMBIE_DIED, {
       zombie: zombie,
       instantKill: true,
-      source: this
+      source: this,
     });
 
     // 开始咀嚼
@@ -102,12 +104,17 @@ export class Chomper extends Plant {
       scaleY: 1.3,
       duration: 150,
       yoyo: true,
-      ease: 'Power2'
+      ease: 'Power2',
     });
 
     // 添加吞食特效
     const chompEffect = this.scene.add.ellipse(
-      this.x + 20, this.y, 60, 80, 0x330000, 0.8
+      this.x + 20,
+      this.y,
+      60,
+      80,
+      0x330000,
+      0.8
     );
 
     this.scene.tweens.add({
@@ -117,7 +124,7 @@ export class Chomper extends Plant {
       duration: 200,
       onComplete: () => {
         chompEffect.destroy();
-      }
+      },
     });
   }
 
@@ -155,7 +162,7 @@ export class Chomper extends Plant {
       duration: 300,
       repeat: -1,
       yoyo: true,
-      ease: 'Sine.easeInOut'
+      ease: 'Sine.easeInOut',
     });
   }
 
@@ -166,7 +173,13 @@ export class Chomper extends Plant {
     const createBubble = () => {
       if (!this.isChewing) return;
 
-      const bubble = this.scene.add.circle(this.x + 20, this.y - 40, 5, 0xffffff, 0.7);
+      const bubble = this.scene.add.circle(
+        this.x + 20,
+        this.y - 40,
+        5,
+        0xffffff,
+        0.7
+      );
 
       this.scene.tweens.add({
         targets: bubble,
@@ -175,7 +188,7 @@ export class Chomper extends Plant {
         duration: 800,
         onComplete: () => {
           bubble.destroy();
-        }
+        },
       });
     };
 
@@ -183,7 +196,7 @@ export class Chomper extends Plant {
     const bubbleEvent = this.scene.time.addEvent({
       delay: 1000,
       callback: createBubble,
-      repeat: 40 // 咀嚼时间大约42秒
+      repeat: 40, // 咀嚼时间大约42秒
     });
 
     // 存储引用以便清理

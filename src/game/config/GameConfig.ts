@@ -24,12 +24,12 @@ export const gameConfig: PhaserGameConfig = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
     min: {
       width: 400,
-      height: 300
+      height: 300,
     },
     max: {
       width: 1600,
-      height: 1200
-    }
+      height: 1200,
+    },
   },
   physics: {
     default: 'arcade',
@@ -37,29 +37,27 @@ export const gameConfig: PhaserGameConfig = {
       gravity: { x: 0, y: 0 },
       debug: GAME_CONFIG.DEBUG,
       fps: 60,
-      timeScale: 1
-    }
+      timeScale: 1,
+    },
   },
   plugins: {
-    scene: [
-      { key: 'SpinePlugin', plugin: SpinePlugin, mapping: 'spine' }
-    ]
+    scene: [{ key: 'SpinePlugin', plugin: SpinePlugin, mapping: 'spine' }],
   },
   render: {
     antialias: true,
     pixelArt: false,
-    roundPixels: false
+    roundPixels: false,
   },
   fps: {
     target: 60,
-    forceSetTimeOut: false
+    forceSetTimeOut: false,
   },
   disableContextMenu: true,
   banner: {
     hidePhaser: false,
     text: '#ffffff',
-    background: ['#1a1a2e', '#16213e', '#0f3460', '#533483', '#e94560']
-  }
+    background: ['#1a1a2e', '#16213e', '#0f3460', '#533483', '#e94560'],
+  },
 };
 
 /**
@@ -69,30 +67,30 @@ export const sceneConfig = {
   // 启动场景
   boot: {
     key: 'BootScene',
-    active: true
+    active: true,
   },
 
   // 菜单场景
   menu: {
     key: 'MenuScene',
-    active: false
+    active: false,
   },
 
   // 游戏场景
   game: {
     key: 'GameScene',
-    active: false
+    active: false,
   },
 
   // 暂停场景
   pause: {
     key: 'PauseScene',
-    active: false
+    active: false,
   },
 
   // 游戏结束场景
   gameOver: {
     key: 'GameOverScene',
-    active: false
-  }
+    active: false,
+  },
 };

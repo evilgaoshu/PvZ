@@ -2,10 +2,7 @@
 export { ObjectPool, ProjectilePool } from './ObjectPool';
 export { PerformanceMonitor, performanceMonitor } from './PerformanceMonitor';
 export { ErrorHandler, errorHandler, CatchErrors } from './ErrorHandler';
-export {
-  MemoryProfiler,
-  memoryProfiler
-} from './MemoryProfiler';
+export { MemoryProfiler, memoryProfiler } from './MemoryProfiler';
 
 // 数学工具函数
 export const MathUtils = {
@@ -50,15 +47,15 @@ export const MathUtils = {
    * 角度转弧度
    */
   degToRad(degrees: number): number {
-    return degrees * Math.PI / 180;
+    return (degrees * Math.PI) / 180;
   },
 
   /**
    * 弧度转角度
    */
   radToDeg(radians: number): number {
-    return radians * 180 / Math.PI;
-  }
+    return (radians * 180) / Math.PI;
+  },
 };
 
 // 字符串工具函数
@@ -83,7 +80,7 @@ export const StringUtils = {
    */
   capitalize(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+  },
 };
 
 // 数组工具函数
@@ -111,13 +108,16 @@ export const ArrayUtils = {
    * 按属性分组
    */
   groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
-    return array.reduce((result, item) => {
-      const group = String(item[key]);
-      result[group] = result[group] || [];
-      result[group].push(item);
-      return result;
-    }, {} as Record<string, T[]>);
-  }
+    return array.reduce(
+      (result, item) => {
+        const group = String(item[key]);
+        result[group] = result[group] || [];
+        result[group].push(item);
+        return result;
+      },
+      {} as Record<string, T[]>
+    );
+  },
 };
 
 // 调试工具
@@ -148,12 +148,16 @@ export const DebugUtils = {
    * 打印对象结构
    */
   inspect(obj: any, depth: number = 3): string {
-    return JSON.stringify(obj, (key, value) => {
-      if (depth <= 0) return '...';
-      if (typeof value === 'function') return '[Function]';
-      if (value instanceof Map) return { type: 'Map', size: value.size };
-      if (value instanceof Set) return { type: 'Set', size: value.size };
-      return value;
-    }, 2);
-  }
+    return JSON.stringify(
+      obj,
+      (key, value) => {
+        if (depth <= 0) return '...';
+        if (typeof value === 'function') return '[Function]';
+        if (value instanceof Map) return { type: 'Map', size: value.size };
+        if (value instanceof Set) return { type: 'Set', size: value.size };
+        return value;
+      },
+      2
+    );
+  },
 };

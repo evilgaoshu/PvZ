@@ -3,7 +3,11 @@
  * 用于检测和诊断内存问题
  */
 export class MemoryProfiler {
-  private snapshots: { label: string; memory: number; objects: Map<string, number> }[] = [];
+  private snapshots: {
+    label: string;
+    memory: number;
+    objects: Map<string, number>;
+  }[] = [];
   private isRunning: boolean = false;
   private intervalId: number | null = null;
 
@@ -43,7 +47,7 @@ export class MemoryProfiler {
     this.snapshots.push({
       label: `${label}_${Date.now()}`,
       memory,
-      objects
+      objects,
     });
 
     // 限制快照数量
@@ -116,7 +120,9 @@ export class MemoryProfiler {
 
     lines.push('快照历史:');
     this.snapshots.forEach((snapshot, index) => {
-      lines.push(`  ${index + 1}. ${snapshot.label}: ${snapshot.memory.toFixed(2)} MB`);
+      lines.push(
+        `  ${index + 1}. ${snapshot.label}: ${snapshot.memory.toFixed(2)} MB`
+      );
     });
 
     const current = this.getCurrentMemory();

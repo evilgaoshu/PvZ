@@ -1,5 +1,10 @@
 import Phaser from 'phaser';
-import { SoundEffect, BackgroundMusic, SFX_CONFIGS, BGM_CONFIGS } from '../config/AudioConfig';
+import {
+  SoundEffect,
+  BackgroundMusic,
+  SFX_CONFIGS,
+  BGM_CONFIGS,
+} from '../config/AudioConfig';
 import { ProceduralAudio } from '../utils/ProceduralAudio';
 
 /**
@@ -36,29 +41,21 @@ export class AudioManager {
    * 预加载音频资源
    */
   public preload(): void {
-    // 检查是否跳过外部资源加载（如果资产目录为空）
-    // 在本项目的当前状态下，我们知道外部音效文件不存在，为了避免 EncodingError，我们暂时跳过加载
-    // 开发者可以在添加实际资源后移除此检查
-    const skipExternalLoading = true; 
-
-    if (skipExternalLoading) {
-      console.info('Skipping external audio loading, using procedural fallback only.');
-      return;
-    }
-
     // 加载音效（设置失败回调）
-    SFX_CONFIGS.forEach(config => {
+    SFX_CONFIGS.forEach((config) => {
       this.scene.load.audio(config.key, config.path);
     });
 
     // 加载背景音乐（设置失败回调）
-    BGM_CONFIGS.forEach(config => {
+    BGM_CONFIGS.forEach((config) => {
       this.scene.load.audio(config.key, config.path);
     });
 
     // 监听加载错误，不抛出异常
     this.scene.load.on('fileerror', (file: any) => {
-      console.warn(`Audio file load failed: ${file.key}, will use procedural fallback`);
+      console.warn(
+        `Audio file load failed: ${file.key}, will use procedural fallback`
+      );
     });
   }
 
@@ -67,24 +64,26 @@ export class AudioManager {
    */
   public init(): void {
     // 创建音效实例（仅当资源存在时）
-    SFX_CONFIGS.forEach(config => {
+    SFX_CONFIGS.forEach((config) => {
       // 检查资源是否成功加载
       const isLoaded = this.scene.cache.audio.has(config.key);
       if (!isLoaded) {
-        console.warn(`Audio resource not found: ${config.key}, will use procedural fallback`);
+        console.warn(
+          `Audio resource not found: ${config.key}, will use procedural fallback`
+        );
         return;
       }
 
       const sound = this.scene.sound.add(config.key, {
         volume: config.volume ?? 1.0,
         loop: config.loop ?? false,
-        rate: config.rate ?? 1.0
+        rate: config.rate ?? 1.0,
       });
       this.sfx.set(config.key, sound);
     });
 
     // 创建背景音乐实例（仅当资源存在时）
-    BGM_CONFIGS.forEach(config => {
+    BGM_CONFIGS.forEach((config) => {
       // 检查资源是否成功加载
       const isLoaded = this.scene.cache.audio.has(config.key);
       if (!isLoaded) {
@@ -95,7 +94,7 @@ export class AudioManager {
       const sound = this.scene.sound.add(config.key, {
         volume: (config.volume ?? 1.0) * this.bgmVolume,
         loop: config.loop ?? true,
-        rate: config.rate ?? 1.0
+        rate: config.rate ?? 1.0,
       });
       this.bgm.set(config.key, sound);
     });
@@ -106,7 +105,10 @@ export class AudioManager {
   /**
    * 播放音效
    */
-  public playSfx(key: SoundEffect | string, config?: { volume?: number; rate?: number }): void {
+  public playSfx(
+    key: SoundEffect | string,
+    config?: { volume?: number; rate?: number }
+  ): void {
     if (this.isMuted) return;
 
     const sound = this.sfx.get(key);
@@ -172,7 +174,10 @@ export class AudioManager {
   /**
    * 播放背景音乐
    */
-  public playBgm(key: BackgroundMusic | string, fadeDuration: number = 1000): void {
+  public playBgm(
+    key: BackgroundMusic | string,
+    fadeDuration: number = 1000
+  ): void {
     if (this.currentBgm === key) return;
 
     // 停止当前背景音乐
@@ -182,7 +187,9 @@ export class AudioManager {
 
     const sound = this.bgm.get(key);
     if (!sound) {
-      console.warn(`Background music not found: ${key}, using procedural fallback`);
+      console.warn(
+        `Background music not found: ${key}, using procedural fallback`
+      );
       this.proceduralAudio.startAmbientLoop();
       this.currentBgm = key;
       return;
@@ -197,7 +204,7 @@ export class AudioManager {
         targets: sound,
         volume: this.bgmVolume * this.masterVolume,
         duration: fadeDuration,
-        ease: 'Linear'
+        ease: 'Linear',
       });
     } else {
       sound.play();
@@ -227,7 +234,7 @@ export class AudioManager {
         ease: 'Linear',
         onComplete: () => {
           sound.stop();
-        }
+        },
       });
     } else {
       sound.stop();
@@ -298,9 +305,11 @@ export class AudioManager {
    */
   private updateSfxVolumes(): void {
     this.sfx.forEach((sound, key) => {
-      const config = SFX_CONFIGS.find(c => c.key === key);
+      const config = SFX_CONFIGS.find((c) => c.key === key);
       if (config && sound instanceof Phaser.Sound.WebAudioSound) {
-        sound.setVolume((config.volume ?? 1.0) * this.sfxVolume * this.masterVolume);
+        sound.setVolume(
+          (config.volume ?? 1.0) * this.sfxVolume * this.masterVolume
+        );
       }
     });
   }
@@ -310,9 +319,10 @@ export class AudioManager {
    */
   private updateBgmVolumes(): void {
     this.bgm.forEach((sound, key) => {
-      const config = BGM_CONFIGS.find(c => c.key === key);
+      const config = BGM_CONFIGS.find((c) => c.key === key);
       if (config && sound instanceof Phaser.Sound.WebAudioSound) {
-        const targetVolume = (config.volume ?? 1.0) * this.bgmVolume * this.masterVolume;
+        const targetVolume =
+          (config.volume ?? 1.0) * this.bgmVolume * this.masterVolume;
 
         // 如果是当前播放的音乐，平滑过渡
         if (key === this.currentBgm) {
@@ -320,7 +330,7 @@ export class AudioManager {
             targets: sound,
             volume: targetVolume,
             duration: 300,
-            ease: 'Linear'
+            ease: 'Linear',
           });
         } else {
           sound.setVolume(targetVolume);
@@ -370,10 +380,7 @@ export class AudioManager {
    * 播放随机僵尸音效
    */
   public playRandomZombieSound(): void {
-    const sounds = [
-      SoundEffect.ZOMBIE_GROAN,
-      SoundEffect.ZOMBIE_EATING
-    ];
+    const sounds = [SoundEffect.ZOMBIE_GROAN, SoundEffect.ZOMBIE_EATING];
     const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
     this.playSfx(randomSound);
   }
@@ -382,7 +389,7 @@ export class AudioManager {
    * 停止所有音频
    */
   public stopAll(): void {
-    this.sfx.forEach(sound => sound.stop());
+    this.sfx.forEach((sound) => sound.stop());
     this.stopBgm(0);
   }
 
@@ -390,7 +397,7 @@ export class AudioManager {
    * 暂停所有音频
    */
   public pauseAll(): void {
-    this.sfx.forEach(sound => sound.pause());
+    this.sfx.forEach((sound) => sound.pause());
     this.pauseBgm();
   }
 
@@ -399,7 +406,7 @@ export class AudioManager {
    */
   public resumeAll(): void {
     if (this.isMuted) return;
-    this.sfx.forEach(sound => sound.resume());
+    this.sfx.forEach((sound) => sound.resume());
     this.resumeBgm();
   }
 

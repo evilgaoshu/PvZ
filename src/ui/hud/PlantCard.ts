@@ -18,7 +18,13 @@ export class PlantCard extends Phaser.GameObjects.Container {
   private isAvailable: boolean = true;
   private cooldownOverlay: Phaser.GameObjects.Graphics;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, config: PlantCardConfig, onClick: (id: string, cost: number) => void) {
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    config: PlantCardConfig,
+    onClick: (id: string, cost: number) => void
+  ) {
     super(scene, x, y);
     this.config = config;
 
@@ -32,11 +38,16 @@ export class PlantCard extends Phaser.GameObjects.Container {
     iconBg.setStrokeStyle(2, 0xffffff, 0.5);
     this.add(iconBg);
 
-    const nameInitial = scene.add.text(0, -10, config.id.charAt(0).toUpperCase(), {
-      fontSize: '24px',
-      color: '#ffffff',
-      fontStyle: 'bold'
-    });
+    const nameInitial = scene.add.text(
+      0,
+      -10,
+      config.id.charAt(0).toUpperCase(),
+      {
+        fontSize: '24px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      }
+    );
     nameInitial.setOrigin(0.5);
     this.add(nameInitial);
 
@@ -47,7 +58,7 @@ export class PlantCard extends Phaser.GameObjects.Container {
     this.costText = scene.add.text(5, 25, config.cost.toString(), {
       fontSize: '14px',
       color: '#fcd34d',
-      fontStyle: 'bold'
+      fontStyle: 'bold',
     });
     this.costText.setOrigin(0, 0.5);
     this.add(this.costText);
@@ -112,7 +123,14 @@ export class PlantCard extends Phaser.GameObjects.Container {
       // 绘制扇形冷却效果
       this.cooldownOverlay.beginPath();
       this.cooldownOverlay.moveTo(0, -10);
-      this.cooldownOverlay.arc(0, -10, 30, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * (1 - progress)), false);
+      this.cooldownOverlay.arc(
+        0,
+        -10,
+        30,
+        -Math.PI / 2,
+        -Math.PI / 2 + Math.PI * 2 * (1 - progress),
+        false
+      );
       this.cooldownOverlay.lineTo(0, -10);
       this.cooldownOverlay.closePath();
       this.cooldownOverlay.fillPath();

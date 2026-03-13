@@ -4,7 +4,11 @@ import { GameEvents, EntityState } from '@/types/index';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
 import { VisualEffects } from '@utils/VisualEffects';
-import { IEntityRenderer, SpineRenderer, SpriteRenderer } from '../EntityRenderer';
+import {
+  IEntityRenderer,
+  SpineRenderer,
+  SpriteRenderer,
+} from '../EntityRenderer';
 import { Plant } from '../plants/Plant';
 
 /**
@@ -40,7 +44,9 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.currentHealth = config.health;
     this.currentSpeed = config.speed;
     this.currentArmor = config.armor || 0;
-    this.audioManager = this.scene.game.registry.get('audioManager') as AudioManager;
+    this.audioManager = this.scene.game.registry.get(
+      'audioManager'
+    ) as AudioManager;
 
     this.initRenderer();
     scene.add.existing(this);
@@ -51,7 +57,13 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
   private initRenderer(): void {
     const spineKey = (this.config as any).spineKey;
     if (spineKey && (this.scene as any).spine) {
-      this.renderer = new SpineRenderer(this.scene, this.x, this.y, spineKey, spineKey);
+      this.renderer = new SpineRenderer(
+        this.scene,
+        this.x,
+        this.y,
+        spineKey,
+        spineKey
+      );
       this.setAlpha(0);
     } else {
       this.renderer = new SpriteRenderer(this);
@@ -93,10 +105,14 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (this.isSlowed && time >= this.slowedEndTime) this.removeSlow();
-    if (this.x < 180) { this.scene.game.events.emit('zombie:reached_house', this); return; }
+    if (this.x < 180) {
+      this.scene.game.events.emit('zombie:reached_house', this);
+      return;
+    }
 
     if (time >= this.nextGroanTime) {
-      if (Math.random() < 0.3) this.audioManager?.playSfx(SoundEffect.ZOMBIE_GROAN);
+      if (Math.random() < 0.3)
+        this.audioManager?.playSfx(SoundEffect.ZOMBIE_GROAN);
       this.nextGroanTime = time + Phaser.Math.Between(5000, 15000);
     }
 
@@ -110,7 +126,9 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
 
     // 根据当前物理坐标转换网格坐标，获取实时地形
     const gridPos = gridSystem.screenToGrid(this.x, this.y);
-    const inWater = gridPos ? gridSystem.getTerrainType(gridPos.row, gridPos.col) === 'water' : false;
+    const inWater = gridPos
+      ? gridSystem.getTerrainType(gridPos.row, gridPos.col) === 'water'
+      : false;
 
     if (inWater && !this.isSwimming) {
       this.enterWater();
@@ -122,7 +140,11 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
   private enterWater(): void {
     this.isSwimming = true;
     if (!this.duckyTube) {
-      this.duckyTube = this.scene.add.image(this.x, this.y + 20, 'zombies/ducky_tube');
+      this.duckyTube = this.scene.add.image(
+        this.x,
+        this.y + 20,
+        'zombies/ducky_tube'
+      );
     }
     this.duckyTube.setVisible(true);
     // 播放水花粒子效果
@@ -169,7 +191,7 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
       ease: 'Bounce.easeOut',
       onComplete: () => {
         this.scene.time.delayedCall(2000, () => head.destroy());
-      }
+      },
     });
     this.audioManager?.playSfx(SoundEffect.SPLAT);
   }
@@ -186,19 +208,28 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.audioManager?.playSfx(SoundEffect.ZOMBIE_DIE);
     VisualEffects.shakeCamera(this.scene, 0.005, 200);
     this.renderer?.play(`${this.config.id}_die`, false);
-    
+
     if (this.duckyTube) this.duckyTube.destroy();
 
     this.scene.tweens.add({
-      targets: this.renderer instanceof SpriteRenderer ? this : (this.renderer as any).getObject(),
-      angle: -90, alpha: 0, duration: 800,
-      onComplete: () => { this.renderer?.destroy(); this.destroy(); }
+      targets:
+        this.renderer instanceof SpriteRenderer
+          ? this
+          : (this.renderer as any).getObject(),
+      angle: -90,
+      alpha: 0,
+      duration: 800,
+      onComplete: () => {
+        this.renderer?.destroy();
+        this.destroy();
+      },
     });
   }
 
   protected showDamageEffect(): void {
     VisualEffects.flashSprite(this, 0xffffff, 80);
-    if (!(this.renderer instanceof SpineRenderer)) VisualEffects.bounceScale(this, 1.05, 100);
+    if (!(this.renderer instanceof SpineRenderer))
+      VisualEffects.bounceScale(this, 1.05, 100);
   }
 
   public startWalking(): void {
@@ -218,7 +249,11 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
   }
 
   protected updateAttack(time: number): void {
-    if (!this.attackTarget || !this.attackTarget.active || !this.attackTarget.isPlantAlive()) {
+    if (
+      !this.attackTarget ||
+      !this.attackTarget.active ||
+      !this.attackTarget.isPlantAlive()
+    ) {
       this.startWalking();
       return;
     }
@@ -231,8 +266,13 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
 
   protected playBiteAnimation(): void {
     this.scene.tweens.add({
-      targets: this.renderer instanceof SpriteRenderer ? this : (this.renderer as any).getObject(),
-      x: '+=5', duration: 50, yoyo: true
+      targets:
+        this.renderer instanceof SpriteRenderer
+          ? this
+          : (this.renderer as any).getObject(),
+      x: '+=5',
+      duration: 50,
+      yoyo: true,
     });
   }
 
@@ -256,7 +296,13 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.currentSpeed = this.config.speed;
   }
 
-  public getRow(): number { return this.row; }
-  public setRow(row: number): void { this.row = row; }
-  public isZombieAlive(): boolean { return this.isAlive; }
+  public getRow(): number {
+    return this.row;
+  }
+  public setRow(row: number): void {
+    this.row = row;
+  }
+  public isZombieAlive(): boolean {
+    return this.isAlive;
+  }
 }

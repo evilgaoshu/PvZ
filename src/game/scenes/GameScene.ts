@@ -7,10 +7,7 @@ import { PlantFactory } from '@entities/plants/PlantFactory';
 import { ZombieFactory } from '@entities/zombies/ZombieFactory';
 import { Pea, SnowPea } from '@entities/projectiles/Projectile';
 import { GRID_CONFIG, GameEvents, ECONOMY_CONFIG } from '@/types/index';
-import {
-  plantConfigs,
-  zombieConfigs
-} from '@data/plants/plantConfigs';
+import { plantConfigs, zombieConfigs } from '@data/plants/plantConfigs';
 import type { LevelConfig } from '@/types/config';
 import { Plant } from '@entities/plants/Plant';
 import { Zombie } from '@entities/zombies/Zombie';
@@ -28,8 +25,11 @@ import { GameButton } from '@ui/components/GameButton';
  * 主游戏战斗场景
  */
 export class GameScene extends BaseScene {
-  private readonly gameEventListeners: Array<{ event: string; handler: (...args: any[]) => void }> = [];
-  
+  private readonly gameEventListeners: Array<{
+    event: string;
+    handler: (...args: any[]) => void;
+  }> = [];
+
   public gridSystem!: GridSystem; // 改为 public 方便实体访问
   private economySystem!: EconomySystem;
   private waveSystem!: WaveSystem;
@@ -87,7 +87,10 @@ export class GameScene extends BaseScene {
     if (this.textures.exists('pea')) return;
     const g = this.make.graphics({ fillStyle: { color: 0x4ade80 } }, false);
     g.fillCircle(10, 10, 8).generateTexture('pea', 20, 20);
-    g.clear().fillStyle(0xaaddff).fillCircle(10, 10, 8).generateTexture('snow_pea', 20, 20);
+    g.clear()
+      .fillStyle(0xaaddff)
+      .fillCircle(10, 10, 8)
+      .generateTexture('snow_pea', 20, 20);
     g.destroy();
   }
 
@@ -97,7 +100,7 @@ export class GameScene extends BaseScene {
 
     this.createLayers();
     this.initializeSystems();
-    
+
     // 初始化地形
     if (this.levelData) {
       this.gridSystem.initializeGrid(this.levelData.background);
@@ -117,9 +120,12 @@ export class GameScene extends BaseScene {
     this.economySystem.update(delta);
     this.waveSystem.update(delta);
     this.combatSystem.update(delta);
-    this.plants.forEach(p => p.active && p.update(time, delta));
-    this.zombies = this.zombies.filter(z => {
-      if (z.active && z.isZombieAlive()) { z.update(time, delta); return true; }
+    this.plants.forEach((p) => p.active && p.update(time, delta));
+    this.zombies = this.zombies.filter((z) => {
+      if (z.active && z.isZombieAlive()) {
+        z.update(time, delta);
+        return true;
+      }
       return false;
     });
     this.projectileLayer?.children.iterate((c: any) => {
@@ -135,7 +141,7 @@ export class GameScene extends BaseScene {
     this.gameContainer.add(bgLayer);
     const bgKey = this.levelData?.background || 'day-grass';
     bgLayer.add(this.add.image(400, 300, bgKey));
-    
+
     this.plantLayer = this.physics.add.group();
     this.zombieLayer = this.physics.add.group();
     this.projectileLayer = this.physics.add.group();
@@ -144,13 +150,17 @@ export class GameScene extends BaseScene {
   }
 
   private createGridVisuals(): void {
-    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT } = GRID_CONFIG;
+    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT } =
+      GRID_CONFIG;
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
         const cell = this.add.rectangle(
           OFFSET_X + col * CELL_WIDTH + CELL_WIDTH / 2,
           OFFSET_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2,
-          CELL_WIDTH, CELL_HEIGHT, 0xffffff, 0
+          CELL_WIDTH,
+          CELL_HEIGHT,
+          0xffffff,
+          0
         );
         cell.setInteractive({ useHandCursor: true });
         cell.on('pointerdown', () => this.onGridCellClick(row, col));
@@ -164,7 +174,11 @@ export class GameScene extends BaseScene {
     for (let row = 0; row < ROWS; row++) {
       // 如果是水路，不放割草机（或者放专属水路清理器，这里暂简化）
       if (this.gridSystem.getTerrainType(row, 0) === 'water') continue;
-      this.createLawnMower(180, OFFSET_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2, row);
+      this.createLawnMower(
+        180,
+        OFFSET_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2,
+        row
+      );
       this.activeMowerRows.add(row);
     }
   }
@@ -176,16 +190,25 @@ export class GameScene extends BaseScene {
     this.lawnMowers.push(mower);
   }
 
-  private activateLawnMower(mower: Phaser.GameObjects.Container, row: number): void {
+  private activateLawnMower(
+    mower: Phaser.GameObjects.Container,
+    row: number
+  ): void {
     mower.setData('isActive', true);
     this.tweens.add({
-      targets: mower, x: 900, duration: 2000,
+      targets: mower,
+      x: 900,
+      duration: 2000,
       onUpdate: () => {
-        this.zombies.forEach(z => {
-          if (z.getRow() === row && z.x < mower.x + 50) z.takeDamage(9999, 'explosion');
+        this.zombies.forEach((z) => {
+          if (z.getRow() === row && z.x < mower.x + 50)
+            z.takeDamage(9999, 'explosion');
         });
       },
-      onComplete: () => { mower.destroy(); this.lawnMowers = this.lawnMowers.filter(m => m !== mower); }
+      onComplete: () => {
+        mower.destroy();
+        this.lawnMowers = this.lawnMowers.filter((m) => m !== mower);
+      },
     });
     this.audioManager?.playSfx(SoundEffect.LAWN_MOWER);
   }
@@ -203,71 +226,118 @@ export class GameScene extends BaseScene {
     this.projectilePool = new ProjectilePool(this);
   }
 
-  private registerGameEvent(event: string, handler: (...args: any[]) => void): void {
+  private registerGameEvent(
+    event: string,
+    handler: (...args: any[]) => void
+  ): void {
     this.game.events.on(event, handler);
     this.gameEventListeners.push({ event, handler });
   }
 
   private setupEventListeners(): void {
-    this.registerGameEvent(GameEvents.ZOMBIE_SPAWNED, (d: any) => this.spawnZombie(d.zombieType, d.row));
-    this.registerGameEvent(GameEvents.PROJECTILE_FIRED, (d: any) => this.fireProjectile(d));
-    this.registerGameEvent(GameEvents.ALL_WAVES_COMPLETED, () => this.time.delayedCall(3000, () => this.gameOver(true)));
-    this.registerGameEvent(GameEvents.ZOMBIE_DIED, () => this.waveSystem.onZombieKilled());
-    this.game.events.on('plant:check_target', (d: any) => this.findTargetForPlant(d.row, d.plant));
+    this.registerGameEvent(GameEvents.ZOMBIE_SPAWNED, (d: any) =>
+      this.spawnZombie(d.zombieType, d.row)
+    );
+    this.registerGameEvent(GameEvents.PROJECTILE_FIRED, (d: any) =>
+      this.fireProjectile(d)
+    );
+    this.registerGameEvent(GameEvents.ALL_WAVES_COMPLETED, () =>
+      this.time.delayedCall(3000, () => this.gameOver(true))
+    );
+    this.registerGameEvent(GameEvents.ZOMBIE_DIED, () =>
+      this.waveSystem.onZombieKilled()
+    );
+    this.game.events.on('plant:check_target', (d: any) =>
+      this.findTargetForPlant(d.row, d.plant)
+    );
   }
 
   private handleZombieReachedHouse(zombie: Zombie): void {
     if (this.isGameOver) return;
     const row = zombie.getRow();
-    const mower = this.lawnMowers.find(m => m.getData('row') === row && !m.getData('isActive'));
+    const mower = this.lawnMowers.find(
+      (m) => m.getData('row') === row && !m.getData('isActive')
+    );
     if (mower) this.activateLawnMower(mower, row);
-    else if (this.gridSystem.getTerrainType(row, 0) === 'grass') this.gameOver(false); 
+    else if (this.gridSystem.getTerrainType(row, 0) === 'grass')
+      this.gameOver(false);
     // 水路逻辑：如果没割草机也没植物，直接失败
     else this.gameOver(false);
   }
 
   private setupCollisions(): void {
-    this.physics.add.overlap(this.projectileLayer!, this.zombieLayer!, (p, z) => {
-      const proj = p as any;
-      (z as Zombie).takeDamage(proj.getDamage(), proj.getProjectileType());
-      if (proj.getIsSlowing()) (z as Zombie).applySlow(3000);
-      proj.hit(z as any);
-    });
+    this.physics.add.overlap(
+      this.projectileLayer!,
+      this.zombieLayer!,
+      (p, z) => {
+        const proj = p as any;
+        (z as Zombie).takeDamage(proj.getDamage(), proj.getProjectileType());
+        if (proj.getIsSlowing()) (z as Zombie).applySlow(3000);
+        proj.hit(z as any);
+      }
+    );
     this.physics.add.overlap(this.zombieLayer!, this.plantLayer!, (z, p) => {
       const zombie = z as Zombie;
       const plant = p as Plant;
-      if (zombie.getRow() === plant.getRow() && Math.abs(zombie.x - plant.x) < 40) zombie.startAttacking(plant);
+      if (
+        zombie.getRow() === plant.getRow() &&
+        Math.abs(zombie.x - plant.x) < 40
+      )
+        zombie.startAttacking(plant);
     });
   }
 
   private createUI(): void {
     this.sunDisplayComp = new SunDisplay(this, 80, 40);
     this.uiLayer?.add(this.sunDisplayComp);
-    this.registerGameEvent(GameEvents.SUN_CHANGED, (sun: number) => this.sunDisplayComp.updateSun(sun));
+    this.registerGameEvent(GameEvents.SUN_CHANGED, (sun: number) =>
+      this.sunDisplayComp.updateSun(sun)
+    );
 
-    this.plantSelectorComp = new PlantSelector(this, 160, 45, [], (id, cost) => this.selectPlant(id, cost));
+    this.plantSelectorComp = new PlantSelector(this, 160, 45, [], (id, cost) =>
+      this.selectPlant(id, cost)
+    );
     this.uiLayer?.add(this.plantSelectorComp);
 
     this.progressBarComp = new ProgressBar(this, 700, 40);
     this.uiLayer?.add(this.progressBarComp);
-    this.registerGameEvent(GameEvents.WAVE_STARTED, (d: any) => this.progressBarComp.setProgress(d.waveNumber / d.totalWaves));
+    this.registerGameEvent(GameEvents.WAVE_STARTED, (d: any) =>
+      this.progressBarComp.setProgress(d.waveNumber / d.totalWaves)
+    );
 
-    const shovelBtn = new GameButton(this, 600, 40, { text: '🥄', width: 50, height: 50, borderRadius: 25 }, () => {
-      this.selectedPlant = 'shovel';
-      this.showPlantPreview();
-    });
+    const shovelBtn = new GameButton(
+      this,
+      600,
+      40,
+      { text: '🥄', width: 50, height: 50, borderRadius: 25 },
+      () => {
+        this.selectedPlant = 'shovel';
+        this.showPlantPreview();
+      }
+    );
     this.uiLayer?.add(shovelBtn);
 
-    const pauseBtn = new GameButton(this, 780, 40, { text: '⏸', width: 40, height: 40 }, () => this.pauseGame());
+    const pauseBtn = new GameButton(
+      this,
+      780,
+      40,
+      { text: '⏸', width: 40, height: 40 },
+      () => this.pauseGame()
+    );
     this.uiLayer?.add(pauseBtn);
   }
 
   private startGame(): void {
     if (!this.levelData) return;
     this.audioManager?.playBgm(BackgroundMusic.MENU);
-    const available = this.levelData.availablePlants.map(id => {
+    const available = this.levelData.availablePlants.map((id) => {
       const cfg = plantConfigs[id];
-      return { id, name: cfg.name, cost: cfg.cost, color: id === 'sunflower' ? 0xfcd34d : 0x4ade80 };
+      return {
+        id,
+        name: cfg.name,
+        cost: cfg.cost,
+        color: id === 'sunflower' ? 0xfcd34d : 0x4ade80,
+      };
     });
 
     new SeedPicker(this, available, (selected) => {
@@ -300,7 +370,10 @@ export class GameScene extends BaseScene {
 
   private updatePlantPreview(): void {
     if (!this.plantPreview || !this.selectedPlant) return;
-    this.plantPreview.setPosition(this.input.activePointer.x, this.input.activePointer.y);
+    this.plantPreview.setPosition(
+      this.input.activePointer.x,
+      this.input.activePointer.y
+    );
   }
 
   private onGridCellClick(row: number, col: number): void {
@@ -318,8 +391,10 @@ export class GameScene extends BaseScene {
     const hasLily = this.gridSystem.hasLilyPad(row, col);
     const rules = cfg.placement || ['grass'];
 
-    let canPlace = rules.includes(terrain) || (terrain === 'water' && hasLily && rules.includes('lilypad'));
-    
+    let canPlace =
+      rules.includes(terrain) ||
+      (terrain === 'water' && hasLily && rules.includes('lilypad'));
+
     // 互斥校验：同一格不能种两个普通植物
     const existing = this.gridSystem.getPlant(row, col);
     if (existing && cfg.id !== 'lilypad') canPlace = false;
@@ -328,7 +403,10 @@ export class GameScene extends BaseScene {
 
     if (!canPlace || !this.economySystem.spend(this.selectedPlantCost)) {
       this.audioManager?.playSfx(SoundEffect.ERROR);
-      this.showNotification(terrain === 'water' && !hasLily ? '需要睡莲！' : '这里不能种植！', 1000);
+      this.showNotification(
+        terrain === 'water' && !hasLily ? '需要睡莲！' : '这里不能种植！',
+        1000
+      );
       return;
     }
 
@@ -367,7 +445,7 @@ export class GameScene extends BaseScene {
       platform.die();
       this.platforms.delete(key);
     }
-    
+
     this.selectedPlant = null;
     this.plantPreview?.destroy();
   }
@@ -375,10 +453,13 @@ export class GameScene extends BaseScene {
   private findTargetForPlant(row: number, plant: Plant): void {
     let closest: Zombie | null = null;
     let minDist = Infinity;
-    this.zombies.forEach(z => {
+    this.zombies.forEach((z) => {
       if (z.getRow() === row && z.x > plant.x) {
         const d = z.x - plant.x;
-        if (d < minDist) { minDist = d; closest = z; }
+        if (d < minDist) {
+          minDist = d;
+          closest = z;
+        }
       }
     });
     if (closest) plant.setAttackTarget(closest as any);
@@ -393,28 +474,55 @@ export class GameScene extends BaseScene {
   }
 
   private fireProjectile(data: any): void {
-    const proj = this.projectilePool.get(data.type === 'snow_pea' ? 'snow_pea' : 'pea');
-    proj.setRecycleHandler(i => this.projectilePool.recycle(i as any));
+    const proj = this.projectilePool.get(
+      data.type === 'snow_pea' ? 'snow_pea' : 'pea'
+    );
+    proj.setRecycleHandler((i) => this.projectilePool.recycle(i as any));
     proj.setPosition(data.x, data.y).setProjectileData(data);
     this.projectileLayer?.add(proj);
     this.audioManager?.playSfx(SoundEffect.SHOOT);
   }
 
   private showNotification(text: string, duration: number): void {
-    const n = this.add.text(400, 100, text, { fontSize: '24px', color: '#ef4444', stroke: '#000', strokeThickness: 4 }).setOrigin(0.5);
-    this.tweens.add({ targets: n, y: 80, alpha: 0, duration, onComplete: () => n.destroy() });
+    const n = this.add
+      .text(400, 100, text, {
+        fontSize: '24px',
+        color: '#ef4444',
+        stroke: '#000',
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5);
+    this.tweens.add({
+      targets: n,
+      y: 80,
+      alpha: 0,
+      duration,
+      onComplete: () => n.destroy(),
+    });
   }
 
-  private pauseGame(): void { this.isPaused = true; this.scene.launch('PauseScene'); this.scene.pause(); }
-  resumeGame(): void { this.isPaused = false; }
+  private pauseGame(): void {
+    this.isPaused = true;
+    this.scene.launch('PauseScene');
+    this.scene.pause();
+  }
+  resumeGame(): void {
+    this.isPaused = false;
+  }
   gameOver(win: boolean): void {
     this.isGameOver = true;
-    this.audioManager?.playBgm(win ? BackgroundMusic.VICTORY : BackgroundMusic.DEFEAT);
-    this.transitionOut(500, () => this.scene.start('GameOverScene', { isVictory: win }));
+    this.audioManager?.playBgm(
+      win ? BackgroundMusic.VICTORY : BackgroundMusic.DEFEAT
+    );
+    this.transitionOut(500, () =>
+      this.scene.start('GameOverScene', { isVictory: win })
+    );
   }
 
   protected onShutdown(): void {
-    this.gameEventListeners.forEach(l => this.game.events.off(l.event, l.handler));
+    this.gameEventListeners.forEach((l) =>
+      this.game.events.off(l.event, l.handler)
+    );
     this.gridSystem?.destroy();
     this.economySystem?.destroy();
     this.waveSystem?.destroy();

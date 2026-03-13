@@ -33,7 +33,7 @@ export class BootScene extends BaseScene {
     this.load.on('progress', (value: number) => {
       this.updateLoadingProgress(value);
     });
-    
+
     // 当所有资源加载完成时触发
     this.load.on('complete', () => {
       this.finishBoot();
@@ -88,7 +88,10 @@ export class BootScene extends BaseScene {
     this.load.svg('zombies/normal', 'assets/images/zombies/normal.svg');
     this.load.svg('zombies/conehead', 'assets/images/zombies/conehead.svg');
     this.load.svg('zombies/buckethead', 'assets/images/zombies/buckethead.svg');
-    this.load.svg('zombies/pole_vaulting', 'assets/images/zombies/pole_vaulting.svg');
+    this.load.svg(
+      'zombies/pole_vaulting',
+      'assets/images/zombies/pole_vaulting.svg'
+    );
     this.load.svg('zombies/newspaper', 'assets/images/zombies/newspaper.svg');
     this.load.svg('zombies/screendoor', 'assets/images/zombies/screendoor.svg');
 
@@ -125,9 +128,9 @@ export class BootScene extends BaseScene {
     // 因为改为真正的异步加载，所以 onCreate 里不需要主动调用 finishBoot
     // 如果没有资源加载，Phaser 会直接触发 complete
   }
-  
+
   protected onUpdate(): void {}
-  
+
   protected onShutdown(): void {
     this.registry.remove('progressBar');
     this.registry.remove('progressText');

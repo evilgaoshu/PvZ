@@ -17,7 +17,14 @@ class Game {
     // 配置游戏
     const config: Phaser.Types.Core.GameConfig = {
       ...gameConfig,
-      scene: [BootScene, MenuScene, GameScene, PauseScene, GameOverScene, EditorScene],
+      scene: [
+        BootScene,
+        MenuScene,
+        GameScene,
+        PauseScene,
+        GameOverScene,
+        EditorScene,
+      ],
     };
 
     // 创建Phaser游戏实例

@@ -104,7 +104,7 @@ export class ScreendoorZombie extends Zombie {
       duration: 200,
       onComplete: () => {
         spark.destroy();
-      }
+      },
     });
 
     // 声音
@@ -130,7 +130,7 @@ export class ScreendoorZombie extends Zombie {
         onComplete: () => {
           this.doorGraphics?.destroy();
           this.doorGraphics = null;
-        }
+        },
       });
     }
   }

@@ -41,7 +41,7 @@ export class TestRunner {
    */
   private printSummary(): void {
     const total = this.results.length;
-    const passed = this.results.filter(r => r.passed).length;
+    const passed = this.results.filter((r) => r.passed).length;
     const failed = total - passed;
 
     console.log('\n📊 测试结果汇总');
@@ -58,169 +58,167 @@ export class TestRunner {
 }
 
 /**
-   * 断言相等
-   */
-  export function assertEqual<T>(actual: T, expected: T, message?: string): void {
-    if (actual !== expected) {
-      throw new Error(
-        message || `Expected ${expected}, but got ${actual}`
-      );
-    }
+ * 断言相等
+ */
+export function assertEqual<T>(actual: T, expected: T, message?: string): void {
+  if (actual !== expected) {
+    throw new Error(message || `Expected ${expected}, but got ${actual}`);
+  }
+}
+
+/**
+ * 断言为真
+ */
+export function assertTrue(value: boolean, message?: string): void {
+  if (!value) {
+    throw new Error(message || `Expected true, but got ${value}`);
+  }
+}
+
+/**
+ * 断言不为空
+ */
+export function assertNotNull<T>(value: T, message?: string): void {
+  if (value === null || value === undefined) {
+    throw new Error(message || `Expected non-null value, but got ${value}`);
+  }
+}
+
+/**
+ * 断言抛出错误
+ */
+export function assertThrows(fn: () => void, message?: string): void {
+  let threw = false;
+  try {
+    fn();
+  } catch {
+    threw = true;
   }
 
-  /**
-   * 断言为真
-   */
-  export function assertTrue(value: boolean, message?: string): void {
-    if (!value) {
-      throw new Error(message || `Expected true, but got ${value}`);
-    }
+  if (!threw) {
+    throw new Error(message || 'Expected function to throw, but it did not');
   }
+}
 
-  /**
-   * 断言不为空
-   */
-  export function assertNotNull<T>(value: T, message?: string): void {
-    if (value === null || value === undefined) {
-      throw new Error(message || `Expected non-null value, but got ${value}`);
-    }
-  }
+/**
+ * 网格系统测试
+ */
+export function runGridSystemTests(scene: Phaser.Scene): void {
+  const runner = new TestRunner();
 
-  /**
-   * 断言抛出错误
-   */
-  export function assertThrows(fn: () => void, message?: string): void {
-    let threw = false;
-    try {
-      fn();
-    } catch {
-      threw = true;
-    }
+  runner.test('GridSystem - 坐标转换', () => {
+    const grid = new GridSystem(scene);
 
-    if (!threw) {
-      throw new Error(message || 'Expected function to throw, but it did not');
-    }
-  }
+    // 测试屏幕坐标转网格坐标
+    const pos = grid.screenToGrid(290, 130); // 第一格的中心附近
+    assertNotNull(pos);
+    assertEqual(pos!.row, 0);
+    assertEqual(pos!.col, 0);
 
-  /**
-   * 网格系统测试
-   */
-  export function runGridSystemTests(scene: Phaser.Scene): void {
-    const runner = new TestRunner();
+    // 测试越界返回null
+    const outOfBounds = grid.screenToGrid(0, 0);
+    assertEqual(outOfBounds, null);
 
-    runner.test('GridSystem - 坐标转换', () => {
-      const grid = new GridSystem(scene);
+    grid.destroy();
+  });
 
-      // 测试屏幕坐标转网格坐标
-      const pos = grid.screenToGrid(290, 130); // 第一格的中心附近
-      assertNotNull(pos);
-      assertEqual(pos!.row, 0);
-      assertEqual(pos!.col, 0);
+  runner.test('GridSystem - 边界检查', () => {
+    const grid = new GridSystem(scene);
 
-      // 测试越界返回null
-      const outOfBounds = grid.screenToGrid(0, 0);
-      assertEqual(outOfBounds, null);
+    // 有效格子
+    assertTrue(grid.isValidCell(0, 0), 'Should be valid');
+    assertTrue(grid.isValidCell(4, 8), 'Should be valid');
 
-      grid.destroy();
-    });
+    // 无效格子
+    assertEqual(grid.isValidCell(-1, 0), false);
+    assertEqual(grid.isValidCell(0, -1), false);
+    assertEqual(grid.isValidCell(5, 0), false);
+    assertEqual(grid.isValidCell(0, 9), false);
 
-    runner.test('GridSystem - 边界检查', () => {
-      const grid = new GridSystem(scene);
+    grid.destroy();
+  });
 
-      // 有效格子
-      assertTrue(grid.isValidCell(0, 0), 'Should be valid');
-      assertTrue(grid.isValidCell(4, 8), 'Should be valid');
+  runner.test('GridSystem - 种植检查', () => {
+    const grid = new GridSystem(scene);
 
-      // 无效格子
-      assertEqual(grid.isValidCell(-1, 0), false);
-      assertEqual(grid.isValidCell(0, -1), false);
-      assertEqual(grid.isValidCell(5, 0), false);
-      assertEqual(grid.isValidCell(0, 9), false);
+    // 空格子可以种植
+    assertTrue(grid.canPlant(0, 0), 'Empty cell should be plantable');
 
-      grid.destroy();
-    });
+    // 种植后不能重复种植
+    grid.setPlant(0, 0, 'sunflower');
+    assertEqual(grid.canPlant(0, 0), false);
 
-    runner.test('GridSystem - 种植检查', () => {
-      const grid = new GridSystem(scene);
+    // 移除后可以种植
+    grid.removePlant(0, 0);
+    assertTrue(grid.canPlant(0, 0), 'Should be plantable after removal');
 
-      // 空格子可以种植
-      assertTrue(grid.canPlant(0, 0), 'Empty cell should be plantable');
+    grid.destroy();
+  });
 
-      // 种植后不能重复种植
-      grid.setPlant(0, 0, 'sunflower');
-      assertEqual(grid.canPlant(0, 0), false);
+  runner.runAll();
+}
 
-      // 移除后可以种植
-      grid.removePlant(0, 0);
-      assertTrue(grid.canPlant(0, 0), 'Should be plantable after removal');
+/**
+ * 经济系统测试
+ */
+export function runEconomySystemTests(scene: Phaser.Scene): void {
+  const runner = new TestRunner();
 
-      grid.destroy();
-    });
+  runner.test('EconomySystem - 初始阳光', () => {
+    const economy = new EconomySystem(scene);
 
-    runner.runAll();
-  }
+    assertEqual(economy.getSun(), 150);
 
-  /**
-   * 经济系统测试
-   */
-  export function runEconomySystemTests(scene: Phaser.Scene): void {
-    const runner = new TestRunner();
+    economy.destroy();
+  });
 
-    runner.test('EconomySystem - 初始阳光', () => {
-      const economy = new EconomySystem(scene);
+  runner.test('EconomySystem - 添加阳光', () => {
+    const economy = new EconomySystem(scene);
 
-      assertEqual(economy.getSun(), 150);
+    economy.addSun(50, 'falling');
+    assertEqual(economy.getSun(), 200);
 
-      economy.destroy();
-    });
+    economy.destroy();
+  });
 
-    runner.test('EconomySystem - 添加阳光', () => {
-      const economy = new EconomySystem(scene);
+  runner.test('EconomySystem - 消费阳光', () => {
+    const economy = new EconomySystem(scene);
 
-      economy.addSun(50, 'falling');
-      assertEqual(economy.getSun(), 200);
+    // 足够阳光时可以消费
+    assertTrue(economy.spend(100));
+    assertEqual(economy.getSun(), 50);
 
-      economy.destroy();
-    });
+    // 阳光不足时不能消费
+    assertEqual(economy.spend(100), false);
+    assertEqual(economy.getSun(), 50);
 
-    runner.test('EconomySystem - 消费阳光', () => {
-      const economy = new EconomySystem(scene);
+    economy.destroy();
+  });
 
-      // 足够阳光时可以消费
-      assertTrue(economy.spend(100));
-      assertEqual(economy.getSun(), 50);
+  runner.test('EconomySystem - 阳光上限', () => {
+    const economy = new EconomySystem(scene);
 
-      // 阳光不足时不能消费
-      assertEqual(economy.spend(100), false);
-      assertEqual(economy.getSun(), 50);
+    // 添加大量阳光
+    economy.addSun(10000, 'falling');
 
-      economy.destroy();
-    });
+    // 不超过上限
+    assertEqual(economy.getSun() <= 9990, true);
 
-    runner.test('EconomySystem - 阳光上限', () => {
-      const economy = new EconomySystem(scene);
+    economy.destroy();
+  });
 
-      // 添加大量阳光
-      economy.addSun(10000, 'falling');
+  runner.runAll();
+}
 
-      // 不超过上限
-      assertEqual(economy.getSun() <= 9990, true);
+/**
+ * 运行所有测试
+ */
+export function runAllTests(scene: Phaser.Scene): void {
+  console.log('=================================');
+  console.log('🎮 Plants vs Zombies - 测试套件');
+  console.log('=================================\n');
 
-      economy.destroy();
-    });
-
-    runner.runAll();
-  }
-
-  /**
-   * 运行所有测试
-   */
-  export function runAllTests(scene: Phaser.Scene): void {
-    console.log('=================================');
-    console.log('🎮 Plants vs Zombies - 测试套件');
-    console.log('=================================\n');
-
-    runGridSystemTests(scene);
-    console.log('');
-    runEconomySystemTests(scene);
-  }
+  runGridSystemTests(scene);
+  console.log('');
+  runEconomySystemTests(scene);
+}

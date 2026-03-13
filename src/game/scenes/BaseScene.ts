@@ -169,7 +169,7 @@ export abstract class BaseScene extends Phaser.Scene {
   protected getCenter(): { x: number; y: number } {
     return {
       x: this.cameras.main.width / 2,
-      y: this.cameras.main.height / 2
+      y: this.cameras.main.height / 2,
     };
   }
 
@@ -179,7 +179,7 @@ export abstract class BaseScene extends Phaser.Scene {
   protected getGameSize(): { width: number; height: number } {
     return {
       width: this.cameras.main.width,
-      height: this.cameras.main.height
+      height: this.cameras.main.height,
     };
   }
 
@@ -198,7 +198,7 @@ export abstract class BaseScene extends Phaser.Scene {
       color: '#ffffff',
       stroke: '#000000',
       strokeThickness: 4,
-      ...style
+      ...style,
     };
 
     return this.add.text(x, y, text, defaultStyle);
@@ -225,7 +225,7 @@ export abstract class BaseScene extends Phaser.Scene {
     // 按钮文字
     const textObj = this.createText(0, 0, text, {
       fontSize: '20px',
-      color: '#ffffff'
+      color: '#ffffff',
     });
     textObj.setOrigin(0.5);
     container.add(textObj);

@@ -33,7 +33,7 @@ export class Repeater extends Plant {
         damage: this.config.attackDamage || 20,
         speed: 300,
         row: this.row,
-        source: this
+        source: this,
       });
     });
 
@@ -43,7 +43,7 @@ export class Repeater extends Plant {
       scaleY: 1.1,
       duration: 100,
       repeat: 1,
-      yoyo: true
+      yoyo: true,
     });
   }
 }

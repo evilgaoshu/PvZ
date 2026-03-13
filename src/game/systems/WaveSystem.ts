@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { WAVE_CONFIG, GameEvents } from '@/types/index';
-import type { LevelConfig, WaveConfig, ZombieSpawnedEventData } from '@/types/config';
+import type {
+  LevelConfig,
+  WaveConfig,
+  ZombieSpawnedEventData,
+} from '@/types/config';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
 
@@ -48,7 +52,9 @@ export class WaveSystem {
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.audioManager = this.scene.game.registry.get('audioManager') as AudioManager;
+    this.audioManager = this.scene.game.registry.get(
+      'audioManager'
+    ) as AudioManager;
   }
 
   /**
@@ -61,7 +67,9 @@ export class WaveSystem {
     this.isWaveInProgress = false;
     this.isPreparationPhase = true;
 
-    console.log(`WaveSystem loaded level ${levelConfig.id} with ${this.totalWaves} waves`);
+    console.log(
+      `WaveSystem loaded level ${levelConfig.id} with ${this.totalWaves} waves`
+    );
   }
 
   /**
@@ -83,9 +91,12 @@ export class WaveSystem {
     this.showNotification('准备阶段', 2000);
 
     // 准备时间后开始第一波
-    this.waveTimer = this.scene.time.delayedCall(WAVE_CONFIG.PREPARATION_TIME, () => {
-      this.startWave();
-    });
+    this.waveTimer = this.scene.time.delayedCall(
+      WAVE_CONFIG.PREPARATION_TIME,
+      () => {
+        this.startWave();
+      }
+    );
   }
 
   /**
@@ -109,7 +120,7 @@ export class WaveSystem {
     this.scene.game.events.emit(GameEvents.WAVE_STARTED, {
       waveNumber: this.currentWave,
       totalWaves: this.totalWaves,
-      isFlagWave: waveConfig.isFlagWave
+      isFlagWave: waveConfig.isFlagWave,
     });
 
     // 如果是旗帜波，显示警告
@@ -131,7 +142,7 @@ export class WaveSystem {
     let totalDelay = 0;
     let totalZombies = 0;
 
-    waveConfig.zombies.forEach(zombieGroup => {
+    waveConfig.zombies.forEach((zombieGroup) => {
       const { type, count, delay = 3000, row } = zombieGroup;
       totalZombies += count;
 
@@ -168,7 +179,7 @@ export class WaveSystem {
         }
       },
       callbackScope: this,
-      loop: true
+      loop: true,
     });
   }
 
@@ -187,7 +198,7 @@ export class WaveSystem {
     const eventData: ZombieSpawnedEventData = {
       zombieType: type,
       row: targetRow,
-      position: { x: spawnX, y: spawnY }
+      position: { x: spawnX, y: spawnY },
     };
 
     this.scene.game.events.emit(GameEvents.ZOMBIE_SPAWNED, eventData);
@@ -200,7 +211,9 @@ export class WaveSystem {
    */
   private checkWaveComplete(): boolean {
     // 需要满足两个条件：所有僵尸已生成，且所有僵尸被消灭
-    return this.waveSpawnComplete && this.waveZombieKilled >= this.waveZombieCount;
+    return (
+      this.waveSpawnComplete && this.waveZombieKilled >= this.waveZombieCount
+    );
   }
 
   /**
@@ -213,12 +226,14 @@ export class WaveSystem {
 
     // 发送波次完成事件
     this.scene.game.events.emit(GameEvents.WAVE_COMPLETED, {
-      waveNumber: this.currentWave
+      waveNumber: this.currentWave,
     });
 
     // 如果不是最后一波，开始准备下一波
     if (this.currentWave < this.totalWaves) {
-      const nextWaveDelay = this.waveConfigs[this.currentWave]?.timeBeforeWave ?? WAVE_CONFIG.WAVE_INTERVAL;
+      const nextWaveDelay =
+        this.waveConfigs[this.currentWave]?.timeBeforeWave ??
+        WAVE_CONFIG.WAVE_INTERVAL;
 
       // 显示警告（如果是最终波）
       if (this.currentWave === this.totalWaves - 1) {
@@ -273,7 +288,7 @@ export class WaveSystem {
       fontSize: '36px',
       color: '#ef4444',
       stroke: '#000000',
-      strokeThickness: 6
+      strokeThickness: 6,
     });
     this.warningText.setOrigin(0.5);
 
@@ -284,7 +299,7 @@ export class WaveSystem {
       scaleY: 1.1,
       duration: 300,
       yoyo: true,
-      repeat: 2
+      repeat: 2,
     });
 
     // 自动消失
@@ -297,7 +312,7 @@ export class WaveSystem {
           onComplete: () => {
             this.warningText?.destroy();
             this.warningText = null;
-          }
+          },
         });
       }
     });
@@ -346,7 +361,9 @@ export class WaveSystem {
   public onZombieKilled(): void {
     if (this.isWaveInProgress) {
       this.waveZombieKilled++;
-      console.log(`Zombie killed: ${this.waveZombieKilled}/${this.waveZombieCount}`);
+      console.log(
+        `Zombie killed: ${this.waveZombieKilled}/${this.waveZombieCount}`
+      );
     }
   }
 
@@ -373,7 +390,7 @@ export class WaveSystem {
     }
 
     // 清理所有僵尸生成定时器
-    this.spawnTimers.forEach(timer => timer.remove());
+    this.spawnTimers.forEach((timer) => timer.remove());
     this.spawnTimers = [];
 
     // 清理UI

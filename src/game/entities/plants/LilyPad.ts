@@ -20,7 +20,7 @@ export class LilyPad extends Plant {
       duration: 1000,
       yoyo: true,
       repeat: -1,
-      ease: 'Sine.easeInOut'
+      ease: 'Sine.easeInOut',
     });
   }
 }

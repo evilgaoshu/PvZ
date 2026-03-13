@@ -14,9 +14,11 @@ vi.mock('phaser', () => {
         })),
       },
       Math: {
-        Between: vi.fn((min, max) => Math.floor(Math.random() * (max - min + 1) + min)),
-      }
-    }
+        Between: vi.fn((min, max) =>
+          Math.floor(Math.random() * (max - min + 1) + min)
+        ),
+      },
+    },
   };
 });
 
@@ -31,26 +33,26 @@ describe('WaveSystem', () => {
         events: {
           on: vi.fn(),
           off: vi.fn(),
-          emit: vi.fn()
-        }
+          emit: vi.fn(),
+        },
       },
       time: {
         delayedCall: vi.fn(),
-        addEvent: vi.fn(() => ({ remove: vi.fn() }))
+        addEvent: vi.fn(() => ({ remove: vi.fn() })),
       },
       add: {
         text: vi.fn(() => ({
           setOrigin: vi.fn().mockReturnThis(),
-          destroy: vi.fn()
-        }))
+          destroy: vi.fn(),
+        })),
       },
       cameras: {
-        main: { width: 800, height: 600 }
+        main: { width: 800, height: 600 },
       },
       tweens: {
         add: vi.fn(),
-        killTweensOf: vi.fn()
-      }
+        killTweensOf: vi.fn(),
+      },
     };
 
     mockLevelConfig = {
@@ -60,15 +62,15 @@ describe('WaveSystem', () => {
           waveNumber: 1,
           isFlagWave: false,
           zombies: [{ type: 'normal', count: 2, delay: 1000 }],
-          timeBeforeWave: 5000
+          timeBeforeWave: 5000,
         },
         {
           waveNumber: 2,
           isFlagWave: true,
           zombies: [{ type: 'conehead', count: 1, delay: 0 }],
-          timeBeforeWave: 5000
-        }
-      ]
+          timeBeforeWave: 5000,
+        },
+      ],
     };
   });
 
@@ -83,7 +85,7 @@ describe('WaveSystem', () => {
     const waveSystem = new WaveSystem(mockScene);
     waveSystem.loadLevel(mockLevelConfig);
     waveSystem.start();
-    
+
     expect(mockScene.time.delayedCall).toHaveBeenCalled();
     expect(waveSystem.getIsWaveInProgress()).toBe(false);
   });
@@ -95,32 +97,37 @@ describe('WaveSystem', () => {
 
     expect(waveSystem.getCurrentWave()).toBe(1);
     expect(waveSystem.getIsWaveInProgress()).toBe(true);
-    expect(mockScene.game.events.emit).toHaveBeenCalledWith(GameEvents.WAVE_STARTED, expect.any(Object));
+    expect(mockScene.game.events.emit).toHaveBeenCalledWith(
+      GameEvents.WAVE_STARTED,
+      expect.any(Object)
+    );
   });
 
   it('should correctly track zombie kills', () => {
     const waveSystem = new WaveSystem(mockScene);
     waveSystem.loadLevel(mockLevelConfig);
     waveSystem.startWave();
-    
+
     // Wave 1 has 2 zombies
     waveSystem.onZombieKilled();
     waveSystem.onZombieKilled();
-    
-    // Internal state check would be nice but private. 
+
+    // Internal state check would be nice but private.
     // We can indirectly check if wave completes if we mock the check interval.
   });
 
   it('should emit win event when all waves are complete', () => {
     const waveSystem = new WaveSystem(mockScene);
     waveSystem.loadLevel(mockLevelConfig);
-    
+
     // Simulate completing all waves
     waveSystem.startWave(); // Wave 1
     waveSystem.onWaveComplete(); // Completes 1, schedules 2
     waveSystem.startWave(); // Wave 2
     waveSystem.onWaveComplete(); // Completes 2, all done
-    
-    expect(mockScene.game.events.emit).toHaveBeenCalledWith(GameEvents.ALL_WAVES_COMPLETED);
+
+    expect(mockScene.game.events.emit).toHaveBeenCalledWith(
+      GameEvents.ALL_WAVES_COMPLETED
+    );
   });
 });

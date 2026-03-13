@@ -19,7 +19,13 @@ export interface IEntityRenderer {
 export class SpineRenderer implements IEntityRenderer {
   private spineObj: any; // SpineGameObject
 
-  constructor(scene: Phaser.Scene, x: number, y: number, spineKey: string, atlasKey: string) {
+  constructor(
+    scene: Phaser.Scene,
+    x: number,
+    y: number,
+    spineKey: string,
+    atlasKey: string
+  ) {
     // @ts-ignore - spine plugin mapping
     this.spineObj = scene.add.spine(x, y, spineKey, atlasKey);
   }
@@ -38,7 +44,7 @@ export class SpineRenderer implements IEntityRenderer {
 
   public setTint(color: number): void {
     // Spine 的染色逻辑略有不同，这里简化处理
-    this.spineObj.setAlpha(0.8); 
+    this.spineObj.setAlpha(0.8);
   }
 
   public setVisible(visible: boolean): void {

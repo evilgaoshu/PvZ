@@ -80,7 +80,7 @@ export class MenuScene extends BaseScene {
     const title = this.createText(centerX, 150, '植物大战僵尸', {
       fontSize: '56px',
       color: '#4ade80',
-      strokeThickness: 8
+      strokeThickness: 8,
     });
     title.setOrigin(0.5);
 
@@ -92,13 +92,13 @@ export class MenuScene extends BaseScene {
       duration: 1500,
       yoyo: true,
       repeat: -1,
-      ease: 'Sine.easeInOut'
+      ease: 'Sine.easeInOut',
     });
 
     // 英文副标题
     const subtitle = this.createText(centerX, 220, 'Plants vs Zombies', {
       fontSize: '24px',
-      color: '#94a3b8'
+      color: '#94a3b8',
     });
     subtitle.setOrigin(0.5);
   }
@@ -114,23 +114,42 @@ export class MenuScene extends BaseScene {
     this.menuContainer = this.add.container(0, 0);
 
     const buttonConfigs = [
-      { text: '🎮 冒险模式', callback: () => this.startAdventureMode(), color: 0x4ade80 },
-      { text: '🛠️ 关卡编辑器', callback: () => this.scene.start('EditorScene'), color: 0x8b5cf6 },
-      { text: '🎯 小游戏', callback: () => this.showMiniGames(), color: 0x3b82f6 },
+      {
+        text: '🎮 冒险模式',
+        callback: () => this.startAdventureMode(),
+        color: 0x4ade80,
+      },
+      {
+        text: '🛠️ 关卡编辑器',
+        callback: () => this.scene.start('EditorScene'),
+        color: 0x8b5cf6,
+      },
+      {
+        text: '🎯 小游戏',
+        callback: () => this.showMiniGames(),
+        color: 0x3b82f6,
+      },
       { text: '⚙️ 设置', callback: () => this.showSettings(), color: 0xf59e0b },
       { text: '🚪 退出', callback: () => this.exitGame(), color: 0xef4444 },
     ];
 
     buttonConfigs.forEach((cfg, index) => {
-      const btn = new GameButton(this, centerX, startY + index * 70, {
-        width: 260,
-        height: 54,
-        text: cfg.text,
-        backgroundColor: cfg.color,
-        hoverColor: Phaser.Display.Color.IntegerToColor(cfg.color).lighten(10).color,
-        borderRadius: 12
-      }, cfg.callback);
-      
+      const btn = new GameButton(
+        this,
+        centerX,
+        startY + index * 70,
+        {
+          width: 260,
+          height: 54,
+          text: cfg.text,
+          backgroundColor: cfg.color,
+          hoverColor: Phaser.Display.Color.IntegerToColor(cfg.color).lighten(10)
+            .color,
+          borderRadius: 12,
+        },
+        cfg.callback
+      );
+
       this.menuContainer?.add(btn);
 
       // 入场动画
@@ -142,7 +161,7 @@ export class MenuScene extends BaseScene {
         y: btn.y - 30,
         duration: 500,
         delay: 200 + index * 100,
-        ease: 'Back.easeOut'
+        ease: 'Back.easeOut',
       });
     });
   }
@@ -155,7 +174,7 @@ export class MenuScene extends BaseScene {
 
     const version = this.createText(width - 20, height - 20, 'v1.0.0', {
       fontSize: '14px',
-      color: '#64748b'
+      color: '#64748b',
     });
     version.setOrigin(1, 1);
   }

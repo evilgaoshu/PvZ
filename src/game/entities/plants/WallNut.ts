@@ -15,7 +15,7 @@ export class WallNut extends Plant {
 
   protected init(): void {
     super.init();
-    
+
     // 创建一个隐藏的裂纹图层，叠加在坚果上
     this.crackOverlay = this.scene.add.image(this.x, this.y, 'effects/cracks');
     this.crackOverlay.setAlpha(0);
@@ -50,7 +50,7 @@ export class WallNut extends Plant {
           x: '+=2',
           duration: 50,
           yoyo: true,
-          repeat: -1
+          repeat: -1,
         });
         break;
     }

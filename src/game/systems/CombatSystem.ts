@@ -60,14 +60,17 @@ export class CombatSystem {
     // 避免生成重复的投射物
 
     // 监听僵尸生成
-    this.scene.game.events.on(GameEvents.ZOMBIE_SPAWNED, (data: {
-      zombieType: string;
-      row: number;
-      position: { x: number; y: number };
-    }) => {
-      // 僵尸生成后注册到战斗系统
-      console.log(`CombatSystem registered zombie: ${data.zombieType}`);
-    });
+    this.scene.game.events.on(
+      GameEvents.ZOMBIE_SPAWNED,
+      (data: {
+        zombieType: string;
+        row: number;
+        position: { x: number; y: number };
+      }) => {
+        // 僵尸生成后注册到战斗系统
+        console.log(`CombatSystem registered zombie: ${data.zombieType}`);
+      }
+    );
   }
 
   /**
@@ -91,14 +94,18 @@ export class CombatSystem {
     this.scene.game.events.emit(GameEvents.PROJECTILE_HIT, {
       target: zombie,
       damage,
-      type: projectileType
+      type: projectileType,
     });
   }
 
   /**
    * 对僵尸造成伤害
    */
-  private damageZombie(zombie: Phaser.Physics.Arcade.Sprite, damage: number, type: string): void {
+  private damageZombie(
+    zombie: Phaser.Physics.Arcade.Sprite,
+    damage: number,
+    type: string
+  ): void {
     // 获取当前生命值
     let health = zombie.getData('health') as number;
     health -= damage;
@@ -131,14 +138,14 @@ export class CombatSystem {
       duration: 300,
       onComplete: () => {
         zombie.destroy();
-      }
+      },
     });
 
     // 发送僵尸死亡事件
     this.scene.game.events.emit(GameEvents.ZOMBIE_DIED, {
       zombie: zombie,
       position: { x: zombie.x, y: zombie.y },
-      row: zombie.getData('row')
+      row: zombie.getData('row'),
     });
   }
 
@@ -150,7 +157,7 @@ export class CombatSystem {
       fontSize: '16px',
       color: '#ef4444',
       stroke: '#000000',
-      strokeThickness: 3
+      strokeThickness: 3,
     });
     text.setOrigin(0.5);
 
@@ -163,7 +170,7 @@ export class CombatSystem {
       ease: 'Power1',
       onComplete: () => {
         text.destroy();
-      }
+      },
     });
   }
 
@@ -177,7 +184,7 @@ export class CombatSystem {
       alpha: 0.5,
       duration: 50,
       yoyo: true,
-      repeat: 1
+      repeat: 1,
     });
   }
 

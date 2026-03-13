@@ -70,41 +70,26 @@ export class PauseScene extends BaseScene {
     // 标题
     const title = this.createText(0, -80, '游戏暂停', {
       fontSize: '32px',
-      color: '#4ade80'
+      color: '#4ade80',
     });
     title.setOrigin(0.5);
     menuContainer.add(title);
 
     // 继续按钮
-    const resumeBtn = this.createButton(
-      0,
-      -20,
-      200,
-      45,
-      '▶️ 继续游戏',
-      () => this.resumeGame()
+    const resumeBtn = this.createButton(0, -20, 200, 45, '▶️ 继续游戏', () =>
+      this.resumeGame()
     );
     menuContainer.add(resumeBtn);
 
     // 重新开始按钮
-    const restartBtn = this.createButton(
-      0,
-      40,
-      200,
-      45,
-      '🔄 重新开始',
-      () => this.restartGame()
+    const restartBtn = this.createButton(0, 40, 200, 45, '🔄 重新开始', () =>
+      this.restartGame()
     );
     menuContainer.add(restartBtn);
 
     // 返回菜单按钮
-    const menuBtn = this.createButton(
-      0,
-      100,
-      200,
-      45,
-      '🏠 返回主菜单',
-      () => this.returnToMenu()
+    const menuBtn = this.createButton(0, 100, 200, 45, '🏠 返回主菜单', () =>
+      this.returnToMenu()
     );
     menuContainer.add(menuBtn);
 
@@ -118,7 +103,7 @@ export class PauseScene extends BaseScene {
       scaleY: 1,
       alpha: 1,
       duration: 300,
-      ease: 'Back.easeOut'
+      ease: 'Back.easeOut',
     });
   }
 

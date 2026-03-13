@@ -13,7 +13,12 @@ import { NewspaperZombie } from './NewspaperZombie';
 import { ScreendoorZombie } from './ScreendoorZombie';
 
 // 僵尸创建函数类型
-type ZombieCreator = (scene: Phaser.Scene, x: number, y: number, config: ZombieConfig) => Zombie;
+type ZombieCreator = (
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  config: ZombieConfig
+) => Zombie;
 
 /**
  * 僵尸工厂
@@ -33,7 +38,7 @@ export class ZombieFactory {
       ['buckethead', (s, x, y, c) => new BucketheadZombie(s, x, y, c)],
       ['pole_vaulting', (s, x, y, c) => new PoleVaultingZombie(s, x, y, c)],
       ['newspaper', (s, x, y, c) => new NewspaperZombie(s, x, y, c)],
-      ['screendoor', (s, x, y, c) => new ScreendoorZombie(s, x, y, c)]
+      ['screendoor', (s, x, y, c) => new ScreendoorZombie(s, x, y, c)],
     ]);
   }
 
@@ -49,7 +54,10 @@ export class ZombieFactory {
 
     // 计算位置
     const x = 850; // 屏幕右侧外
-    const y = GRID_CONFIG.OFFSET_Y + row * GRID_CONFIG.CELL_HEIGHT + GRID_CONFIG.CELL_HEIGHT / 2;
+    const y =
+      GRID_CONFIG.OFFSET_Y +
+      row * GRID_CONFIG.CELL_HEIGHT +
+      GRID_CONFIG.CELL_HEIGHT / 2;
 
     // 获取僵尸创建函数
     const creator = this.zombieCreators.get(zombieType);
