@@ -1,8 +1,7 @@
-<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-  <!-- Leaf -->
-  <ellipse cx="32" cy="35" rx="28" ry="20" fill="#16a34a" stroke="#14532d" stroke-width="2" />
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="50" cy="60" rx="45" ry="25" fill="#16A34A" stroke="#14532D" stroke-width="3" />
   <!-- Cutout -->
-  <path d="M32 35 L60 25 A 28 20 0 0 0 45 18 Z" fill="#0369a1" opacity="0.3" />
+  <path d="M50 60 L95 50 A 45 25 0 0 0 70 40 Z" fill="#0369A1" opacity="0.4" />
   <!-- Veins -->
-  <path d="M32 35 L32 15 M32 35 L10 25 M32 35 L54 25" stroke="#14532d" stroke-width="1" opacity="0.5" />
+  <path d="M50 60 L50 35 M50 60 L15 50 M50 60 L85 50" stroke="#14532D" stroke-width="1" opacity="0.5" />
 </svg>

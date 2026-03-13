@@ -1,11 +1,6 @@
-<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-  <!-- Zombie Head -->
-  <circle cx="20" cy="20" r="18" fill="#8fbc8f" stroke="#166534" stroke-width="2" />
-  <!-- Eyes (rolled back) -->
-  <circle cx="14" cy="15" r="4" fill="#ffffff" />
-  <circle cx="26" cy="15" r="4" fill="#ffffff" />
-  <circle cx="14" cy="15" r="1" fill="#000000" />
-  <circle cx="26" cy="15" r="1" fill="#000000" />
-  <!-- Mouth -->
-  <ellipse cx="20" cy="28" rx="6" ry="4" fill="#000000" />
+<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30" cy="30" r="28" fill="#8FBC8F" stroke="#166534" stroke-width="2" />
+  <circle cx="20" cy="25" r="6" fill="#FFF" />
+  <circle cx="45" cy="25" r="6" fill="#FFF" />
+  <path d="M25 45 Q30 50 35 45" stroke="#000" stroke-width="2" fill="none" />
 </svg>
