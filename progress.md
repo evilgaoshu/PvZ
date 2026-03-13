@@ -31,3 +31,28 @@ Original prompt: 检查一下这个项目，提出具体可落实的优化的建
   - `npm run type-check` passes.
   - `npm run lint` passes.
   - `npm run test:e2e` passes.
+
+2026-03-13
+- Comprehensive UI/UX overhaul:
+  - Componentized HUD (SunDisplay, PlantSelector, PlantCard).
+  - Added interactive SeedPicker flow before level start.
+  - Implemented 'Juiciness' with elastic tweens and visual feedback.
+- Assets & Rendering:
+  - Built an SVG asset generation pipeline for all plants, zombies, and environment.
+  - Added Spine 2D skeletal animation support with `IEntityRenderer` abstraction.
+  - Improved visual fidelity with shadows, damage flashes, and 'head pop' effects.
+- New Gameplay Features:
+  - Implemented Pool terrain with Lily Pad platform logic.
+  - Added adaptive Zombie behavior (ducky tubes) for water terrain.
+  - Enhanced zombie variety (Pole Vaulting trails, Newspaper rage mode).
+- Tooling & Infrastructure:
+  - Created a visual Level Editor scene with YAML export and level compiler.
+  - Added `CREDITS.md` for open-source asset attribution.
+- Quality Assurance:
+  - Added 20+ unit tests for Grid, Economy, Wave, Combat, and ObjectPool systems.
+  - Refactored plant removal logic to handle layered plants (Peashooter on Lily Pad).
+  - Decoupled water detection from hardcoded coordinates to grid-based sensing.
+- CI/CD Optimization:
+  - Enabled unit tests and Lint checks in CI.
+  - Switched to `npm ci` and enabled dependency caching.
+  - Upgraded project to Node.js 22 and forced actions to use Node.js 24 runtime.
