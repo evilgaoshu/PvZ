@@ -33,23 +33,22 @@ export class PlantCard extends Phaser.GameObjects.Container {
     this.drawBackground(0x1e293b);
     this.add(this.bg);
 
-    // 植物图标区域
-    const iconBg = scene.add.rectangle(0, -10, 46, 46, config.color);
-    iconBg.setStrokeStyle(2, 0xffffff, 0.5);
-    this.add(iconBg);
-
-    const nameInitial = scene.add.text(
-      0,
-      -10,
-      config.id.charAt(0).toUpperCase(),
-      {
+    // 植物图标（真实贴图）
+    const iconKey = `plants/${config.id}`;
+    if (scene.textures.exists(iconKey)) {
+      const plantIcon = scene.add.image(0, -10, iconKey);
+      plantIcon.setDisplaySize(46, 46);
+      this.add(plantIcon);
+    } else {
+      // 后备方案：如果没有贴图则显示首字母
+      const nameInitial = scene.add.text(0, -10, config.id.charAt(0).toUpperCase(), {
         fontSize: '24px',
         color: '#ffffff',
-        fontStyle: 'bold',
-      }
-    );
-    nameInitial.setOrigin(0.5);
-    this.add(nameInitial);
+        fontStyle: 'bold'
+      });
+      nameInitial.setOrigin(0.5);
+      this.add(nameInitial);
+    }
 
     // 阳光成本
     const sunIcon = scene.add.circle(-15, 25, 8, 0xfcd34d);

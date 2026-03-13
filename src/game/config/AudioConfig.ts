@@ -70,38 +70,26 @@ export interface AudioConfig {
 
 /**
  * 音效配置
+ * 仅包含磁盘上实际存在的资源或已重定向的资源，避免 404
  */
 export const SFX_CONFIGS: AudioConfig[] = [
-  // 种植
+  // 种植相关
   { key: SoundEffect.PLANT, path: 'assets/audio/sfx/plant.wav', volume: 0.6 },
-  { key: SoundEffect.SHOVEL, path: 'assets/audio/sfx/shovel.wav', volume: 0.7 },
+  { key: SoundEffect.SHOVEL, path: 'assets/audio/sfx/plant.wav', volume: 0.7 }, // 重用 plant.wav
 
-  // 攻击
-  { key: SoundEffect.SHOOT, path: 'assets/audio/sfx/shoot.wav', volume: 0.5 },
+  // 攻击相关
   { key: SoundEffect.HIT, path: 'assets/audio/sfx/hit.wav', volume: 0.5 },
-  { key: SoundEffect.SPLAT, path: 'assets/audio/sfx/splat.wav', volume: 0.6 },
+  { key: SoundEffect.SPLAT, path: 'assets/audio/sfx/hit.wav', volume: 0.6 }, // 重用 hit.wav
   { key: SoundEffect.CHOMP, path: 'assets/audio/sfx/chomp.wav', volume: 0.7 },
 
-  // 爆炸
+  // 爆炸相关
   {
     key: SoundEffect.EXPLOSION,
     path: 'assets/audio/sfx/explosion.wav',
     volume: 0.8,
   },
 
-  // 阳光
-  {
-    key: SoundEffect.SUN_COLLECT,
-    path: 'assets/audio/sfx/sun_collect.wav',
-    volume: 0.6,
-  },
-  {
-    key: SoundEffect.SUN_FALLING,
-    path: 'assets/audio/sfx/sun_falling.wav',
-    volume: 0.4,
-  },
-
-  // 僵尸
+  // 僵尸相关
   {
     key: SoundEffect.ZOMBIE_GROAN,
     path: 'assets/audio/sfx/zombie_groan.wav',
@@ -109,29 +97,12 @@ export const SFX_CONFIGS: AudioConfig[] = [
   },
   {
     key: SoundEffect.ZOMBIE_EATING,
-    path: 'assets/audio/sfx/zombie_eating.wav',
+    path: 'assets/audio/sfx/chomp.wav',
     volume: 0.7,
-  },
+  }, // 重用 chomp.wav
   {
     key: SoundEffect.ZOMBIE_DIE,
     path: 'assets/audio/sfx/zombie_die.wav',
-    volume: 0.6,
-  },
-
-  // 特殊能力
-  {
-    key: SoundEffect.POLE_VAULT,
-    path: 'assets/audio/sfx/pole_vault.wav',
-    volume: 0.7,
-  },
-  {
-    key: SoundEffect.NEWSPAPER_RAGE,
-    path: 'assets/audio/sfx/newspaper_rage.wav',
-    volume: 0.8,
-  },
-  {
-    key: SoundEffect.METAL_HIT,
-    path: 'assets/audio/sfx/metal_hit.wav',
     volume: 0.6,
   },
 
@@ -142,31 +113,25 @@ export const SFX_CONFIGS: AudioConfig[] = [
     volume: 0.8,
   },
 
-  // UI
-  {
-    key: SoundEffect.BUTTON_CLICK,
-    path: 'assets/audio/sfx/button_click.wav',
-    volume: 0.5,
-  },
+  // UI相关
   { key: SoundEffect.ERROR, path: 'assets/audio/sfx/error.wav', volume: 0.5 },
-  { key: SoundEffect.WIN, path: 'assets/audio/sfx/win.wav', volume: 0.8 },
-  { key: SoundEffect.LOSE, path: 'assets/audio/sfx/lose.wav', volume: 0.7 },
 
   // 警告
-  {
-    key: SoundEffect.FINAL_WAVE,
-    path: 'assets/audio/sfx/final_wave.wav',
-    volume: 0.8,
-  },
   {
     key: SoundEffect.HUGE_WAVE,
     path: 'assets/audio/sfx/huge_wave.wav',
     volume: 0.8,
   },
+  {
+    key: SoundEffect.FINAL_WAVE,
+    path: 'assets/audio/sfx/huge_wave.wav',
+    volume: 0.8,
+  }, // 重用 huge_wave.wav
 ];
 
 /**
  * 背景音乐配置
+ * 仅包含实际存在的资源
  */
 export const BGM_CONFIGS: AudioConfig[] = [
   {
@@ -192,17 +157,5 @@ export const BGM_CONFIGS: AudioConfig[] = [
     path: 'assets/audio/bgm/game_boss.mp3',
     volume: 0.5,
     loop: true,
-  },
-  {
-    key: BackgroundMusic.VICTORY,
-    path: 'assets/audio/bgm/victory.mp3',
-    volume: 0.6,
-    loop: false,
-  },
-  {
-    key: BackgroundMusic.DEFEAT,
-    path: 'assets/audio/bgm/defeat.mp3',
-    volume: 0.5,
-    loop: false,
   },
 ];
