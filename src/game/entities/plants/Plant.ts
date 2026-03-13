@@ -177,4 +177,5 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   public getRow(): number { return this.row; }
   public getCol(): number { return this.col; }
   public isPlantAlive(): boolean { return this.isAlive; }
+  public getMaxHealth(): number { return this.config.health; }
 }

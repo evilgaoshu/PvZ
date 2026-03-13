@@ -44,7 +44,9 @@ export class SeedPicker extends Phaser.GameObjects.Container {
     });
 
     // 2. 已选槽位区域
-    this.add.text(0, 120, '已选择的植物槽位', { fontSize: '18px', color: '#94a3b8' }).setOrigin(0.5);
+    const slotLabel = scene.add.text(0, 120, '已选择的植物槽位', { fontSize: '18px', color: '#94a3b8' });
+    slotLabel.setOrigin(0.5);
+    this.add(slotLabel);
     for (let i = 0; i < this.maxSlots; i++) {
       const slotBg = scene.add.rectangle(-200 + i * 80, 170, 60, 80, 0x000000, 0.3);
       slotBg.setStrokeStyle(2, 0x78350f);

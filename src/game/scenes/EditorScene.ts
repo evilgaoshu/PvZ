@@ -26,6 +26,9 @@ export class EditorScene extends BaseScene {
     super({ key: 'EditorScene' });
   }
 
+  protected onInit(): void {}
+  protected onPreload(): void {}
+
   protected onCreate(): void {
     this.createBackground();
     this.createGrid();
@@ -41,6 +44,8 @@ export class EditorScene extends BaseScene {
       padding: { x: 10, y: 5 }
     }).setOrigin(0.5);
   }
+
+  protected onUpdate(_time: number, _delta: number): void {}
 
   private createBackground(): void {
     this.add.image(400, 300, 'day-grass').setAlpha(0.4);
@@ -208,7 +213,7 @@ export class EditorScene extends BaseScene {
     // 逻辑：将僵尸分组到波次中
     // 我们定义：每 20 秒为一个波次，或者根据放置的时间点自动分段
     const waveSize = 20000; // 20秒一波
-    const waves = [];
+    const waves: any[] = [];
     
     let currentWaveTime = waveSize;
     let waveZombies: any[] = [];

@@ -65,8 +65,7 @@ export class GameButton extends Phaser.GameObjects.Container {
       this.config.width,
       this.config.height
     );
-    this.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
-    this.useHandCursor = true;
+    this.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains, true);
 
     // 事件监听
     this.on('pointerover', () => {

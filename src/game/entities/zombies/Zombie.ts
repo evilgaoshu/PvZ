@@ -142,7 +142,7 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
       if (this.currentArmor <= 0) {
         this.currentHealth += this.currentArmor;
         this.currentArmor = 0;
-        this.onArmorLost();
+        this.onArmorBreak();
       }
     } else {
       this.currentHealth -= amount;
@@ -174,7 +174,7 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.audioManager?.playSfx(SoundEffect.SPLAT);
   }
 
-  protected onArmorLost(): void {
+  protected onArmorBreak(): void {
     VisualEffects.createSplat(this.scene, this.x, this.y, 0x94a3b8, 10);
   }
 

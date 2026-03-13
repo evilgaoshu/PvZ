@@ -59,7 +59,7 @@ export class PlantCard extends Phaser.GameObjects.Container {
     // 交互
     const hitArea = new Phaser.Geom.Rectangle(-30, -40, 60, 80);
     this.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
-    this.useHandCursor = true;
+    if (this.input) this.input.cursor = 'pointer';
 
     this.on('pointerover', () => {
       if (this.isAvailable) {
