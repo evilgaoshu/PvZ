@@ -12,6 +12,7 @@ import { CherryBomb } from './CherryBomb';
 import { SnowPea } from './SnowPea';
 import { Repeater } from './Repeater';
 import { Chomper } from './Chomper';
+import { LilyPad } from './LilyPad';
 
 // 植物创建函数类型
 type PlantCreator = (scene: Phaser.Scene, x: number, y: number, config: PlantConfig) => Plant;
@@ -35,7 +36,8 @@ export class PlantFactory {
       ['cherry_bomb', (s, x, y, c) => new CherryBomb(s, x, y, c)],
       ['snow_pea', (s, x, y, c) => new SnowPea(s, x, y, c)],
       ['repeater', (s, x, y, c) => new Repeater(s, x, y, c)],
-      ['chomper', (s, x, y, c) => new Chomper(s, x, y, c)]
+      ['chomper', (s, x, y, c) => new Chomper(s, x, y, c)],
+      ['lilypad', (s, x, y, c) => new LilyPad(s, x, y, c)]
     ]);
   }
 

@@ -5,6 +5,7 @@ import { MenuScene } from './game/scenes/MenuScene';
 import { GameScene } from './game/scenes/GameScene';
 import { PauseScene } from './game/scenes/PauseScene';
 import { GameOverScene } from './game/scenes/GameOverScene';
+import { EditorScene } from './game/scenes/EditorScene';
 
 /**
  * 游戏主类
@@ -16,7 +17,7 @@ class Game {
     // 配置游戏
     const config: Phaser.Types.Core.GameConfig = {
       ...gameConfig,
-      scene: [BootScene, MenuScene, GameScene, PauseScene, GameOverScene],
+      scene: [BootScene, MenuScene, GameScene, PauseScene, GameOverScene, EditorScene],
     };
 
     // 创建Phaser游戏实例

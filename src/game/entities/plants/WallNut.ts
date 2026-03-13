@@ -1,77 +1,68 @@
-import { Plant } from './Plant';
+import Phaser from 'phaser';
+import { Plant, DamageState } from './Plant';
 import type { PlantConfig } from '@/types/config';
-import { EntityState } from '@/types/index';
 
 /**
  * 坚果墙
- * 高生命值的防御型植物
+ * 实现分级裂纹效果
  */
 export class WallNut extends Plant {
-  private damageState: 'healthy' | 'hurt' | 'critical' = 'healthy';
+  private crackOverlay: Phaser.GameObjects.Image | null = null;
 
   constructor(scene: Phaser.Scene, x: number, y: number, config: PlantConfig) {
     super(scene, x, y, config);
   }
 
-  protected setupAnimations(): void {
-    // 动画设置
+  protected init(): void {
+    super.init();
+    
+    // 创建一个隐藏的裂纹图层，叠加在坚果上
+    this.crackOverlay = this.scene.add.image(this.x, this.y, 'effects/cracks');
+    this.crackOverlay.setAlpha(0);
+    this.crackOverlay.setDepth(this.depth + 0.1);
   }
 
-  /**
-   * 坚果墙不攻击
-   */
-  protected canAttack(): boolean {
-    return false;
-  }
-
-  /**
-   * 受到伤害 - 根据血量改变外观
-   */
-  public takeDamage(amount: number): void {
-    super.takeDamage(amount);
-
-    // 更新外观状态
-    const healthPercent = this.getHealth() / this.getMaxHealth();
-
-    if (healthPercent <= 0.33 && this.damageState !== 'critical') {
-      this.damageState = 'critical';
-      this.playCriticalAnimation();
-    } else if (healthPercent <= 0.66 && this.damageState === 'healthy') {
-      this.damageState = 'hurt';
-      this.playHurtAnimation();
+  protected preUpdate(time: number, delta: number): void {
+    super.preUpdate(time, delta);
+    if (this.crackOverlay && this.active) {
+      this.crackOverlay.setPosition(this.x, this.y);
     }
   }
 
-  /**
-   * 播放受伤外观动画
-   */
-  protected playHurtAnimation(): void {
-    // 变褐色
-    this.setTint(0xccaa88);
+  protected onDamageStateChange(state: DamageState): void {
+    // 覆盖父类的染色，改用真实的裂纹贴图
+    if (!this.crackOverlay) return;
+
+    switch (state) {
+      case DamageState.HEALTHY:
+        this.crackOverlay.setAlpha(0);
+        break;
+      case DamageState.HURT:
+        this.crackOverlay.setAlpha(0.5);
+        this.crackOverlay.setScale(0.8);
+        break;
+      case DamageState.CRITICAL:
+        this.crackOverlay.setAlpha(1);
+        this.crackOverlay.setScale(1);
+        // 抖动效果
+        this.scene.tweens.add({
+          targets: [this, this.crackOverlay],
+          x: '+=2',
+          duration: 50,
+          yoyo: true,
+          repeat: -1
+        });
+        break;
+    }
   }
 
-  /**
-   * 播放严重受损动画
-   */
-  private playCriticalAnimation(): void {
-    // 更深色 + 轻微晃动
-    this.setTint(0xaa7755);
-
-    // 持续轻微晃动
-    this.scene.tweens.add({
-      targets: this,
-      angle: { from: -2, to: 2 },
-      duration: 200,
-      repeat: -1,
-      yoyo: true,
-      ease: 'Sine.easeInOut'
-    });
+  public die(): void {
+    if (this.crackOverlay) this.crackOverlay.destroy();
+    super.die();
   }
 
-  /**
-   * 更新特殊能力
-   */
-  protected updateSpecialAbility(_time: number, _delta: number): void {
-    // 坚果墙没有特殊能力，只是挡住僵尸
+  destroy(fromScene?: boolean): void {
+    if (this.crackOverlay) this.crackOverlay.destroy();
+    super.destroy(fromScene);
   }
 }

@@ -80,13 +80,21 @@ export class PoleVaultingZombie extends Zombie {
     // 停止移动
     this.setVelocityX(0);
 
+    // 创建残影定时器
+    const trailTimer = this.scene.time.addEvent({
+      delay: 50,
+      callback: this.createTrail,
+      callbackScope: this,
+      loop: true
+    });
+
     // 跳跃动画
     this.scene.tweens.add({
       targets: this,
-      x: this.x + 80, // 跳过一个格子
+      x: this.x - 80, // 向前跳过一个格子 (注意向左是减小 X)
       y: this.y - 80, // 跳起
       duration: 400,
-      ease: 'Power1',
+      ease: 'Sine.easeOut',
       yoyo: false,
       onComplete: () => {
         // 落地
@@ -94,8 +102,11 @@ export class PoleVaultingZombie extends Zombie {
           targets: this,
           y: this.y + 80,
           duration: 200,
-          ease: 'Bounce.easeOut',
+          ease: 'Sine.easeIn',
           onComplete: () => {
+            // 停止残影
+            trailTimer.remove();
+
             // 恢复正常速度（变慢）
             this.currentSpeed = 20; // 普通僵尸速度
             this.startWalking();
@@ -109,8 +120,8 @@ export class PoleVaultingZombie extends Zombie {
 
     // 旋转动画
     this.scene.tweens.add({
-      targets: this,
-      angle: 360,
+      targets: this.renderer instanceof Phaser.GameObjects.Sprite ? this : (this.renderer as any).getObject(),
+      angle: -360, // 向前翻滚
       duration: 600,
       ease: 'Power1'
     });
@@ -119,11 +130,29 @@ export class PoleVaultingZombie extends Zombie {
     if (this.poleGraphics) {
       this.scene.tweens.add({
         targets: this.poleGraphics,
-        x: this.poleGraphics.x + 80,
+        x: this.poleGraphics.x - 80,
         duration: 400,
         ease: 'Power1'
       });
     }
+  }
+
+  private createTrail(): void {
+    if (!this.active || !this.scene) return;
+    
+    // 创建简单的残影，为兼容 Spine 和 Sprite，我们可以用带颜色的图形或者如果原版是 Sprite，可以直接克隆。
+    // 为了极致兼容性，这里生成一个半透明的色块残影
+    const trail = this.scene.add.rectangle(this.x, this.y, 40, 80, 0x8b5cf6, 0.5);
+    trail.setDepth(this.depth - 0.1);
+    
+    this.scene.tweens.add({
+      targets: trail,
+      alpha: 0,
+      scaleX: 0.5,
+      scaleY: 0.5,
+      duration: 300,
+      onComplete: () => trail.destroy()
+    });
   }
 
   /**

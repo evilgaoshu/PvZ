@@ -33,118 +33,11 @@ export class BootScene extends BaseScene {
     this.load.on('progress', (value: number) => {
       this.updateLoadingProgress(value);
     });
-  }
-
-  private createProceduralAssets(): void {
-    this.createPlantTexture('plants/sunflower', 0xfcd34d);
-    this.createPlantTexture('plants/peashooter', 0x4ade80);
-    this.createPlantTexture('plants/wallnut', 0x92400e);
-    this.createPlantTexture('plants/cherry_bomb', 0xef4444);
-    this.createPlantTexture('plants/snow_pea', 0x60a5fa);
-    this.createPlantTexture('plants/repeater', 0x166534);
-    this.createPlantTexture('plants/chomper', 0x7e22ce);
-
-    this.createZombieTexture('zombies/normal', 0x8fbc8f);
-    this.createZombieTexture('zombies/conehead', 0x8fbc8f, 0xf97316);
-    this.createZombieTexture('zombies/buckethead', 0x8fbc8f, 0x94a3b8);
-    this.createZombieTexture('zombies/pole_vaulting', 0x8fbc8f);
-    this.createZombieTexture('zombies/newspaper', 0x8fbc8f);
-    this.createZombieTexture('zombies/screendoor', 0x8fbc8f);
-
-    this.createProjectileTexture('pea', 0x4ade80);
-    this.createProjectileTexture('snow_pea', 0x60a5fa);
-    this.createBackgroundTexture('day-grass', 0x4ade80);
-  }
-
-  private createPlantTexture(key: string, color: number): void {
-    const graphics = this.make.graphics({ x: 0, y: 0 }, false);
-    const center = 32;
-
-    // 基础根茎
-    graphics.fillStyle(0x15803d, 1);
-    graphics.fillRect(center - 5, center + 10, 10, 20);
-
-    if (key.includes('sunflower')) {
-      graphics.fillStyle(0xfde047, 1);
-      for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
-        graphics.fillCircle(
-          center + Math.cos(angle) * 15,
-          center - 5 + Math.sin(angle) * 15,
-          10
-        );
-      }
-      graphics.fillStyle(0x78350f, 1);
-      graphics.fillCircle(center, center - 5, 12);
-    } else if (
-      key.includes('peashooter') ||
-      key.includes('repeater') ||
-      key.includes('snow_pea')
-    ) {
-      graphics.fillStyle(color, 1);
-      graphics.fillCircle(center, center - 5, 18);
-      graphics.fillRect(center, center - 10, 25, 10); // 简化喷管
-      graphics.fillStyle(0x000000, 1);
-      graphics.fillCircle(center + 5, center - 10, 3);
-    } else if (key.includes('wallnut')) {
-      graphics.fillStyle(0x92400e, 1);
-      graphics.fillEllipse(center, center, 25, 32);
-      graphics.fillStyle(0xffffff, 1);
-      graphics.fillCircle(center - 8, center - 5, 6);
-      graphics.fillCircle(center + 8, center - 5, 6);
-    } else {
-      graphics.fillStyle(color, 1);
-      graphics.fillCircle(center, center, 25);
-    }
-
-    graphics.generateTexture(key, 64, 64);
-    graphics.destroy();
-  }
-
-  private createZombieTexture(
-    key: string,
-    color: number,
-    armorColor?: number
-  ): void {
-    const graphics = this.make.graphics({ x: 0, y: 0 }, false);
-    const centerX = 32;
-
-    graphics.fillStyle(0x1e3a8a, 1);
-    graphics.fillRect(centerX - 15, 60, 30, 30);
-    graphics.fillStyle(0x451a03, 1);
-    graphics.fillRect(centerX - 18, 30, 36, 35);
-    graphics.fillStyle(color, 1);
-    graphics.fillCircle(centerX, 20, 18);
-
-    if (armorColor) {
-      graphics.fillStyle(armorColor, 1);
-      graphics.fillRect(centerX - 15, 0, 30, 15);
-    }
-
-    graphics.generateTexture(key, 64, 100);
-    graphics.destroy();
-  }
-
-  private createProjectileTexture(key: string, color: number): void {
-    const graphics = this.make.graphics({ x: 0, y: 0 }, false);
-    graphics.fillStyle(color, 1);
-    graphics.fillCircle(10, 10, 8);
-    graphics.fillStyle(0xffffff, 0.5);
-    graphics.fillCircle(7, 7, 3);
-    graphics.generateTexture(key, 20, 20);
-    graphics.destroy();
-  }
-
-  private createBackgroundTexture(key: string, color: number): void {
-    const graphics = this.make.graphics({ x: 0, y: 0 }, false);
-    graphics.fillStyle(color, 1);
-    graphics.fillRect(0, 0, 800, 600);
-    graphics.fillStyle(0x166534, 0.3);
-    for (let i = 0; i < 100; i++) {
-      graphics.fillRect(Math.random() * 800, Math.random() * 600, 20, 5);
-    }
-    graphics.generateTexture(key, 800, 600);
-    graphics.destroy();
+    
+    // 当所有资源加载完成时触发
+    this.load.on('complete', () => {
+      this.finishBoot();
+    });
   }
 
   private createLoadingScreen(): void {
@@ -182,13 +75,32 @@ export class BootScene extends BaseScene {
   }
 
   private loadGameAssets(): void {
-    // 模拟一些小资源确保加载队列不为空
-    for (let i = 0; i < 10; i++) {
-      this.load.image(
-        `load_tick_${i}`,
-        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-      );
-    }
+    // 植物
+    this.load.svg('plants/sunflower', 'assets/images/plants/sunflower.svg');
+    this.load.svg('plants/peashooter', 'assets/images/plants/peashooter.svg');
+    this.load.svg('plants/wallnut', 'assets/images/plants/wallnut.svg');
+    this.load.svg('plants/cherry_bomb', 'assets/images/plants/cherry_bomb.svg');
+    this.load.svg('plants/snow_pea', 'assets/images/plants/snow_pea.svg');
+    this.load.svg('plants/repeater', 'assets/images/plants/repeater.svg');
+    this.load.svg('plants/chomper', 'assets/images/plants/chomper.svg');
+
+    // 僵尸
+    this.load.svg('zombies/normal', 'assets/images/zombies/normal.svg');
+    this.load.svg('zombies/conehead', 'assets/images/zombies/conehead.svg');
+    this.load.svg('zombies/buckethead', 'assets/images/zombies/buckethead.svg');
+    this.load.svg('zombies/pole_vaulting', 'assets/images/zombies/pole_vaulting.svg');
+    this.load.svg('zombies/newspaper', 'assets/images/zombies/newspaper.svg');
+    this.load.svg('zombies/screendoor', 'assets/images/zombies/screendoor.svg');
+
+    // 投射物
+    this.load.svg('plants/lilypad', 'assets/images/plants/lilypad.svg');
+    this.load.svg('pea', 'assets/images/projectiles/pea.svg');
+    this.load.svg('snow_pea', 'assets/images/projectiles/snow_pea.svg');
+
+    // 其他
+    this.load.svg('day-grass', 'assets/images/backgrounds/day-grass.svg');
+    this.load.svg('pool', 'assets/images/backgrounds/pool.svg');
+    this.load.svg('ui/sun', 'assets/images/ui/sun.svg');
   }
 
   private finishBoot(): void {
@@ -196,13 +108,6 @@ export class BootScene extends BaseScene {
     this.bootCompleted = true;
 
     this.updateLoadingProgress(1);
-
-    try {
-      this.createProceduralAssets();
-    } catch (error) {
-      console.error('Error creating procedural assets:', error);
-    }
-
     this.onLoadComplete();
   }
 
@@ -217,9 +122,12 @@ export class BootScene extends BaseScene {
   }
 
   protected onCreate(): void {
-    this.finishBoot();
+    // 因为改为真正的异步加载，所以 onCreate 里不需要主动调用 finishBoot
+    // 如果没有资源加载，Phaser 会直接触发 complete
   }
+  
   protected onUpdate(): void {}
+  
   protected onShutdown(): void {
     this.registry.remove('progressBar');
     this.registry.remove('progressText');

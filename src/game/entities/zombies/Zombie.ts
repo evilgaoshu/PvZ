@@ -4,511 +4,259 @@ import { GameEvents, EntityState } from '@/types/index';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
 import { VisualEffects } from '@utils/VisualEffects';
+import { IEntityRenderer, SpineRenderer, SpriteRenderer } from '../EntityRenderer';
+import { Plant } from '../plants/Plant';
 
 /**
  * 僵尸基类
  * 所有僵尸实体的抽象基类
  */
 export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
-  // 配置
   protected config: ZombieConfig;
+  protected renderer: IEntityRenderer | null = null;
 
-  // 状态
   protected currentHealth: number;
   protected currentSpeed: number;
   protected entityState: EntityState = EntityState.WALK;
   protected isAlive: boolean = true;
   protected isSlowed: boolean = false;
   protected slowedEndTime: number = 0;
+  protected hasLostHead: boolean = false;
+  protected isSwimming: boolean = false;
+  private duckyTube: Phaser.GameObjects.Image | null = null;
 
-  // 音频管理器
   protected audioManager: AudioManager | null = null;
-
-  // 位置
   protected row: number = 0;
-
-  // 攻击相关
   protected attackTarget: Plant | null = null;
   protected lastAttackTime: number = 0;
   protected isAttacking: boolean = false;
-
-  // 呻吟计时器
   protected nextGroanTime: number = 0;
-
-  // 护甲
   protected currentArmor: number = 0;
-
-  // 特殊能力标记
   protected usedSpecialAbility: boolean = false;
 
-  constructor(
-    scene: Phaser.Scene,
-    x: number,
-    y: number,
-    config: ZombieConfig
-  ) {
+  constructor(scene: Phaser.Scene, x: number, y: number, config: ZombieConfig) {
     super(scene, x, y, config.spriteSheet);
-
     this.config = config;
     this.currentHealth = config.health;
     this.currentSpeed = config.speed;
     this.currentArmor = config.armor || 0;
-
-    // 获取音频管理器
     this.audioManager = this.scene.game.registry.get('audioManager') as AudioManager;
 
-    // 添加到场景和物理系统
+    this.initRenderer();
     scene.add.existing(this);
     scene.physics.add.existing(this);
-
-    // 初始化
     this.init();
   }
 
-  /**
-   * 初始化
-   */
+  private initRenderer(): void {
+    const spineKey = (this.config as any).spineKey;
+    if (spineKey && (this.scene as any).spine) {
+      this.renderer = new SpineRenderer(this.scene, this.x, this.y, spineKey, spineKey);
+      this.setAlpha(0);
+    } else {
+      this.renderer = new SpriteRenderer(this);
+    }
+  }
+
   protected init(): void {
     this.setupPhysics();
     this.setupAnimations();
-    this.setupEventListeners();
-
-    // 添加阴影
     VisualEffects.addShadow(this.scene, this);
-
-    // 开始行走
     this.startWalking();
   }
 
-  /**
-   * 设置物理
-   */
   protected setupPhysics(): void {
     const body = this.body as Phaser.Physics.Arcade.Body;
-
-    // 设置碰撞体
-    body.setSize(40, 80);
-    body.setOffset(10, 10);
-
-    // 设置初始速度（向左移动）
+    body.setSize(40, 80).setOffset(10, 10);
     this.setVelocityX(-this.currentSpeed);
-
-    // 禁用重力
     body.allowGravity = false;
   }
 
-  /**
-   * 设置动画
-   */
-  protected setupAnimations(): void {
-    // 子类实现
-  }
+  protected setupAnimations(): void {}
 
-  /**
-   * 设置事件监听
-   */
-  protected setupEventListeners(): void {
-    // 子类可重写
-  }
-
-  /**
-   * 更新
-   */
   public update(time: number, delta: number): void {
     if (!this.isAlive) return;
 
-    // 检查减速效果
-    if (this.isSlowed && time >= this.slowedEndTime) {
-      this.removeSlow();
+    // 1. 同步渲染器位置
+    if (this.renderer instanceof SpineRenderer) {
+      const obj = this.renderer.getObject();
+      obj.setPosition(this.x, this.y).setDepth(this.depth);
     }
 
-    // 检查是否到达房屋（最左侧）
-    if (this.x < 180) {
-      this.scene.game.events.emit('zombie:reached_house', this);
-      return;
+    // 2. 水域逻辑
+    this.handleWaterLogic();
+
+    // 3. 救生圈同步
+    if (this.duckyTube && this.active) {
+      this.duckyTube.setPosition(this.x, this.y + 20);
+      this.duckyTube.setDepth(this.depth + 0.1);
     }
 
-    // 随机呻吟（每5-15秒一次）
+    if (this.isSlowed && time >= this.slowedEndTime) this.removeSlow();
+    if (this.x < 180) { this.scene.game.events.emit('zombie:reached_house', this); return; }
+
     if (time >= this.nextGroanTime) {
-      if (Math.random() < 0.3) {
-        this.audioManager?.playSfx(SoundEffect.ZOMBIE_GROAN);
-      }
+      if (Math.random() < 0.3) this.audioManager?.playSfx(SoundEffect.ZOMBIE_GROAN);
       this.nextGroanTime = time + Phaser.Math.Between(5000, 15000);
     }
 
-    // 更新行为
-    if (this.isAttacking) {
-      this.updateAttack(time);
-    } else {
-      this.updateMovement(time, delta);
+    if (this.isAttacking) this.updateAttack(time);
+    else this.updateMovement(time, delta);
+  }
+
+  private handleWaterLogic(): void {
+    const gridSystem = (this.scene as any).gridSystem;
+    if (!gridSystem) return;
+
+    // 根据当前物理坐标转换网格坐标，获取实时地形
+    const gridPos = gridSystem.screenToGrid(this.x, this.y);
+    const inWater = gridPos ? gridSystem.getTerrainType(gridPos.row, gridPos.col) === 'water' : false;
+
+    if (inWater && !this.isSwimming) {
+      this.enterWater();
+    } else if (!inWater && this.isSwimming) {
+      this.exitWater();
     }
   }
 
-  /**
-   * 更新移动
-   */
-  protected updateMovement(time: number, delta: number): void {
-    // 基础移动速度
-    let speed = this.currentSpeed;
+  private enterWater(): void {
+    this.isSwimming = true;
+    if (!this.duckyTube) {
+      this.duckyTube = this.scene.add.image(this.x, this.y + 20, 'zombies/ducky_tube');
+    }
+    this.duckyTube.setVisible(true);
+    // 播放水花粒子效果
+    VisualEffects.createSplat(this.scene, this.x, this.y + 20, 0x0ea5e9, 15);
+  }
 
-    // 应用减速效果
-    if (this.isSlowed) {
-      speed *= 0.5;
+  private exitWater(): void {
+    this.isSwimming = false;
+    this.duckyTube?.setVisible(false);
+  }
+
+  public takeDamage(amount: number, type: string = 'normal'): void {
+    if (!this.isAlive) return;
+
+    if (this.currentArmor > 0) {
+      this.currentArmor -= amount;
+      if (this.currentArmor <= 0) {
+        this.currentHealth += this.currentArmor;
+        this.currentArmor = 0;
+        this.onArmorLost();
+      }
+    } else {
+      this.currentHealth -= amount;
     }
 
-    // 向左移动
-    this.setVelocityX(-speed);
+    if (this.currentHealth <= this.config.health * 0.3 && !this.hasLostHead) {
+      this.loseHead();
+    }
 
-    // 检查是否可以触发特殊能力
+    this.showDamageEffect();
+    if (this.currentHealth <= 0) this.die();
+  }
+
+  protected loseHead(): void {
+    this.hasLostHead = true;
+    const head = this.scene.add.image(this.x, this.y - 30, 'zombies/head');
+    head.setDepth(this.depth + 1);
+    this.scene.tweens.add({
+      targets: head,
+      x: this.x + Phaser.Math.Between(20, 60),
+      y: this.y + 40,
+      angle: 360,
+      duration: 800,
+      ease: 'Bounce.easeOut',
+      onComplete: () => {
+        this.scene.time.delayedCall(2000, () => head.destroy());
+      }
+    });
+    this.audioManager?.playSfx(SoundEffect.SPLAT);
+  }
+
+  protected onArmorLost(): void {
+    VisualEffects.createSplat(this.scene, this.x, this.y, 0x94a3b8, 10);
+  }
+
+  protected die(): void {
+    if (!this.isAlive) return;
+    this.isAlive = false;
+    this.entityState = EntityState.DEAD;
+    this.setVelocityX(0);
+    this.audioManager?.playSfx(SoundEffect.ZOMBIE_DIE);
+    VisualEffects.shakeCamera(this.scene, 0.005, 200);
+    this.renderer?.play(`${this.config.id}_die`, false);
+    
+    if (this.duckyTube) this.duckyTube.destroy();
+
+    this.scene.tweens.add({
+      targets: this.renderer instanceof SpriteRenderer ? this : (this.renderer as any).getObject(),
+      angle: -90, alpha: 0, duration: 800,
+      onComplete: () => { this.renderer?.destroy(); this.destroy(); }
+    });
+  }
+
+  protected showDamageEffect(): void {
+    VisualEffects.flashSprite(this, 0xffffff, 80);
+    if (!(this.renderer instanceof SpineRenderer)) VisualEffects.bounceScale(this, 1.05, 100);
+  }
+
+  public startWalking(): void {
+    this.entityState = EntityState.WALK;
+    this.isAttacking = false;
+    this.attackTarget = null;
+    this.setVelocityX(-this.currentSpeed);
+    this.renderer?.play(`${this.config.id}_walk`, true);
+  }
+
+  public startAttacking(target: Plant): void {
+    if (this.hasLostHead) return;
+    this.isAttacking = true;
+    this.attackTarget = target;
+    this.setVelocityX(0);
+    this.renderer?.play(`${this.config.id}_eat`, true);
+  }
+
+  protected updateAttack(time: number): void {
+    if (!this.attackTarget || !this.attackTarget.active || !this.attackTarget.isPlantAlive()) {
+      this.startWalking();
+      return;
+    }
+    if (time - this.lastAttackTime >= this.config.attackInterval) {
+      this.lastAttackTime = time;
+      this.attackTarget.takeDamage(this.config.damage);
+      this.playBiteAnimation();
+    }
+  }
+
+  protected playBiteAnimation(): void {
+    this.scene.tweens.add({
+      targets: this.renderer instanceof SpriteRenderer ? this : (this.renderer as any).getObject(),
+      x: '+=5', duration: 50, yoyo: true
+    });
+  }
+
+  protected updateMovement(_time: number, _delta: number): void {
+    this.setVelocityX(-this.currentSpeed);
     this.checkSpecialAbility();
   }
 
-  /**
-   * 检查特殊能力
-   */
-  protected checkSpecialAbility(): void {
-    // 子类实现
-  }
+  protected checkSpecialAbility(): void {}
 
-  /**
-   * 开始行走
-   */
-  protected startWalking(): void {
-    this.entityState = EntityState.WALK;
-    this.isAttacking = false;
-    this.playWalkAnimation();
-  }
-
-  /**
-   * 开始攻击植物
-   */
-  public startAttacking(target: Plant): void {
-    if (this.isAttacking || !this.isAlive) return;
-
-    this.isAttacking = true;
-    this.attackTarget = target;
-    this.entityState = EntityState.EAT;
-
-    // 停止移动
-    this.setVelocityX(0);
-
-    // 播放攻击动画
-    this.playAttackAnimation();
-  }
-
-  /**
-   * 停止攻击
-   */
-  public stopAttacking(): void {
-    if (!this.isAttacking) return;
-
-    this.isAttacking = false;
-    this.attackTarget = null;
-    this.startWalking();
-  }
-
-  /**
-   * 更新攻击
-   */
-  protected updateAttack(time: number): void {
-    if (!this.attackTarget || !this.attackTarget.active) {
-      this.stopAttacking();
-      return;
-    }
-
-    // 检查攻击间隔
-    const attackInterval = this.config.attackInterval;
-    if (time - this.lastAttackTime < attackInterval) return;
-
-    this.lastAttackTime = time;
-
-    // 造成伤害
-    this.attackTarget.takeDamage(this.config.damage);
-
-    // 播放咬击动画
-    this.playBiteAnimation();
-
-    // 播放音效
-    this.audioManager?.playSfx(SoundEffect.ZOMBIE_EATING);
-  }
-
-  /**
-   * 受到伤害
-   */
-  public takeDamage(amount: number, damageType: string = 'normal'): void {
-    if (!this.isAlive) return;
-
-    // 先减少护甲
-    if (this.currentArmor > 0) {
-      if (this.currentArmor >= amount) {
-        this.currentArmor -= amount;
-        this.showArmorHitEffect();
-        return;
-      } else {
-        amount -= this.currentArmor;
-        this.currentArmor = 0;
-        this.onArmorBreak();
-      }
-    }
-
-    // 减少生命值
-    this.currentHealth -= amount;
-
-    // 显示伤害效果
-    this.showDamageEffect();
-    
-    // 使用统一的漂浮文字
-    VisualEffects.floatText(this.scene, this.x, this.y - 40, `-${Math.round(amount)}`, {
-      color: '#ef4444',
-      fontSize: '18px'
-    });
-
-    // 播放打击粒子效果
-    VisualEffects.createSplat(this.scene, this.x, this.y, 0xffcccc, 5);
-
-    // 检查死亡
-    if (this.currentHealth <= 0) {
-      this.die();
-    }
-  }
-
-  /**
-   * 护甲被打破
-   */
-  protected onArmorBreak(): void {
-    // 播放护甲破碎效果
-    VisualEffects.createSplat(this.scene, this.x, this.y, 0xdddddd, 10);
-    VisualEffects.shakeCamera(this.scene, 0.003, 100);
-  }
-
-  /**
-   * 显示护甲受击效果
-   */
-  protected showArmorHitEffect(): void {
-    // 播放金属击中音效
-    this.audioManager?.playSfx(SoundEffect.METAL_HIT);
-
-    // 使用统一的闪烁效果
-    VisualEffects.flashSprite(this, 0xcccccc, 80);
-    
-    // 缩放回弹
-    VisualEffects.bounceScale(this, 1.05, 100);
-  }
-
-  /**
-   * 显示伤害效果
-   */
-  protected showDamageEffect(): void {
-    // 闪烁红色
-    VisualEffects.flashSprite(this, 0xff0000, 100);
-
-    this.scene.time.delayedCall(110, () => {
-      // 如果有减速，恢复蓝色
-      if (this.isSlowed && this.active) {
-        this.setTint(0x88ccff);
-      }
-    });
-  }
-
-  /**
-   * 显示伤害数字
-   */
-  protected showDamageNumber(amount: number): void {
-    // 已被 VisualEffects.floatText 替代
-  }
-
-  /**
-   * 减速效果
-   */
-  public applySlow(duration: number = 3000): void {
-    if (this.isSlowed) {
-      // 延长减速时间
-      this.slowedEndTime += duration;
-      return;
-    }
-
+  public applySlow(duration: number): void {
     this.isSlowed = true;
     this.slowedEndTime = this.scene.time.now + duration;
-
-    // 蓝色色调
-    this.setTint(0x88ccff);
-
-    // 减速粒子效果
-    const ice = this.scene.add.ellipse(this.x, this.y, 50, 80, 0x88ccff, 0.3);
-    this.scene.tweens.add({
-      targets: ice,
-      alpha: 0,
-      duration: 500,
-      onComplete: () => {
-        ice.destroy();
-      }
-    });
+    this.currentSpeed = this.config.speed * 0.5;
+    this.setTint(0x00ffff);
   }
 
-  /**
-   * 移除减速
-   */
   protected removeSlow(): void {
     this.isSlowed = false;
     this.clearTint();
-
-    // 恢复速度
     this.currentSpeed = this.config.speed;
   }
 
-  /**
-   * 死亡
-   */
-  protected die(): void {
-    if (!this.isAlive) return;
-
-    this.isAlive = false;
-    this.entityState = EntityState.DEAD;
-
-    // 停止移动
-    this.setVelocityX(0);
-
-    // 播放僵尸死亡音效
-    this.audioManager?.playSfx(SoundEffect.ZOMBIE_DIE);
-
-    // 屏幕微抖动
-    VisualEffects.shakeCamera(this.scene, 0.005, 200);
-
-    // 发送死亡事件
-    this.scene.game.events.emit(GameEvents.ZOMBIE_DIED, {
-      zombie: this,
-      position: { x: this.x, y: this.y },
-      row: this.row,
-      type: this.config.id
-    });
-
-    // 播放死亡动画
-    this.playDeathAnimation();
-
-    // 销毁
-    this.scene.time.delayedCall(1000, () => {
-      this.destroy();
-    });
-  }
-
-  /**
-   * 播放行走动画
-   */
-  protected playWalkAnimation(): void {
-    const animKey = `${this.config.id}_walk`;
-    if (this.anims.exists(animKey)) {
-      this.play(animKey, true);
-    }
-  }
-
-  /**
-   * 播放攻击动画
-   */
-  protected playAttackAnimation(): void {
-    const animKey = `${this.config.id}_eat`;
-    if (this.anims.exists(animKey)) {
-      this.play(animKey, true);
-    }
-  }
-
-  /**
-   * 播放咬击动画效果
-   */
-  protected playBiteAnimation(): void {
-    // 头部向前动画
-    this.scene.tweens.add({
-      targets: this,
-      x: this.x + 5,
-      duration: 100,
-      yoyo: true
-    });
-  }
-
-  /**
-   * 播放死亡动画
-   */
-  protected playDeathAnimation(): void {
-    // 播放死亡动画
-    const animKey = `${this.config.id}_die`;
-    if (this.anims.exists(animKey)) {
-      this.play(animKey, false);
-    }
-
-    // 倒地效果
-    this.scene.tweens.add({
-      targets: this,
-      angle: -90,
-      alpha: 0,
-      duration: 800,
-      ease: 'Power2'
-    });
-  }
-
-  /**
-   * 设置行
-   */
-  public setRow(row: number): void {
-    this.row = row;
-    this.setData('row', row);
-  }
-
-  /**
-   * 获取行
-   */
-  public getRow(): number {
-    return this.row;
-  }
-
-  /**
-   * 获取配置
-   */
-  public getConfig(): ZombieConfig {
-    return this.config;
-  }
-
-  /**
-   * 获取当前生命值
-   */
-  public getHealth(): number {
-    return this.currentHealth;
-  }
-
-  /**
-   * 获取护甲值
-   */
-  public getArmor(): number {
-    return this.currentArmor;
-  }
-
-  /**
-   * 是否存活
-   */
-  public isZombieAlive(): boolean {
-    return this.isAlive;
-  }
-
-  /**
-   * 是否被减速
-   */
-  public getIsSlowed(): boolean {
-    return this.isSlowed;
-  }
-
-  /**
-   * 是否正在攻击
-   */
-  public getIsAttacking(): boolean {
-    return this.isAttacking;
-  }
-
-  /**
-   * 销毁
-   */
-  destroy(fromScene?: boolean): void {
-    this.attackTarget = null;
-    super.destroy(fromScene);
-  }
+  public getRow(): number { return this.row; }
+  public setRow(row: number): void { this.row = row; }
+  public isZombieAlive(): boolean { return this.isAlive; }
 }
-
-// 导入Plant类型用于类型引用
-import { Plant } from '../plants/Plant';

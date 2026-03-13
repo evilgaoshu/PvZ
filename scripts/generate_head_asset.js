@@ -1,0 +1,25 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PUBLIC_DIR = path.resolve(__dirname, '..', 'public', 'assets', 'images', 'zombies');
+
+const headSvg = `
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Zombie Head -->
+  <circle cx="20" cy="20" r="18" fill="#8fbc8f" stroke="#166534" stroke-width="2" />
+  <!-- Eyes (rolled back) -->
+  <circle cx="14" cy="15" r="4" fill="#ffffff" />
+  <circle cx="26" cy="15" r="4" fill="#ffffff" />
+  <circle cx="14" cy="15" r="1" fill="#000000" />
+  <circle cx="26" cy="15" r="1" fill="#000000" />
+  <!-- Mouth -->
+  <ellipse cx="20" cy="28" rx="6" ry="4" fill="#000000" />
+</svg>
+`;
+
+if (!fs.existsSync(PUBLIC_DIR)) fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+fs.writeFileSync(path.join(PUBLIC_DIR, 'head.svg'), headSvg.trim());
+console.log('Created: zombies/head.svg');

@@ -1,4 +1,5 @@
 import { GRID_CONFIG, GAME_CONFIG } from '@/types/index';
+import { SpinePlugin } from '@esotericsoftware/spine-phaser';
 
 /**
  * Phaser游戏配置类型
@@ -38,6 +39,11 @@ export const gameConfig: PhaserGameConfig = {
       fps: 60,
       timeScale: 1
     }
+  },
+  plugins: {
+    scene: [
+      { key: 'SpinePlugin', plugin: SpinePlugin, mapping: 'spine' }
+    ]
   },
   render: {
     antialias: true,

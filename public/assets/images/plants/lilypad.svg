@@ -1,0 +1,8 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Leaf -->
+  <ellipse cx="32" cy="35" rx="28" ry="20" fill="#16a34a" stroke="#14532d" stroke-width="2" />
+  <!-- Cutout -->
+  <path d="M32 35 L60 25 A 28 20 0 0 0 45 18 Z" fill="#0369a1" opacity="0.3" />
+  <!-- Veins -->
+  <path d="M32 35 L32 15 M32 35 L10 25 M32 35 L54 25" stroke="#14532d" stroke-width="1" opacity="0.5" />
+</svg>

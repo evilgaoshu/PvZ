@@ -1,0 +1,21 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PUBLIC_DIR = path.resolve(__dirname, '..', 'public', 'assets', 'images', 'zombies');
+
+const duckySvg = `
+<svg width="60" height="30" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ring -->
+  <ellipse cx="30" cy="15" rx="28" ry="12" fill="#facc15" stroke="#ca8a04" stroke-width="2" />
+  <!-- Duck Head -->
+  <circle cx="50" cy="10" r="8" fill="#facc15" stroke="#ca8a04" stroke-width="2" />
+  <circle cx="52" cy="8" r="1.5" fill="#000" />
+  <path d="M55 10 L60 12 L55 14 Z" fill="#f97316" />
+</svg>
+`;
+
+fs.writeFileSync(path.join(PUBLIC_DIR, 'ducky_tube.svg'), duckySvg.trim());
+console.log('Created: zombies/ducky_tube.svg');

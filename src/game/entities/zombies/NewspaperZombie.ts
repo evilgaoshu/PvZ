@@ -152,7 +152,7 @@ export class NewspaperZombie extends Zombie {
     this.isEnraged = true;
 
     // 变红
-    this.setTint(0xff4444);
+    this.renderer?.setTint(0xff4444);
 
     // 加速（速度翻倍）
     this.currentSpeed *= 2;

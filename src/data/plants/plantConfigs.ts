@@ -184,6 +184,7 @@ export const plantConfigs: Record<string, PlantConfig> = {
     attackInterval: 42000, // 咀嚼时间
     attackRange: 1,
     specialEffects: ['instakill', 'chewing'],
+    placement: ['grass', 'lilypad'],
     spriteSheet: 'plants/chomper',
     animations: [
       {
@@ -205,8 +206,33 @@ export const plantConfigs: Record<string, PlantConfig> = {
         repeat: -1
       }
     ]
+  },
+
+  lilypad: {
+    id: 'lilypad',
+    name: '睡莲',
+    description: '让你可以在水上种植陆地植物',
+    cost: 25,
+    health: 300,
+    cooldown: 7.5,
+    placement: ['water'],
+    specialEffects: ['platform'],
+    spriteSheet: 'plants/lilypad',
+    animations: [
+      {
+        key: 'lilypad_idle',
+        frames: { start: 0, end: 0, prefix: 'lilypad_', suffix: '.png' },
+        frameRate: 1,
+        repeat: -1
+      }
+    ]
   }
 };
+
+// 为已有植物批量添加默认放置规则
+Object.values(plantConfigs).forEach(p => {
+  if (!p.placement) p.placement = ['grass', 'lilypad'];
+});
 
 /**
  * 僵尸配置数据
@@ -444,6 +470,38 @@ export const levelConfigs: Record<string, LevelConfig> = {
           { type: 'normal', count: 6, delay: 1500 },
           { type: 'conehead', count: 3, delay: 4000 },
           { type: 'buckethead', count: 2, delay: 8000 }
+        ],
+        timeBeforeWave: 25000
+      }
+    ]
+  },
+
+  '1-4': {
+    id: '1-4',
+    name: '泳池大作战',
+    world: 1,
+    level: 4,
+    description: '小心中间的水域！',
+    availablePlants: ['lilypad', 'sunflower', 'peashooter', 'wallnut'],
+    zombieTypes: ['normal', 'conehead', 'buckethead'],
+    initialSun: 200,
+    background: 'pool',
+    waves: [
+      {
+        waveNumber: 1,
+        isFlagWave: false,
+        zombies: [
+          { type: 'normal', count: 3, delay: 2000, row: 2 },
+          { type: 'normal', count: 2, delay: 5000, row: 3 }
+        ],
+        timeBeforeWave: 30000
+      },
+      {
+        waveNumber: 2,
+        isFlagWave: true,
+        zombies: [
+          { type: 'normal', count: 5, delay: 1000 },
+          { type: 'conehead', count: 2, delay: 3000 }
         ],
         timeBeforeWave: 25000
       }

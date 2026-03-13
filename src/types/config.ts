@@ -47,6 +47,9 @@ export interface PlantConfig extends BaseConfig {
   // 特殊效果
   specialEffects?: string[];
 
+  // 放置规则
+  placement?: ('grass' | 'water' | 'lilypad')[];
+
   // 资源路径
   spriteSheet: string;
   animations: AnimationConfig[];
@@ -165,7 +168,9 @@ export interface GridCell {
   x: number;
   y: number;
   plant: string | null;
+  platform?: string | null; // 平台植物，如睡莲
   isWalkable: boolean;
+  terrainType: 'grass' | 'water';
 }
 
 // 伤害类型

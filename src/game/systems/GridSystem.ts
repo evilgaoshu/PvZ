@@ -35,10 +35,13 @@ export class GridSystem {
   /**
    * 初始化网格
    */
-  private initializeGrid(): void {
+  public initializeGrid(background: string = 'day-grass'): void {
     for (let row = 0; row < this.rows; row++) {
       this.grid[row] = [];
       this.zombiesInRow.set(row, []);
+
+      // 泳池关卡逻辑：中间两行为水（索引 2, 3）
+      const terrainType = (background === 'pool' && (row === 2 || row === 3)) ? 'water' : 'grass';
 
       for (let col = 0; col < this.cols; col++) {
         const x = this.offsetX + col * this.cellWidth;
@@ -50,12 +53,30 @@ export class GridSystem {
           x: x + this.cellWidth / 2,
           y: y + this.cellHeight / 2,
           plant: null,
-          isWalkable: true
+          platform: null,
+          isWalkable: true,
+          terrainType: terrainType
         };
       }
     }
 
-    console.log('GridSystem initialized:', this.rows, 'x', this.cols);
+    console.log(`GridSystem initialized with terrain: ${background}`);
+  }
+
+  public getTerrainType(row: number, col: number): 'grass' | 'water' {
+    return this.grid[row][col].terrainType;
+  }
+
+  public hasLilyPad(row: number, col: number): boolean {
+    return this.grid[row][col].platform === 'lilypad';
+  }
+
+  public setPlatform(row: number, col: number, plantId: string): void {
+    this.grid[row][col].platform = plantId;
+  }
+
+  public removePlatform(row: number, col: number): void {
+    this.grid[row][col].platform = null;
   }
 
   /**

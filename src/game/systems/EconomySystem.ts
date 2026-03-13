@@ -121,16 +121,35 @@ export class EconomySystem {
   public spawnPlantSun(x: number, y: number, amount: number = 25): void {
     const sun = this.createSun(x, y, 'plant', amount);
 
-    // 植物产生的阳光稍微向上漂浮后停留
+    const targetX = x + Phaser.Math.Between(-40, 40);
+    const targetY = y + Phaser.Math.Between(10, 30);
+
+    // X轴线性平移
     this.scene.tweens.add({
       targets: sun,
-      y: y - 30,
-      duration: 500,
-      ease: 'Power1',
+      x: targetX,
+      duration: 600,
+      ease: 'Linear'
+    });
+
+    // Y轴先上后下（抛物线 + 弹跳）
+    this.scene.tweens.add({
+      targets: sun,
+      y: y - 40,
+      duration: 300,
+      ease: 'Sine.easeOut',
       onComplete: () => {
-        // 一段时间后消失
-        this.scene.time.delayedCall(5000, () => {
-          this.removeSun(sun);
+        this.scene.tweens.add({
+          targets: sun,
+          y: targetY,
+          duration: 300,
+          ease: 'Bounce.easeOut',
+          onComplete: () => {
+            // 一段时间后消失
+            this.scene.time.delayedCall(8000, () => {
+              this.removeSun(sun);
+            });
+          }
         });
       }
     });

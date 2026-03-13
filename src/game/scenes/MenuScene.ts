@@ -1,6 +1,7 @@
 import { BaseScene } from './BaseScene';
 import { BackgroundMusic } from '@config/AudioConfig';
 import { AudioManager } from '@managers/AudioManager';
+import { GameButton } from '@ui/components/GameButton';
 
 /**
  * 主菜单场景
@@ -108,67 +109,40 @@ export class MenuScene extends BaseScene {
   private createMenuButtons(): void {
     const { width, height } = this.getGameSize();
     const centerX = width / 2;
-    const startY = 300;
+    const startY = 320;
 
     this.menuContainer = this.add.container(0, 0);
 
-    // 冒险模式按钮
-    const adventureBtn = this.createButton(
-      centerX,
-      startY,
-      240,
-      50,
-      '🎮 冒险模式',
-      () => this.startAdventureMode()
-    );
-    this.menuContainer.add(adventureBtn);
+    const buttonConfigs = [
+      { text: '🎮 冒险模式', callback: () => this.startAdventureMode(), color: 0x4ade80 },
+      { text: '🛠️ 关卡编辑器', callback: () => this.scene.start('EditorScene'), color: 0x8b5cf6 },
+      { text: '🎯 小游戏', callback: () => this.showMiniGames(), color: 0x3b82f6 },
+      { text: '⚙️ 设置', callback: () => this.showSettings(), color: 0xf59e0b },
+      { text: '🚪 退出', callback: () => this.exitGame(), color: 0xef4444 },
+    ];
 
-    // 小游戏按钮
-    const miniGamesBtn = this.createButton(
-      centerX,
-      startY + 70,
-      240,
-      50,
-      '🎯 小游戏',
-      () => this.showMiniGames()
-    );
-    this.menuContainer.add(miniGamesBtn);
+    buttonConfigs.forEach((cfg, index) => {
+      const btn = new GameButton(this, centerX, startY + index * 70, {
+        width: 260,
+        height: 54,
+        text: cfg.text,
+        backgroundColor: cfg.color,
+        hoverColor: Phaser.Display.Color.IntegerToColor(cfg.color).lighten(10).color,
+        borderRadius: 12
+      }, cfg.callback);
+      
+      this.menuContainer?.add(btn);
 
-    // 设置按钮
-    const settingsBtn = this.createButton(
-      centerX,
-      startY + 140,
-      240,
-      50,
-      '⚙️ 设置',
-      () => this.showSettings()
-    );
-    this.menuContainer.add(settingsBtn);
-
-    // 退出按钮
-    const exitBtn = this.createButton(
-      centerX,
-      startY + 210,
-      240,
-      50,
-      '🚪 退出',
-      () => this.exitGame()
-    );
-    this.menuContainer.add(exitBtn);
-
-    // 按钮入场动画
-    this.menuContainer.each((child: Phaser.GameObjects.GameObject) => {
-      const container = child as Phaser.GameObjects.Container;
-      container.setAlpha(0);
-      container.y += 20;
-
+      // 入场动画
+      btn.setAlpha(0);
+      btn.y += 30;
       this.tweens.add({
-        targets: container,
+        targets: btn,
         alpha: 1,
-        y: container.y - 20,
-        duration: 400,
-        delay: 100 + this.menuContainer!.list.indexOf(child) * 100,
-        ease: 'Power2'
+        y: btn.y - 30,
+        duration: 500,
+        delay: 200 + index * 100,
+        ease: 'Back.easeOut'
       });
     });
   }
