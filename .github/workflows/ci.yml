@@ -6,13 +6,18 @@ on:
   pull_request:
     branches: [ main ]
 
+# 避免重复运行
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x] # 统一使用 LTS
 
     steps:
     - uses: actions/checkout@v4
@@ -21,16 +26,24 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+        cache: 'npm'
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
+
+    - name: Lint check
+      run: npm run lint
 
     - name: Type check
       run: npm run type-check
 
+    - name: Generate assets and levels
+      run: |
+        npm run assets:generate
+        npm run levels:compile
+
+    - name: Run unit tests
+      run: npm run test
+
     - name: Build
       run: npm run build
-
-    # TODO: 添加测试文件后启用
-    # - name: Test
-    #   run: npm run test -- --run
