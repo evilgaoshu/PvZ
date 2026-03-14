@@ -193,20 +193,99 @@ export class MenuScene extends BaseScene {
    * 显示小游戏
    */
   private showMiniGames(): void {
-    // 播放按钮音效
     this.audioManager?.playSfx('button_click');
-    console.log('Showing mini games');
-    // TODO: 实现小游戏菜单
+    
+    const { width, height } = this.getGameSize();
+    const overlay = this.add.container(0, 0);
+    overlay.setDepth(100);
+
+    // 遮罩
+    const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.8);
+    bg.setInteractive();
+    overlay.add(bg);
+
+    const panel = this.add.container(width / 2, height / 2);
+    overlay.add(panel);
+
+    const panelBg = this.add.graphics();
+    panelBg.fillStyle(0x422006, 1);
+    panelBg.fillRoundedRect(-200, -150, 400, 300, 15);
+    panelBg.lineStyle(4, 0x78350f, 1);
+    panelBg.strokeRoundedRect(-200, -150, 400, 300, 15);
+    panel.add(panelBg);
+
+    panel.add(this.add.text(0, -120, '选择关卡', { fontSize: '28px', color: '#fcd34d' }).setOrigin(0.5));
+
+    const levels = [
+      { id: '1-1', name: '1-1 基础教学' },
+      { id: '1-4', name: '1-4 泳池挑战' },
+      { id: '1-5', name: '1-5 摩天大楼' }
+    ];
+
+    levels.forEach((lvl, i) => {
+      const btn = new GameButton(this, 0, -50 + i * 60, {
+        text: lvl.name,
+        width: 300,
+        height: 45,
+        backgroundColor: 0x15803d
+      }, () => {
+        this.switchScene('GameScene', { levelId: lvl.id });
+      });
+      panel.add(btn);
+    });
+
+    const closeBtn = new GameButton(this, 0, 110, {
+      text: '关闭',
+      width: 100,
+      backgroundColor: 0xef4444
+    }, () => overlay.destroy());
+    panel.add(closeBtn);
   }
 
   /**
    * 显示设置
    */
   private showSettings(): void {
-    // 播放按钮音效
     this.audioManager?.playSfx('button_click');
-    console.log('Showing settings');
-    // TODO: 实现设置菜单
+    
+    const { width, height } = this.getGameSize();
+    const overlay = this.add.container(0, 0);
+    overlay.setDepth(100);
+
+    const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.8);
+    bg.setInteractive();
+    overlay.add(bg);
+
+    const panel = this.add.container(width / 2, height / 2);
+    overlay.add(panel);
+
+    const panelBg = this.add.graphics();
+    panelBg.fillStyle(0x1e293b, 1);
+    panelBg.fillRoundedRect(-150, -100, 300, 200, 15);
+    panelBg.lineStyle(4, 0x334155, 1);
+    panelBg.strokeRoundedRect(-150, -100, 300, 200, 15);
+    panel.add(panelBg);
+
+    panel.add(this.add.text(0, -70, '游戏设置', { fontSize: '24px', color: '#fff' }).setOrigin(0.5));
+
+    const isMuted = this.audioManager?.getIsMuted() || false;
+    const muteBtn = new GameButton(this, 0, 0, {
+      text: isMuted ? '🔇 开启声音' : '🔊 关闭声音',
+      width: 200,
+      backgroundColor: isMuted ? 0xef4444 : 0x15803d
+    }, () => {
+      this.audioManager?.setMuted(!isMuted);
+      overlay.destroy();
+      this.showSettings(); // 刷新显示
+    });
+    panel.add(muteBtn);
+
+    const closeBtn = new GameButton(this, 0, 60, {
+      text: '确定',
+      width: 100,
+      backgroundColor: 0x64748b
+    }, () => overlay.destroy());
+    panel.add(closeBtn);
   }
 
   /**

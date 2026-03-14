@@ -22,14 +22,9 @@ export const gameConfig: PhaserGameConfig = {
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    min: {
-      width: 400,
-      height: 300,
-    },
-    max: {
-      width: 1600,
-      height: 1200,
-    },
+    width: GAME_CONFIG.DESIGN_WIDTH,
+    height: GAME_CONFIG.DESIGN_HEIGHT,
+    expandParent: false
   },
   physics: {
     default: 'arcade',
