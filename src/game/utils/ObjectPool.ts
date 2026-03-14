@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Pea, SnowPea } from '@entities/projectiles/Projectile';
+import { Pea, SnowPea, FirePea } from '@entities/projectiles/Projectile';
 
 /**
  * 对象池管理器
@@ -121,6 +121,7 @@ export class ObjectPool<
 export class ProjectilePool {
   private peaPool: ObjectPool<Pea>;
   private snowPeaPool: ObjectPool<SnowPea>;
+  private firePeaPool: ObjectPool<FirePea>;
   private scene: Phaser.Scene;
 
   constructor(scene: Phaser.Scene) {
@@ -163,14 +164,36 @@ export class ProjectilePool {
       },
       20
     );
+
+    // 火焰豌豆池
+    this.firePeaPool = new ObjectPool<FirePea>(
+      scene,
+      (s) => new FirePea(s, -100, -100),
+      (p) => {
+        p.setPosition(-100, -100);
+        p.setVelocityX(0);
+        p.setAlpha(1);
+        p.setScale(1);
+        p.setAngle(0);
+        p.clearTint();
+        const body = p.body as Phaser.Physics.Arcade.Body | undefined;
+        if (body) {
+          body.enable = true;
+        }
+      },
+      20
+    );
   }
 
   /**
    * 获取投射物
    */
-  public get(type: 'pea' | 'snow_pea'): Pea | SnowPea {
+  public get(type: 'pea' | 'snow_pea' | 'fire_pea'): Pea | SnowPea | FirePea {
     if (type === 'snow_pea') {
       return this.snowPeaPool.get();
+    }
+    if (type === 'fire_pea') {
+      return this.firePeaPool.get();
     }
     return this.peaPool.get();
   }
@@ -178,9 +201,11 @@ export class ProjectilePool {
   /**
    * 回收投射物
    */
-  public recycle(projectile: Pea | SnowPea): void {
+  public recycle(projectile: Pea | SnowPea | FirePea): void {
     if (projectile instanceof SnowPea) {
       this.snowPeaPool.recycle(projectile);
+    } else if (projectile instanceof FirePea) {
+      this.firePeaPool.recycle(projectile);
     } else {
       this.peaPool.recycle(projectile);
     }
@@ -192,5 +217,6 @@ export class ProjectilePool {
   public destroy(): void {
     this.peaPool.destroy();
     this.snowPeaPool.destroy();
+    this.firePeaPool.destroy();
   }
 }

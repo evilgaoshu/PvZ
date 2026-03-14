@@ -16,6 +16,8 @@ import { LilyPad } from './LilyPad';
 import { PotatoMine } from './PotatoMine';
 import { Jalapeno } from './Jalapeno';
 import { Squash } from './Squash';
+import { Torchwood } from './Torchwood';
+import { Spikeweed } from './Spikeweed';
 
 // 植物创建函数类型
 type PlantCreator = (
@@ -49,6 +51,8 @@ export class PlantFactory {
       ['potato_mine', (s, x, y, c) => new PotatoMine(s, x, y, c)],
       ['jalapeno', (s, x, y, c) => new Jalapeno(s, x, y, c)],
       ['squash', (s, x, y, c) => new Squash(s, x, y, c)],
+      ['torchwood', (s, x, y, c) => new Torchwood(s, x, y, c)],
+      ['spikeweed', (s, x, y, c) => new Spikeweed(s, x, y, c)],
     ]);
   }
 

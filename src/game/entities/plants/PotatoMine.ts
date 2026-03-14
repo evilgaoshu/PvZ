@@ -11,8 +11,14 @@ export class PotatoMine extends Plant {
   }
 
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new PotatoMineUnarmedState(this));
-    this.stateMachine.addState(EntityState.ATTACK, new PotatoMineArmedState(this));
+    this.stateMachine.addState(
+      EntityState.IDLE,
+      new PotatoMineUnarmedState(this)
+    );
+    this.stateMachine.addState(
+      EntityState.ATTACK,
+      new PotatoMineArmedState(this)
+    );
     this.stateMachine.addState(EntityState.DEAD, new PotatoMineDeadState(this));
   }
 
@@ -66,7 +72,7 @@ class PotatoMineArmedState implements IState {
       y: this.plant.y - 10,
       duration: 200,
       yoyo: true,
-      ease: 'Back.easeOut'
+      ease: 'Back.easeOut',
     });
   }
   update() {
@@ -74,7 +80,7 @@ class PotatoMineArmedState implements IState {
       row: this.plant.getRow(),
       plant: this.plant,
     });
-    
+
     const target = this.plant.getAttackTarget();
     if (target && target.active && this.plant.getIsArmed()) {
       if (Math.abs(target.x - this.plant.x) < 40) {

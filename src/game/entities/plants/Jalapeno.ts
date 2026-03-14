@@ -10,7 +10,10 @@ export class Jalapeno extends Plant {
 
   protected setupStateMachine(): void {
     this.stateMachine.addState(EntityState.IDLE, new JalapenoIdleState(this));
-    this.stateMachine.addState(EntityState.ATTACK, new JalapenoExplodeState(this));
+    this.stateMachine.addState(
+      EntityState.ATTACK,
+      new JalapenoExplodeState(this)
+    );
     this.stateMachine.addState(EntityState.DEAD, new JalapenoDeadState(this));
   }
 
@@ -20,7 +23,7 @@ export class Jalapeno extends Plant {
       row: this.row,
       damage: 1800,
     });
-    
+
     // 视觉震动
     this.scene.cameras.main.shake(300, 0.02);
   }
@@ -35,7 +38,8 @@ class JalapenoIdleState implements IState {
   }
   update(_t: number, delta: number) {
     this.timer += delta;
-    if (this.timer >= 800) { // 稍微延迟爆炸
+    if (this.timer >= 800) {
+      // 稍微延迟爆炸
       this.plant.stateMachine.changeState(EntityState.ATTACK);
     }
   }

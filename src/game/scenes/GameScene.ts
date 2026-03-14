@@ -6,7 +6,12 @@ import { CombatSystem } from '@systems/CombatSystem';
 import { PlantFactory } from '@entities/plants/PlantFactory';
 import { ZombieFactory } from '@entities/zombies/ZombieFactory';
 import { Pea, SnowPea } from '@entities/projectiles/Projectile';
-import { GRID_CONFIG, GameEvents, ECONOMY_CONFIG, EntityState } from '@/types/index';
+import {
+  GRID_CONFIG,
+  GameEvents,
+  ECONOMY_CONFIG,
+  EntityState,
+} from '@/types/index';
 import { plantConfigs, zombieConfigs } from '@data/plants/plantConfigs';
 import type { LevelConfig } from '@/types/config';
 import { Plant } from '@entities/plants/Plant';
@@ -167,14 +172,62 @@ export class GameScene extends BaseScene {
       const rowZombies = this.zombiesByRow.get(i) || [];
       const rowProjectiles = this.projectilesByRow.get(i) || [];
 
+      // Torchwood transformation logic
+      if (rowProjectiles.length > 0) {
+        // Find torchwoods in this row
+        const torchwoods: Plant[] = [];
+        this.plants.forEach((p) => {
+          if (p.getRow() === i && p.getConfig().id === 'torchwood') {
+            torchwoods.push(p);
+          }
+        });
+
+        if (torchwoods.length > 0) {
+          for (const proj of rowProjectiles) {
+            const pType = proj.getProjectileType();
+            if (pType === 'pea' || pType === 'snow_pea') {
+              for (const tw of torchwoods) {
+                // If projectile passes the torchwood
+                if (Math.abs(proj.x - tw.x) < 20) {
+                  // Transform to fire pea
+                  const data = {
+                    damage: 40,
+                    speed: 300,
+                    row: proj.getRow(),
+                    type: 'fire_pea',
+                  };
+                  // Recycle old projectile and fire a new fire_pea
+                  this.fireProjectile({ x: proj.x, y: proj.y, ...data });
+                  proj.recycle();
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+
       if (rowZombies.length === 0 || rowProjectiles.length === 0) continue;
 
       for (const proj of rowProjectiles) {
+        if (!proj.active) continue; // Might have been recycled by torchwood
         for (const zombie of rowZombies) {
           // AABB 碰撞检测
           if (Math.abs(proj.x - zombie.x) < 40) {
             zombie.takeDamage(proj.getDamage(), proj.getProjectileType());
             if (proj.getIsSlowing()) zombie.applySlow(3000);
+
+            // Fire pea splash damage
+            if (proj.getProjectileType() === 'fire_pea') {
+              this.handleExplosion({
+                x: zombie.x,
+                y: zombie.y,
+                damage: 20,
+                type: 'explosion',
+                radius: 60,
+              });
+            }
+
             proj.hit(zombie);
             break; // 一个子弹通常只打一个僵尸
           }
@@ -345,8 +398,15 @@ export class GameScene extends BaseScene {
     // Create a visual fire effect across the whole lane
     const { OFFSET_Y, CELL_HEIGHT } = GRID_CONFIG;
     const y = OFFSET_Y + data.row * CELL_HEIGHT + CELL_HEIGHT / 2;
-    
-    const fireEffect = this.add.rectangle(400, y, 800, CELL_HEIGHT, 0xef4444, 0.7);
+
+    const fireEffect = this.add.rectangle(
+      400,
+      y,
+      800,
+      CELL_HEIGHT,
+      0xef4444,
+      0.7
+    );
     fireEffect.setDepth(10);
     this.tweens.add({
       targets: fireEffect,
@@ -504,10 +564,48 @@ export class GameScene extends BaseScene {
 
   private updatePlantPreview(): void {
     if (!this.plantPreview || !this.selectedPlant) return;
-    this.plantPreview.setPosition(
-      this.input.activePointer.x,
-      this.input.activePointer.y
-    );
+
+    const pointer = this.input.activePointer;
+    const gridPos = this.gridSystem.screenToGrid(pointer.x, pointer.y);
+
+    if (gridPos) {
+      // Snap to grid
+      const { OFFSET_X, OFFSET_Y, CELL_WIDTH, CELL_HEIGHT } = GRID_CONFIG;
+      const snapX = OFFSET_X + gridPos.col * CELL_WIDTH + CELL_WIDTH / 2;
+      const snapY = OFFSET_Y + gridPos.row * CELL_HEIGHT + CELL_HEIGHT / 2;
+      this.plantPreview.setPosition(snapX, snapY);
+
+      // Update color based on validity
+      const rect = this.plantPreview.list[0] as Phaser.GameObjects.Rectangle;
+      if (this.selectedPlant === 'shovel') {
+        rect.fillColor = 0xffffff;
+      } else {
+        const cfg = this.plantFactory.getPlantConfig(this.selectedPlant);
+        let canPlace = false;
+        if (cfg) {
+          const terrain = this.gridSystem.getTerrainType(
+            gridPos.row,
+            gridPos.col
+          );
+          const hasLily = this.gridSystem.hasLilyPad(gridPos.row, gridPos.col);
+          const rules = cfg.placement || ['grass'];
+
+          canPlace =
+            rules.includes(terrain) ||
+            (terrain === 'water' && hasLily && rules.includes('lilypad'));
+          const existing = this.gridSystem.getPlant(gridPos.row, gridPos.col);
+          if (existing && cfg.id !== 'lilypad') canPlace = false;
+          if (cfg.id === 'lilypad' && hasLily) canPlace = false;
+        }
+
+        rect.fillColor = canPlace ? 0x4ade80 : 0xef4444; // Green for valid, Red for invalid
+      }
+    } else {
+      // Free follow if out of bounds
+      this.plantPreview.setPosition(pointer.x, pointer.y);
+      const rect = this.plantPreview.list[0] as Phaser.GameObjects.Rectangle;
+      rect.fillColor = this.selectedPlant === 'shovel' ? 0xffffff : 0xef4444;
+    }
   }
 
   private onGridCellClick(row: number, col: number): void {
@@ -621,8 +719,8 @@ export class GameScene extends BaseScene {
     // 播放爆炸音效
     this.audioManager?.playSfx(SoundEffect.EXPLOSION);
 
-    // 查找范围内的僵尸 (通常是 3x3 区域，约 150 像素半径)
-    const explosionRadius = 150;
+    // 查找范围内的僵尸
+    const explosionRadius = data.radius || 150;
     this.zombies.forEach((zombie) => {
       const distance = Phaser.Math.Distance.Between(
         data.x,
@@ -642,7 +740,8 @@ export class GameScene extends BaseScene {
   private setupDebugCommands(): void {
     (window as any).spawnZombie = (type: string, row: number) =>
       this.spawnZombie(type, row);
-    (window as any).addSun = (amount: number) => this.economySystem.addSun(amount);
+    (window as any).addSun = (amount: number) =>
+      this.economySystem.addSun(amount);
     (window as any).winLevel = () => this.gameOver(true);
     (window as any).spawnPlant = (type: string, row: number, col: number) => {
       const plant = this.plantFactory.createPlant(type, row, col);
@@ -652,7 +751,9 @@ export class GameScene extends BaseScene {
         this.gridSystem.setPlant(row, col, type);
       }
     };
-    console.log('调试命令: spawnZombie(type, row), spawnPlant(type, row, col), addSun(amount), winLevel()');
+    console.log(
+      '调试命令: spawnZombie(type, row), spawnPlant(type, row, col), addSun(amount), winLevel()'
+    );
   }
 
   private showNotification(text: string, duration: number): void {

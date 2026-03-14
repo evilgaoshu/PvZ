@@ -26,7 +26,7 @@ class SquashIdleState implements IState {
       row: this.plant.getRow(),
       plant: this.plant,
     });
-    
+
     const target = this.plant.getAttackTarget();
     if (target && target.active) {
       // Squash only attacks when zombies are very close (e.g., within 60 pixels)
@@ -62,11 +62,11 @@ class SquashAttackState implements IState {
             type: 'explosion',
           });
         }
-        
+
         // Shake screen
         this.plant.scene.cameras.main.shake(150, 0.015);
         this.plant.stateMachine.changeState(EntityState.DEAD);
-      }
+      },
     });
   }
   update() {}

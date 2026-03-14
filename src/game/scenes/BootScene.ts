@@ -99,13 +99,51 @@ export class BootScene extends BaseScene {
       'assets/images/plants/cherry_bomb.svg',
       plantSize
     );
-    this.load.svg('plants/snow_pea', 'assets/images/plants/snow_pea.svg', plantSize);
-    this.load.svg('plants/repeater', 'assets/images/plants/repeater.svg', plantSize);
-    this.load.svg('plants/chomper', 'assets/images/plants/chomper.svg', plantSize);
-    this.load.svg('plants/lilypad', 'assets/images/plants/lilypad.svg', plantSize);
-    this.load.svg('plants/potato_mine', 'assets/images/plants/potato_mine.svg', plantSize);
-    this.load.svg('plants/jalapeno', 'assets/images/plants/jalapeno.svg', plantSize);
-    this.load.svg('plants/squash', 'assets/images/plants/squash.svg', plantSize);
+    this.load.svg(
+      'plants/snow_pea',
+      'assets/images/plants/snow_pea.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/repeater',
+      'assets/images/plants/repeater.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/chomper',
+      'assets/images/plants/chomper.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/lilypad',
+      'assets/images/plants/lilypad.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/potato_mine',
+      'assets/images/plants/potato_mine.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/jalapeno',
+      'assets/images/plants/jalapeno.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/squash',
+      'assets/images/plants/squash.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/torchwood',
+      'assets/images/plants/torchwood.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/spikeweed',
+      'assets/images/plants/spikeweed.svg',
+      plantSize
+    );
 
     // 僵尸
     this.load.svg(
@@ -151,6 +189,10 @@ export class BootScene extends BaseScene {
     this.load.svg('snow_pea', 'assets/images/projectiles/snow_pea.svg', {
       width: 20,
       height: 20,
+    });
+    this.load.svg('fire_pea', 'assets/images/projectiles/fire_pea.svg', {
+      width: 30,
+      height: 30,
     });
 
     // 其他

@@ -11,6 +11,8 @@ availablePlants:
   - "potato_mine"
   - "squash"
   - "jalapeno"
+  - "torchwood"
+  - "spikeweed"
 waves:
   - timeBeforeWave: 10000
     zombies:

@@ -244,8 +244,13 @@ export const plantConfigs: Record<string, PlantConfig> = {
     specialEffects: ['explosion', 'armed'],
     spriteSheet: 'plants/potato_mine',
     animations: [
-      { key: 'potato_mine_idle', frames: { start: 0, end: 0, prefix: '', suffix: '' }, frameRate: 1, repeat: -1 }
-    ]
+      {
+        key: 'potato_mine_idle',
+        frames: { start: 0, end: 0, prefix: '', suffix: '' },
+        frameRate: 1,
+        repeat: -1,
+      },
+    ],
   },
 
   jalapeno: {
@@ -259,8 +264,13 @@ export const plantConfigs: Record<string, PlantConfig> = {
     specialEffects: ['lane_explosion'],
     spriteSheet: 'plants/jalapeno',
     animations: [
-      { key: 'jalapeno_idle', frames: { start: 0, end: 0, prefix: '', suffix: '' }, frameRate: 1, repeat: -1 }
-    ]
+      {
+        key: 'jalapeno_idle',
+        frames: { start: 0, end: 0, prefix: '', suffix: '' },
+        frameRate: 1,
+        repeat: -1,
+      },
+    ],
   },
 
   squash: {
@@ -274,9 +284,53 @@ export const plantConfigs: Record<string, PlantConfig> = {
     specialEffects: ['crush'],
     spriteSheet: 'plants/squash',
     animations: [
-      { key: 'squash_idle', frames: { start: 0, end: 0, prefix: '', suffix: '' }, frameRate: 1, repeat: -1 }
-    ]
-  }
+      {
+        key: 'squash_idle',
+        frames: { start: 0, end: 0, prefix: '', suffix: '' },
+        frameRate: 1,
+        repeat: -1,
+      },
+    ],
+  },
+
+  torchwood: {
+    id: 'torchwood',
+    name: '火炬树桩',
+    description: '把穿过他的豌豆变成火豌豆，造成双倍伤害',
+    cost: 175,
+    health: 300,
+    cooldown: 7.5,
+    specialEffects: ['ignite'],
+    spriteSheet: 'plants/torchwood',
+    animations: [
+      {
+        key: 'torchwood_idle',
+        frames: { start: 0, end: 0, prefix: '', suffix: '' },
+        frameRate: 1,
+        repeat: -1,
+      },
+    ],
+  },
+
+  spikeweed: {
+    id: 'spikeweed',
+    name: '地刺',
+    description: '扎破轮胎，并对走在上面的僵尸造成伤害',
+    cost: 100,
+    health: 300,
+    cooldown: 7.5,
+    specialEffects: ['ground_damage', 'anti_vehicle'],
+    placement: ['grass'],
+    spriteSheet: 'plants/spikeweed',
+    animations: [
+      {
+        key: 'spikeweed_idle',
+        frames: { start: 0, end: 0, prefix: '', suffix: '' },
+        frameRate: 1,
+        repeat: -1,
+      },
+    ],
+  },
 };
 
 // 为已有植物批量添加默认放置规则
