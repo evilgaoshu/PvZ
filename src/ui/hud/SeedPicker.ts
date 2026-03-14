@@ -135,14 +135,16 @@ export class SeedPicker extends Phaser.GameObjects.Container {
 
     // 2. 更新下方槽位显示
     // 清理旧的槽位贴图
-    this.slotCards.forEach(c => c?.destroy());
+    this.slotCards.forEach((c) => c?.destroy());
     this.slotCards = [];
 
     this.selectedPlants.forEach((plant, i) => {
       const x = -200 + i * 80;
       const y = 170;
       // 创建一个精简版的预览卡片
-      const card = new PlantCard(this.scene, x, y, plant, () => this.toggleSelection(plant));
+      const card = new PlantCard(this.scene, x, y, plant, () =>
+        this.toggleSelection(plant)
+      );
       card.setScale(0.8);
       this.add(card);
       this.slotCards.push(card);

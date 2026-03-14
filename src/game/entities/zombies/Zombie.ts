@@ -37,6 +37,7 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
   protected nextGroanTime: number = 0;
   protected currentArmor: number = 0;
   protected usedSpecialAbility: boolean = false;
+  protected hasReachedHouse: boolean = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, config: ZombieConfig) {
     super(scene, x, y, config.spriteSheet);
@@ -109,7 +110,10 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (this.isSlowed && time >= this.slowedEndTime) this.removeSlow();
-    if (this.x < 180) {
+
+    // 检查是否到达房屋
+    if (this.x < 180 && !this.hasReachedHouse) {
+      this.hasReachedHouse = true;
       this.scene.game.events.emit('zombie:reached_house', this);
       return;
     }
@@ -305,6 +309,7 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
   }
   public setRow(row: number): void {
     this.row = row;
+    this.setData('row', row); // 同步到 Data Manager 供其他系统查询
   }
   public isZombieAlive(): boolean {
     return this.isAlive;

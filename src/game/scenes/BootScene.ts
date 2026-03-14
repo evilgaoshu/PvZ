@@ -79,33 +79,110 @@ export class BootScene extends BaseScene {
     const zombieSize = { width: 100, height: 150 };
 
     // 植物
-    this.load.svg('plants/sunflower', 'assets/images/plants/sunflower.svg', plantSize);
-    this.load.svg('plants/peashooter', 'assets/images/plants/peashooter.svg', plantSize);
-    this.load.svg('plants/wallnut', 'assets/images/plants/wallnut.svg', plantSize);
-    this.load.svg('plants/cherry_bomb', 'assets/images/plants/cherry_bomb.svg', plantSize);
-    this.load.svg('plants/snow_pea', 'assets/images/plants/snow_pea.svg', plantSize);
-    this.load.svg('plants/repeater', 'assets/images/plants/repeater.svg', plantSize);
-    this.load.svg('plants/chomper', 'assets/images/plants/chomper.svg', plantSize);
-    this.load.svg('plants/lilypad', 'assets/images/plants/lilypad.svg', plantSize);
+    this.load.svg(
+      'plants/sunflower',
+      'assets/images/plants/sunflower.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/peashooter',
+      'assets/images/plants/peashooter.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/wallnut',
+      'assets/images/plants/wallnut.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/cherry_bomb',
+      'assets/images/plants/cherry_bomb.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/snow_pea',
+      'assets/images/plants/snow_pea.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/repeater',
+      'assets/images/plants/repeater.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/chomper',
+      'assets/images/plants/chomper.svg',
+      plantSize
+    );
+    this.load.svg(
+      'plants/lilypad',
+      'assets/images/plants/lilypad.svg',
+      plantSize
+    );
 
     // 僵尸
-    this.load.svg('zombies/normal', 'assets/images/zombies/normal.svg', zombieSize);
-    this.load.svg('zombies/conehead', 'assets/images/zombies/conehead.svg', zombieSize);
-    this.load.svg('zombies/buckethead', 'assets/images/zombies/buckethead.svg', zombieSize);
-    this.load.svg('zombies/pole_vaulting', 'assets/images/zombies/pole_vaulting.svg', zombieSize);
-    this.load.svg('zombies/newspaper', 'assets/images/zombies/newspaper.svg', zombieSize);
-    this.load.svg('zombies/screendoor', 'assets/images/zombies/screendoor.svg', zombieSize);
-    this.load.svg('zombies/head', 'assets/images/zombies/head.svg', { width: 60, height: 60 });
+    this.load.svg(
+      'zombies/normal',
+      'assets/images/zombies/normal.svg',
+      zombieSize
+    );
+    this.load.svg(
+      'zombies/conehead',
+      'assets/images/zombies/conehead.svg',
+      zombieSize
+    );
+    this.load.svg(
+      'zombies/buckethead',
+      'assets/images/zombies/buckethead.svg',
+      zombieSize
+    );
+    this.load.svg(
+      'zombies/pole_vaulting',
+      'assets/images/zombies/pole_vaulting.svg',
+      zombieSize
+    );
+    this.load.svg(
+      'zombies/newspaper',
+      'assets/images/zombies/newspaper.svg',
+      zombieSize
+    );
+    this.load.svg(
+      'zombies/screendoor',
+      'assets/images/zombies/screendoor.svg',
+      zombieSize
+    );
+    this.load.svg('zombies/head', 'assets/images/zombies/head.svg', {
+      width: 60,
+      height: 60,
+    });
 
     // 投射物
-    this.load.svg('pea', 'assets/images/projectiles/pea.svg', { width: 20, height: 20 });
-    this.load.svg('snow_pea', 'assets/images/projectiles/snow_pea.svg', { width: 20, height: 20 });
+    this.load.svg('pea', 'assets/images/projectiles/pea.svg', {
+      width: 20,
+      height: 20,
+    });
+    this.load.svg('snow_pea', 'assets/images/projectiles/snow_pea.svg', {
+      width: 20,
+      height: 20,
+    });
 
     // 其他
-    this.load.svg('day-grass', 'assets/images/backgrounds/day-grass.svg', { width: 800, height: 600 });
-    this.load.svg('pool', 'assets/images/backgrounds/pool.svg', { width: 800, height: 600 });
-    this.load.svg('ui/sun', 'assets/images/ui/sun.svg', { width: 100, height: 100 });
-    this.load.svg('ui/lawn_mower', 'assets/images/ui/lawn_mower.svg', { width: 100, height: 80 });
+    this.load.svg('day-grass', 'assets/images/backgrounds/day-grass.svg', {
+      width: 800,
+      height: 600,
+    });
+    this.load.svg('pool', 'assets/images/backgrounds/pool.svg', {
+      width: 800,
+      height: 600,
+    });
+    this.load.svg('ui/sun', 'assets/images/ui/sun.svg', {
+      width: 100,
+      height: 100,
+    });
+    this.load.svg('ui/lawn_mower', 'assets/images/ui/lawn_mower.svg', {
+      width: 100,
+      height: 80,
+    });
   }
 
   private finishBoot(): void {

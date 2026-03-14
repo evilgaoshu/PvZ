@@ -46,10 +46,10 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
 
     this.initRenderer();
     scene.add.existing(this);
-    
+
     // 设置基础显示大小
     this.setDisplaySize(64, 74);
-    
+
     this.init();
   }
 

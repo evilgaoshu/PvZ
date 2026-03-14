@@ -76,7 +76,7 @@ export class Sunflower extends Plant {
       scaleY: 1.2,
       duration: 200,
       yoyo: true,
-      ease: 'Back.easeOut'
+      ease: 'Back.easeOut',
     });
   }
 
