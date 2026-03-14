@@ -1,70 +1,43 @@
 import { Zombie } from './Zombie';
 import type { ZombieConfig } from '@/types/config';
 import { SoundEffect } from '@config/AudioConfig';
+import { EntityState } from '@/types/index';
 
 /**
  * 撑杆跳僵尸
  * 撑杆跳过第一个植物
  */
 export class PoleVaultingZombie extends Zombie {
-  private poleGraphics: Phaser.GameObjects.Graphics | null = null;
   private hasVaulted: boolean = false;
+  private poleGraphics: Phaser.GameObjects.Graphics | null = null;
+  protected usedSpecialAbility: boolean = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, config: ZombieConfig) {
     super(scene, x, y, config);
-
-    // 初始速度更快
-    this.currentSpeed = config.speed;
-
-    // 添加撑杆视觉
-    this.createPoleVisual();
   }
 
-  protected setupAnimations(): void {
-    // 动画设置
+  protected setupPhysics(): void {
+    super.setupPhysics();
+    // 撑杆跳僵尸初始速度较快
+    this.currentSpeed = this.config.speed * 1.5;
+    this.setVelocityX(-this.currentSpeed);
   }
 
-  /**
-   * 创建撑杆视觉
-   */
-  private createPoleVisual(): void {
-    this.poleGraphics = this.scene.add.graphics();
-
-    // 撑杆 - 棕色
-    this.poleGraphics.fillStyle(0x8b4513, 1);
-    this.poleGraphics.fillRect(-40, -20, 80, 4);
-
-    // 杆头金属
-    this.poleGraphics.fillStyle(0xc0c0c0, 1);
-    this.poleGraphics.fillCircle(40, -18, 3);
-  }
-
-  /**
-   * 检查特殊能力
-   */
   protected checkSpecialAbility(): void {
     // 只有还没跳过且没用过特殊能力时才检查
     if (!this.hasVaulted && !this.usedSpecialAbility) {
       // 检查前方是否有植物
-      this.checkForPlantToVault();
+      this.scene.events.emit('zombie:check_vault', {
+        zombie: this,
+        x: this.x,
+        row: this.row,
+        callback: (hasPlant: boolean) => {
+          if (hasPlant && !this.usedSpecialAbility) {
+            this.performVault();
+          }
+        },
+      });
     }
-  }
-
-  /**
-   * 检查是否可以跳过植物
-   */
-  private checkForPlantToVault(): void {
-    // 通过事件查询前方是否有植物
-    this.scene.game.events.emit('zombie:check_vault', {
-      zombie: this,
-      x: this.x,
-      row: this.row,
-      callback: (hasPlant: boolean) => {
-        if (hasPlant && !this.usedSpecialAbility) {
-          this.performVault();
-        }
-      },
-    });
   }
 
   /**
@@ -109,7 +82,7 @@ export class PoleVaultingZombie extends Zombie {
 
             // 恢复正常速度（变慢）
             this.currentSpeed = 20; // 普通僵尸速度
-            this.startWalking();
+            this.stateMachine.changeState(EntityState.WALK);
 
             // 丢弃撑杆
             this.discardPole();
@@ -143,8 +116,7 @@ export class PoleVaultingZombie extends Zombie {
   private createTrail(): void {
     if (!this.active || !this.scene) return;
 
-    // 创建简单的残影，为兼容 Spine 和 Sprite，我们可以用带颜色的图形或者如果原版是 Sprite，可以直接克隆。
-    // 为了极致兼容性，这里生成一个半透明的色块残影
+    // 创建简单的残影
     const trail = this.scene.add.rectangle(
       this.x,
       this.y,
@@ -173,12 +145,10 @@ export class PoleVaultingZombie extends Zombie {
 
     this.scene.tweens.add({
       targets: this.poleGraphics,
-      x: this.poleGraphics.x - 30,
-      y: this.poleGraphics.y + 40,
-      angle: 45,
       alpha: 0,
+      angle: 45,
+      y: '+=20',
       duration: 500,
-      ease: 'Power2',
       onComplete: () => {
         this.poleGraphics?.destroy();
         this.poleGraphics = null;
@@ -192,8 +162,8 @@ export class PoleVaultingZombie extends Zombie {
   public update(time: number, delta: number): void {
     super.update(time, delta);
 
-    // 更新撑杆位置
-    if (this.poleGraphics && this.active && !this.hasVaulted) {
+    // 更新撑杆位置跟随僵尸
+    if (this.poleGraphics && this.active) {
       this.poleGraphics.x = this.x;
       this.poleGraphics.y = this.y;
     }

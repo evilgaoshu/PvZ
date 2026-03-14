@@ -9,6 +9,7 @@ import {
   SpineRenderer,
   SpriteRenderer,
 } from '../EntityRenderer';
+import { StateMachine } from '../../utils/StateMachine';
 
 export enum DamageState {
   HEALTHY,
@@ -17,17 +18,16 @@ export enum DamageState {
 }
 
 /**
- * 植物基类
- * 所有植物实体的抽象基类
+ * 植物基类 (重构版：引入 FSM 状态机)
  */
 export abstract class Plant extends Phaser.GameObjects.Sprite {
   protected config: PlantConfig;
   protected renderer: IEntityRenderer | null = null;
+  public stateMachine: StateMachine; // 改为 public 以便 State 类访问
 
   protected row: number = 0;
   protected col: number = 0;
   protected currentHealth: number;
-  protected entityState: EntityState = EntityState.IDLE;
   protected isAlive: boolean = true;
   protected damageState: DamageState = DamageState.HEALTHY;
 
@@ -44,12 +44,11 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
       'audioManager'
     ) as AudioManager;
 
+    this.stateMachine = new StateMachine();
     this.initRenderer();
     scene.add.existing(this);
 
-    // 设置基础显示大小
     this.setDisplaySize(64, 74);
-
     this.init();
   }
 
@@ -71,9 +70,9 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
 
   protected init(): void {
     this.setupPhysics();
-    this.setupAnimations();
+    this.setupStateMachine();
     VisualEffects.addShadow(this.scene, this);
-    this.playIdleAnimation();
+    this.stateMachine.changeState(EntityState.IDLE);
   }
 
   protected setupPhysics(): void {
@@ -83,7 +82,10 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
       .setOffset(2, 10);
   }
 
-  protected setupAnimations(): void {}
+  /**
+   * 子类必须实现状态注册
+   */
+  protected abstract setupStateMachine(): void;
 
   protected preUpdate(time: number, delta: number): void {
     super.preUpdate(time, delta);
@@ -95,66 +97,8 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
 
   public update(time: number, delta: number): void {
     if (!this.isAlive) return;
-    if (this.canAttack()) {
-      this.checkForTarget();
-      if (this.attackTarget && this.isTargetInRange()) this.attack(time);
-    }
+    this.stateMachine.update(time, delta);
     this.updateSpecialAbility(time, delta);
-  }
-
-  protected canAttack(): boolean {
-    return (
-      this.config.attackDamage !== undefined && this.config.attackDamage > 0
-    );
-  }
-
-  protected isTargetInRange(): boolean {
-    if (!this.attackTarget || !this.attackTarget.active) return false;
-    const targetRow = this.attackTarget.getData('row') as number;
-    return targetRow === this.row && this.attackTarget.x > this.x;
-  }
-
-  protected checkForTarget(): void {
-    this.scene.game.events.emit('plant:check_target', {
-      row: this.row,
-      plant: this,
-    });
-  }
-
-  public setAttackTarget(target: Phaser.GameObjects.Sprite | null): void {
-    this.attackTarget = target;
-  }
-
-  protected attack(time: number): void {
-    if (this.isCooldown) return;
-    if (time - this.lastAttackTime < (this.config.attackInterval || 1500))
-      return;
-
-    this.lastAttackTime = time;
-    this.entityState = EntityState.ATTACK;
-    this.playAttackAnimation();
-    this.fireProjectile();
-
-    this.scene.time.delayedCall(300, () => {
-      if (this.isAlive) {
-        this.entityState = EntityState.IDLE;
-        this.playIdleAnimation();
-      }
-    });
-  }
-
-  protected fireProjectile(): void {
-    if (!this.config.projectileType) return;
-    this.scene.game.events.emit(GameEvents.PROJECTILE_FIRED, {
-      x: this.x + 20,
-      y: this.y - 10,
-      type: this.config.projectileType,
-      damage: this.config.attackDamage || 20,
-      speed: 300,
-      row: this.row,
-      source: this,
-    });
-    this.scene.game.events.emit('audio:play', 'shoot');
   }
 
   protected updateSpecialAbility(_time: number, _delta: number): void {}
@@ -167,7 +111,9 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
     this.updateDamageState();
     this.showDamageEffect();
 
-    if (this.currentHealth <= 0) this.die();
+    if (this.currentHealth <= 0) {
+      this.stateMachine.changeState(EntityState.DEAD);
+    }
   }
 
   private updateDamageState(): void {
@@ -183,7 +129,6 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   }
 
   protected onDamageStateChange(state: DamageState): void {
-    // 基础反馈：受伤越重颜色越深
     if (state === DamageState.HURT) this.renderer?.setTint(0xdddddd);
     else if (state === DamageState.CRITICAL) this.renderer?.setTint(0xaaaaaa);
   }
@@ -194,40 +139,19 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
     VisualEffects.bounceScale(this, 1.05, 100);
   }
 
-  public die(): void {
-    if (!this.isAlive) return;
-    this.isAlive = false;
-    this.entityState = EntityState.DEAD;
-    this.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.row,
-      col: this.col,
-      plant: this,
-    });
-    this.playDeathAnimation();
-    this.scene.time.delayedCall(500, () => {
-      this.renderer?.destroy();
-      this.destroy();
-    });
+  public playAnimation(key: string, loop: boolean = true): void {
+    this.renderer?.play(key, loop);
   }
 
-  protected playIdleAnimation(): void {
-    this.renderer?.play(`${this.config.id}_idle`, true);
+  public die(): void {
+    this.stateMachine.changeState(EntityState.DEAD);
   }
-  protected playAttackAnimation(): void {
-    this.renderer?.play(`${this.config.id}_attack`, false);
-  }
-  protected playDeathAnimation(): void {
-    const target =
-      this.renderer instanceof SpriteRenderer
-        ? this
-        : (this.renderer as any).getObject();
-    this.scene.tweens.add({
-      targets: target,
-      scaleX: 0.1,
-      scaleY: 0.1,
-      alpha: 0,
-      duration: 400,
-    });
+
+  public setAttackTarget(target: Phaser.GameObjects.Sprite | null): void {
+    this.attackTarget = target;
+    if (target && this.stateMachine.getCurrentState() === EntityState.IDLE) {
+      this.stateMachine.changeState(EntityState.ATTACK);
+    }
   }
 
   public setGridPosition(r: number, c: number): void {
@@ -245,5 +169,8 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   }
   public getMaxHealth(): number {
     return this.config.health;
+  }
+  public getConfig(): PlantConfig {
+    return this.config;
   }
 }

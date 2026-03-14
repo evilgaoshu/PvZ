@@ -1,20 +1,23 @@
-import Phaser from 'phaser';
 import { Plant } from './Plant';
 import type { PlantConfig } from '@/types/config';
+import { GameEvents, EntityState } from '@/types/index';
+import { IState } from '../../utils/StateMachine';
 
-/**
- * 睡莲
- * 提供水上平台
- */
 export class LilyPad extends Plant {
   constructor(scene: Phaser.Scene, x: number, y: number, config: PlantConfig) {
     super(scene, x, y, config);
   }
+  protected setupStateMachine(): void {
+    this.stateMachine.addState(EntityState.IDLE, new LilyIdleState(this));
+    this.stateMachine.addState(EntityState.DEAD, new LilyDeadState(this));
+  }
+}
 
-  protected setupAnimations(): void {
-    // 简单的呼吸效果
-    this.scene.tweens.add({
-      targets: this,
+class LilyIdleState implements IState {
+  constructor(private plant: LilyPad) {}
+  enter() {
+    this.plant.scene.tweens.add({
+      targets: this.plant,
       scaleX: 1.05,
       scaleY: 0.95,
       duration: 1000,
@@ -23,4 +26,20 @@ export class LilyPad extends Plant {
       ease: 'Sine.easeInOut',
     });
   }
+  update() {}
+  exit() {}
+}
+
+class LilyDeadState implements IState {
+  constructor(private plant: LilyPad) {}
+  enter() {
+    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: this.plant.getRow(),
+      col: this.plant.getCol(),
+      plant: this.plant,
+    });
+    this.plant.destroy();
+  }
+  update() {}
+  exit() {}
 }

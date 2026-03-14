@@ -6,7 +6,12 @@ import { CombatSystem } from '@systems/CombatSystem';
 import { PlantFactory } from '@entities/plants/PlantFactory';
 import { ZombieFactory } from '@entities/zombies/ZombieFactory';
 import { Pea, SnowPea } from '@entities/projectiles/Projectile';
-import { GRID_CONFIG, GameEvents, ECONOMY_CONFIG } from '@/types/index';
+import {
+  GRID_CONFIG,
+  GameEvents,
+  ECONOMY_CONFIG,
+  EntityState,
+} from '@/types/index';
 import { plantConfigs, zombieConfigs } from '@data/plants/plantConfigs';
 import type { LevelConfig } from '@/types/config';
 import { Plant } from '@entities/plants/Plant';
@@ -49,6 +54,8 @@ export class GameScene extends BaseScene {
   private plants: Map<string, Plant> = new Map();
   private platforms: Map<string, Plant> = new Map(); // 专门存储睡莲等平台
   private zombies: Zombie[] = [];
+  private zombiesByRow: Map<number, Zombie[]> = new Map();
+  private projectilesByRow: Map<number, any[]> = new Map();
   private lawnMowers: Phaser.GameObjects.Container[] = [];
   private activeMowerRows: Set<number> = new Set();
   private selectedPlant: string | null = null;
@@ -101,7 +108,12 @@ export class GameScene extends BaseScene {
     this.createLayers();
     this.initializeSystems();
 
-    // 初始化地形
+    // 初始化地形与分路数据结构
+    for (let i = 0; i < GRID_CONFIG.ROWS; i++) {
+      this.zombiesByRow.set(i, []);
+      this.projectilesByRow.set(i, []);
+    }
+
     if (this.levelData) {
       this.gridSystem.initializeGrid(this.levelData.background);
     }
@@ -117,23 +129,62 @@ export class GameScene extends BaseScene {
 
   protected onUpdate(time: number, delta: number): void {
     if (this.isPaused || this.isGameOver) return;
+
+    // 清空分路缓存
+    this.zombiesByRow.forEach((arr) => (arr.length = 0));
+    this.projectilesByRow.forEach((arr) => (arr.length = 0));
+
     this.economySystem.update(delta);
     this.waveSystem.update(delta);
     this.combatSystem.update(delta);
+
     this.plants.forEach((p) => p.active && p.update(time, delta));
     this.platforms.forEach((p) => p.active && p.update(time, delta));
+
     this.zombies = this.zombies.filter((z) => {
       if (z.active && z.isZombieAlive()) {
         z.update(time, delta);
+        // 填充到对应的路
+        this.zombiesByRow.get(z.getRow())?.push(z);
         return true;
       }
       return false;
     });
+
     this.projectileLayer?.children.iterate((c: any) => {
-      if (c.active && c.update) c.update();
+      if (c.active && c.update) {
+        c.update();
+        // 填充到对应的路
+        this.projectilesByRow.get(c.getRow())?.push(c);
+      }
       return true;
     });
+
     this.updatePlantPreview();
+
+    // 执行分路碰撞检测
+    this.handleLaneCollisions();
+  }
+
+  private handleLaneCollisions(): void {
+    for (let i = 0; i < GRID_CONFIG.ROWS; i++) {
+      const rowZombies = this.zombiesByRow.get(i) || [];
+      const rowProjectiles = this.projectilesByRow.get(i) || [];
+
+      if (rowZombies.length === 0 || rowProjectiles.length === 0) continue;
+
+      for (const proj of rowProjectiles) {
+        for (const zombie of rowZombies) {
+          // 简单的 AABB 碰撞检测
+          if (Math.abs(proj.x - zombie.x) < 30) {
+            zombie.takeDamage(proj.getDamage(), proj.getProjectileType());
+            if (proj.getIsSlowing()) zombie.applySlow(3000);
+            proj.hit(zombie);
+            break; // 一个子弹通常只打一个僵尸
+          }
+        }
+      }
+    }
   }
 
   private createLayers(): void {
@@ -169,16 +220,14 @@ export class GameScene extends BaseScene {
         const x = OFFSET_X + col * CELL_WIDTH;
         const y = OFFSET_Y + row * CELL_HEIGHT;
 
-        // 绘制更明显的交替色块（深绿色/深棕色半透明，增加对比度）
         if ((row + col) % 2 === 0) {
-          graphics.fillStyle(0x064e3b, 0.15); // 深绿色
+          graphics.fillStyle(0x064e3b, 0.15);
           graphics.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
         } else {
-          graphics.fillStyle(0x422006, 0.1); // 深棕色
+          graphics.fillStyle(0x422006, 0.1);
           graphics.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
         }
 
-        // 绘制更粗的网格线
         graphics.lineStyle(2, 0x000000, 0.2);
         graphics.strokeRect(x, y, CELL_WIDTH, CELL_HEIGHT);
 
@@ -293,25 +342,11 @@ export class GameScene extends BaseScene {
     if (mower) {
       this.activateLawnMower(mower, row);
     } else {
-      // 如果没有推车，直接判定失败
       this.gameOver(false);
     }
   }
 
   private setupCollisions(): void {
-    // 投射物击中僵尸
-    this.physics.add.overlap(
-      this.projectileLayer!,
-      this.zombieLayer!,
-      (p, z) => {
-        const proj = p as any;
-        const zombie = z as Zombie;
-        zombie.takeDamage(proj.getDamage(), proj.getProjectileType());
-        if (proj.getIsSlowing()) zombie.applySlow(3000);
-        proj.hit(zombie);
-      }
-    );
-
     // 僵尸啃食植物
     this.physics.add.overlap(this.zombieLayer!, this.plantLayer!, (z, p) => {
       const zombie = z as Zombie;
@@ -367,8 +402,27 @@ export class GameScene extends BaseScene {
 
   private startGame(): void {
     if (!this.levelData) return;
+
     this.audioManager?.playBgm(BackgroundMusic.MENU);
-    const available = this.levelData.availablePlants.map((id) => {
+    this.cameras.main.scrollX = 0;
+
+    this.time.delayedCall(500, () => {
+      this.tweens.add({
+        targets: this.cameras.main,
+        scrollX: 400,
+        duration: 1500,
+        ease: 'Cubic.easeInOut',
+        yoyo: true,
+        hold: 800,
+        onComplete: () => {
+          this.showSeedPicker();
+        },
+      });
+    });
+  }
+
+  private showSeedPicker(): void {
+    const available = this.levelData!.availablePlants.map((id) => {
       const cfg = plantConfigs[id];
       return {
         id,
@@ -523,8 +577,6 @@ export class GameScene extends BaseScene {
     proj.setRecycleHandler((i) => this.projectilePool.recycle(i as any));
     proj.setPosition(data.x, data.y).setProjectileData(data);
     this.projectileLayer?.add(proj);
-
-    // 播放射击音效
     this.audioManager?.playSfx(SoundEffect.SHOOT);
   }
 
