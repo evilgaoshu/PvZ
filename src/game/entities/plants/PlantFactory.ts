@@ -13,6 +13,9 @@ import { SnowPea } from './SnowPea';
 import { Repeater } from './Repeater';
 import { Chomper } from './Chomper';
 import { LilyPad } from './LilyPad';
+import { PotatoMine } from './PotatoMine';
+import { Jalapeno } from './Jalapeno';
+import { Squash } from './Squash';
 
 // 植物创建函数类型
 type PlantCreator = (
@@ -43,6 +46,9 @@ export class PlantFactory {
       ['repeater', (s, x, y, c) => new Repeater(s, x, y, c)],
       ['chomper', (s, x, y, c) => new Chomper(s, x, y, c)],
       ['lilypad', (s, x, y, c) => new LilyPad(s, x, y, c)],
+      ['potato_mine', (s, x, y, c) => new PotatoMine(s, x, y, c)],
+      ['jalapeno', (s, x, y, c) => new Jalapeno(s, x, y, c)],
+      ['squash', (s, x, y, c) => new Squash(s, x, y, c)],
     ]);
   }
 

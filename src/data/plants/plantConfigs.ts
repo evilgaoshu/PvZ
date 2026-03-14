@@ -232,6 +232,51 @@ export const plantConfigs: Record<string, PlantConfig> = {
       },
     ],
   },
+
+  potato_mine: {
+    id: 'potato_mine',
+    name: '土豆地雷',
+    description: '需要时间准备，踩上的僵尸会被炸成灰',
+    cost: 25,
+    health: 300,
+    cooldown: 30,
+    attackDamage: 1800,
+    specialEffects: ['explosion', 'armed'],
+    spriteSheet: 'plants/potato_mine',
+    animations: [
+      { key: 'potato_mine_idle', frames: { start: 0, end: 0, prefix: '', suffix: '' }, frameRate: 1, repeat: -1 }
+    ]
+  },
+
+  jalapeno: {
+    id: 'jalapeno',
+    name: '火爆辣椒',
+    description: '消灭整整一排的僵尸',
+    cost: 125,
+    health: 300,
+    cooldown: 50,
+    attackDamage: 1800,
+    specialEffects: ['lane_explosion'],
+    spriteSheet: 'plants/jalapeno',
+    animations: [
+      { key: 'jalapeno_idle', frames: { start: 0, end: 0, prefix: '', suffix: '' }, frameRate: 1, repeat: -1 }
+    ]
+  },
+
+  squash: {
+    id: 'squash',
+    name: '窝瓜',
+    description: '压扁靠近的第一个僵尸',
+    cost: 50,
+    health: 300,
+    cooldown: 30,
+    attackDamage: 1800,
+    specialEffects: ['crush'],
+    spriteSheet: 'plants/squash',
+    animations: [
+      { key: 'squash_idle', frames: { start: 0, end: 0, prefix: '', suffix: '' }, frameRate: 1, repeat: -1 }
+    ]
+  }
 };
 
 // 为已有植物批量添加默认放置规则

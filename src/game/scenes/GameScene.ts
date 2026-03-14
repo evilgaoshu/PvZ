@@ -118,6 +118,7 @@ export class GameScene extends BaseScene {
     this.createUI();
     this.setupEventListeners();
     this.setupCollisions();
+    this.setupDebugCommands();
     this.startGame();
     this.transitionIn(300);
   }
@@ -318,6 +319,12 @@ export class GameScene extends BaseScene {
     this.registerGameEvent(GameEvents.PROJECTILE_FIRED, (d: any) =>
       this.fireProjectile(d)
     );
+    this.registerGameEvent(GameEvents.PROJECTILE_HIT, (d: any) =>
+      this.handleExplosion(d)
+    );
+    this.registerGameEvent('projectile:lane_explosion', (d: any) =>
+      this.handleLaneExplosion(d)
+    );
     this.registerGameEvent(GameEvents.ALL_WAVES_COMPLETED, () =>
       this.time.delayedCall(3000, () => this.gameOver(true))
     );
@@ -330,6 +337,31 @@ export class GameScene extends BaseScene {
     this.registerGameEvent('zombie:reached_house', (z: Zombie) =>
       this.handleZombieReachedHouse(z)
     );
+  }
+
+  private handleLaneExplosion(data: { row: number; damage: number }): void {
+    this.audioManager?.playSfx(SoundEffect.EXPLOSION);
+
+    // Create a visual fire effect across the whole lane
+    const { OFFSET_Y, CELL_HEIGHT } = GRID_CONFIG;
+    const y = OFFSET_Y + data.row * CELL_HEIGHT + CELL_HEIGHT / 2;
+    
+    const fireEffect = this.add.rectangle(400, y, 800, CELL_HEIGHT, 0xef4444, 0.7);
+    fireEffect.setDepth(10);
+    this.tweens.add({
+      targets: fireEffect,
+      alpha: 0,
+      scaleY: 0,
+      duration: 800,
+      onComplete: () => fireEffect.destroy(),
+    });
+
+    // Damage all zombies in this row
+    this.zombies.forEach((zombie) => {
+      if (zombie.getRow() === data.row) {
+        zombie.takeDamage(data.damage, 'explosion');
+      }
+    });
   }
 
   private handleZombieReachedHouse(zombie: Zombie): void {
@@ -581,6 +613,46 @@ export class GameScene extends BaseScene {
     proj.setPosition(data.x, data.y).setProjectileData(data);
     this.projectileLayer?.add(proj);
     this.audioManager?.playSfx(SoundEffect.SHOOT);
+  }
+
+  private handleExplosion(data: any): void {
+    if (data.type !== 'explosion') return;
+
+    // 播放爆炸音效
+    this.audioManager?.playSfx(SoundEffect.EXPLOSION);
+
+    // 查找范围内的僵尸 (通常是 3x3 区域，约 150 像素半径)
+    const explosionRadius = 150;
+    this.zombies.forEach((zombie) => {
+      const distance = Phaser.Math.Distance.Between(
+        data.x,
+        data.y,
+        zombie.x,
+        zombie.y
+      );
+      if (distance <= explosionRadius) {
+        zombie.takeDamage(data.damage || 1800, 'explosion');
+      }
+    });
+  }
+
+  /**
+   * 暴露调试方法到全局，方便测试
+   */
+  private setupDebugCommands(): void {
+    (window as any).spawnZombie = (type: string, row: number) =>
+      this.spawnZombie(type, row);
+    (window as any).addSun = (amount: number) => this.economySystem.addSun(amount);
+    (window as any).winLevel = () => this.gameOver(true);
+    (window as any).spawnPlant = (type: string, row: number, col: number) => {
+      const plant = this.plantFactory.createPlant(type, row, col);
+      if (plant) {
+        this.plants.set(`${row}-${col}`, plant);
+        this.plantLayer?.add(plant);
+        this.gridSystem.setPlant(row, col, type);
+      }
+    };
+    console.log('调试命令: spawnZombie(type, row), spawnPlant(type, row, col), addSun(amount), winLevel()');
   }
 
   private showNotification(text: string, duration: number): void {

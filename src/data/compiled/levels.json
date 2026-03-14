@@ -71,5 +71,74 @@
         ]
       }
     ]
+  },
+  "1-5": {
+    "id": "1-5",
+    "name": "摩天大楼测试关",
+    "description": "测试所有新植物和僵尸机制",
+    "background": "day-grass",
+    "sunReward": 50,
+    "availablePlants": [
+      "sunflower",
+      "peashooter",
+      "wallnut",
+      "cherry_bomb",
+      "potato_mine",
+      "squash",
+      "jalapeno"
+    ],
+    "waves": [
+      {
+        "timeBeforeWave": 10000,
+        "zombies": [
+          {
+            "type": "normal",
+            "count": 1,
+            "delay": 2000
+          }
+        ]
+      },
+      {
+        "timeBeforeWave": 15000,
+        "zombies": [
+          {
+            "type": "conehead",
+            "count": 2,
+            "delay": 5000
+          },
+          {
+            "type": "pole_vaulting",
+            "count": 1,
+            "delay": 8000
+          }
+        ]
+      },
+      {
+        "timeBeforeWave": 25000,
+        "isFlagWave": true,
+        "zombies": [
+          {
+            "type": "newspaper",
+            "count": 2,
+            "delay": 2000
+          },
+          {
+            "type": "buckethead",
+            "count": 2,
+            "delay": 4000
+          },
+          {
+            "type": "normal",
+            "count": 8,
+            "delay": 1000
+          },
+          {
+            "type": "conehead",
+            "count": 4,
+            "delay": 1500
+          }
+        ]
+      }
+    ]
   }
 }
