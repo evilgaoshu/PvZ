@@ -55,6 +55,17 @@ class PeashooterAttackState implements IState {
     this.lastFireTime = 0;
   }
   update(time: number) {
+    // 持续检查目标是否依然存在于该行
+    this.plant.scene.game.events.emit('plant:check_target', {
+      row: this.plant.getRow(),
+      plant: this.plant,
+    });
+
+    if (!this.plant.getAttackTarget()) {
+      this.plant.stateMachine.changeState(EntityState.IDLE);
+      return;
+    }
+
     const interval = this.plant.getConfig().attackInterval || 1500;
     if (time - this.lastFireTime >= interval) {
       this.lastFireTime = time;

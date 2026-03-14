@@ -256,20 +256,21 @@ class AttackState implements IState {
   }
   update(time: number) {
     const target = this.zombie.attackTarget;
-    if (
-      !target ||
-      !target.active ||
-      !(target as any).isPlantAlive()
-    ) {
+    if (!target || !target.active || !(target as any).isPlantAlive()) {
       this.zombie.stateMachine.changeState(EntityState.WALK);
       return;
     }
 
-    if (time - this.lastAttackTime >= (this.zombie as any).config.attackInterval) {
+    if (
+      time - this.lastAttackTime >=
+      (this.zombie as any).config.attackInterval
+    ) {
       this.lastAttackTime = time;
       target.takeDamage((this.zombie as any).config.damage);
       this.zombie.scene.tweens.add({
-        targets: (this.zombie as any).renderer.sprite || (this.zombie as any).renderer.getObject(),
+        targets:
+          (this.zombie as any).renderer.sprite ||
+          (this.zombie as any).renderer.getObject(),
         x: '+=5',
         duration: 50,
         yoyo: true,
@@ -286,7 +287,8 @@ class DeadState implements IState {
     this.zombie.setVelocityX(0);
     this.zombie.audioManager?.playSfx(SoundEffect.ZOMBIE_DIE);
     this.zombie.playAnim('die', false);
-    if ((this.zombie as any).duckyTube) (this.zombie as any).duckyTube.destroy();
+    if ((this.zombie as any).duckyTube)
+      (this.zombie as any).duckyTube.destroy();
 
     this.zombie.scene.tweens.add({
       targets:

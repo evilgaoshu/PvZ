@@ -154,6 +154,10 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
     }
   }
 
+  public getAttackTarget(): Phaser.GameObjects.Sprite | null {
+    return this.attackTarget;
+  }
+
   public setGridPosition(r: number, c: number): void {
     this.row = r;
     this.col = c;

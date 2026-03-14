@@ -6,12 +6,7 @@ import { CombatSystem } from '@systems/CombatSystem';
 import { PlantFactory } from '@entities/plants/PlantFactory';
 import { ZombieFactory } from '@entities/zombies/ZombieFactory';
 import { Pea, SnowPea } from '@entities/projectiles/Projectile';
-import {
-  GRID_CONFIG,
-  GameEvents,
-  ECONOMY_CONFIG,
-  EntityState,
-} from '@/types/index';
+import { GRID_CONFIG, GameEvents, ECONOMY_CONFIG, EntityState } from '@/types/index';
 import { plantConfigs, zombieConfigs } from '@data/plants/plantConfigs';
 import type { LevelConfig } from '@/types/config';
 import { Plant } from '@entities/plants/Plant';
@@ -175,8 +170,8 @@ export class GameScene extends BaseScene {
 
       for (const proj of rowProjectiles) {
         for (const zombie of rowZombies) {
-          // 简单的 AABB 碰撞检测
-          if (Math.abs(proj.x - zombie.x) < 30) {
+          // AABB 碰撞检测
+          if (Math.abs(proj.x - zombie.x) < 40) {
             zombie.takeDamage(proj.getDamage(), proj.getProjectileType());
             if (proj.getIsSlowing()) zombie.applySlow(3000);
             proj.hit(zombie);
@@ -220,14 +215,16 @@ export class GameScene extends BaseScene {
         const x = OFFSET_X + col * CELL_WIDTH;
         const y = OFFSET_Y + row * CELL_HEIGHT;
 
+        // 使用更明显的交替色块增强对比度
         if ((row + col) % 2 === 0) {
-          graphics.fillStyle(0x064e3b, 0.15);
+          graphics.fillStyle(0x000000, 0.15); // 加深
           graphics.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
         } else {
-          graphics.fillStyle(0x422006, 0.1);
+          graphics.fillStyle(0xffffff, 0.05); // 增加明暗对比
           graphics.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
         }
 
+        // 绘制更明显的网格线
         graphics.lineStyle(2, 0x000000, 0.2);
         graphics.strokeRect(x, y, CELL_WIDTH, CELL_HEIGHT);
 
@@ -278,9 +275,11 @@ export class GameScene extends BaseScene {
       x: 900,
       duration: 2000,
       onUpdate: () => {
+        // 使用物理系统重叠检测或者手动遍历该行僵尸
         this.zombies.forEach((z) => {
-          if (z.getRow() === row && z.x < mower.x + 50)
+          if (z.getRow() === row && z.x < mower.x + 50 && z.x > mower.x - 50) {
             z.takeDamage(9999, 'explosion');
+          }
         });
       },
       onComplete: () => {
@@ -559,7 +558,11 @@ export class GameScene extends BaseScene {
         }
       }
     });
-    if (closest) plant.setAttackTarget(closest as any);
+    if (closest) {
+      plant.setAttackTarget(closest as any);
+    } else {
+      plant.setAttackTarget(null);
+    }
   }
 
   private spawnZombie(type: string, row: number): void {
