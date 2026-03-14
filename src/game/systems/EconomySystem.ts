@@ -57,10 +57,16 @@ export class EconomySystem {
     // 发送初始阳光值
     this.emitSunChanged();
 
+    console.log('EconomySystem initialized with sun:', this.sun);
+  }
+
+  /**
+   * 启动系统 (由场景调用)
+   */
+  public start(): void {
     // 启动自然掉落阳光
     this.startFallingSunSpawner();
-
-    console.log('EconomySystem initialized with sun:', this.sun);
+    console.log('EconomySystem spawner started');
   }
 
   /**

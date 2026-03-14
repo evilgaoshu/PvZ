@@ -30,7 +30,7 @@ export class GameScene extends BaseScene {
     handler: (...args: any[]) => void;
   }> = [];
 
-  public gridSystem!: GridSystem; // 改为 public 方便实体访问
+  public gridSystem!: GridSystem;
   private economySystem!: EconomySystem;
   private waveSystem!: WaveSystem;
   private combatSystem!: CombatSystem;
@@ -41,9 +41,9 @@ export class GameScene extends BaseScene {
   private audioManager!: AudioManager;
 
   private gameContainer: Phaser.GameObjects.Container | null = null;
-  private plantLayer: Phaser.GameObjects.Group | null = null;
-  private zombieLayer: Phaser.GameObjects.Group | null = null;
-  private projectileLayer: Phaser.GameObjects.Group | null = null;
+  private plantLayer: Phaser.Physics.Arcade.StaticGroup | null = null;
+  private zombieLayer: Phaser.Physics.Arcade.Group | null = null;
+  private projectileLayer: Phaser.Physics.Arcade.Group | null = null;
   private uiLayer: Phaser.GameObjects.Container | null = null;
 
   private plants: Map<string, Plant> = new Map();
@@ -121,6 +121,7 @@ export class GameScene extends BaseScene {
     this.waveSystem.update(delta);
     this.combatSystem.update(delta);
     this.plants.forEach((p) => p.active && p.update(time, delta));
+    this.platforms.forEach((p) => p.active && p.update(time, delta));
     this.zombies = this.zombies.filter((z) => {
       if (z.active && z.isZombieAlive()) {
         z.update(time, delta);
@@ -139,15 +140,16 @@ export class GameScene extends BaseScene {
     this.gameContainer = this.add.container(0, 0);
     const bgLayer = this.add.container(0, 0);
     this.gameContainer.add(bgLayer);
-    
+
     const bgKey = this.levelData?.background || 'day-grass';
     const bgImage = this.add.image(400, 300, bgKey);
     bgLayer.add(bgImage);
-    
+
     // 显式设置背景深度
     bgLayer.setDepth(-10);
 
-    this.plantLayer = this.physics.add.group();
+    // 植物使用静态组以优化碰撞
+    this.plantLayer = this.physics.add.staticGroup();
     this.zombieLayer = this.physics.add.group();
     this.projectileLayer = this.physics.add.group();
     this.uiLayer = this.add.container(0, 0);
@@ -156,19 +158,26 @@ export class GameScene extends BaseScene {
   }
 
   private createGridVisuals(): void {
-    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT } = GRID_CONFIG;
-    
-    // 添加细微的网格线增加立体感
+    const { OFFSET_X, OFFSET_Y, ROWS, COLS, CELL_WIDTH, CELL_HEIGHT } =
+      GRID_CONFIG;
+
+    // 添加网格背景色块
     const graphics = this.add.graphics();
-    graphics.lineStyle(1, 0x000000, 0.1);
     graphics.setDepth(-5);
 
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
         const x = OFFSET_X + col * CELL_WIDTH;
         const y = OFFSET_Y + row * CELL_HEIGHT;
-        
-        // 绘制矩形边框
+
+        // 绘制更明显的交替色块（浅棕色半透明，模拟土地感）
+        if ((row + col) % 2 === 0) {
+          graphics.fillStyle(0x422006, 0.08);
+          graphics.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
+        }
+
+        // 绘制网格线
+        graphics.lineStyle(1, 0x000000, 0.15);
         graphics.strokeRect(x, y, CELL_WIDTH, CELL_HEIGHT);
 
         const cell = this.add.rectangle(
@@ -189,7 +198,7 @@ export class GameScene extends BaseScene {
   private addLawnDecorations(): void {
     const { OFFSET_Y, CELL_HEIGHT, ROWS } = GRID_CONFIG;
     for (let row = 0; row < ROWS; row++) {
-      // 如果是水路，不放割草机（或者放专属水路清理器，这里暂简化）
+      // 如果是水路，不放割草机
       if (this.gridSystem.getTerrainType(row, 0) === 'water') continue;
       this.createLawnMower(
         180,
@@ -266,7 +275,7 @@ export class GameScene extends BaseScene {
     this.registerGameEvent(GameEvents.ZOMBIE_DIED, () =>
       this.waveSystem.onZombieKilled()
     );
-    this.game.events.on('plant:check_target', (d: any) =>
+    this.registerGameEvent('plant:check_target', (d: any) =>
       this.findTargetForPlant(d.row, d.plant)
     );
   }
@@ -280,29 +289,31 @@ export class GameScene extends BaseScene {
     if (mower) this.activateLawnMower(mower, row);
     else if (this.gridSystem.getTerrainType(row, 0) === 'grass')
       this.gameOver(false);
-    // 水路逻辑：如果没割草机也没植物，直接失败
     else this.gameOver(false);
   }
 
   private setupCollisions(): void {
+    // 投射物击中僵尸
     this.physics.add.overlap(
       this.projectileLayer!,
       this.zombieLayer!,
       (p, z) => {
         const proj = p as any;
-        (z as Zombie).takeDamage(proj.getDamage(), proj.getProjectileType());
-        if (proj.getIsSlowing()) (z as Zombie).applySlow(3000);
-        proj.hit(z as any);
+        const zombie = z as Zombie;
+        zombie.takeDamage(proj.getDamage(), proj.getProjectileType());
+        if (proj.getIsSlowing()) zombie.applySlow(3000);
+        proj.hit(zombie);
       }
     );
+
+    // 僵尸啃食植物
     this.physics.add.overlap(this.zombieLayer!, this.plantLayer!, (z, p) => {
       const zombie = z as Zombie;
       const plant = p as Plant;
-      if (
-        zombie.getRow() === plant.getRow() &&
-        Math.abs(zombie.x - plant.x) < 40
-      )
+      // 检查是否在同一行且距离足够近
+      if (zombie.getRow() === plant.getRow() && Math.abs(zombie.x - plant.x) < 40) {
         zombie.startAttacking(plant);
+      }
     });
   }
 
@@ -360,11 +371,20 @@ export class GameScene extends BaseScene {
     });
 
     new SeedPicker(this, available, (selected) => {
-      this.plantSelectorComp.updatePlants(selected);
-      this.audioManager?.playBgm(BackgroundMusic.GAME_DAY);
+      this.startLevelFlow(this.levelData!, selected);
+    });
+  }
+
+  private startLevelFlow(levelConfig: LevelConfig, selectedPlants: any[]): void {
+    this.plantSelectorComp.updatePlants(selectedPlants);
+    this.audioManager?.playBgm(BackgroundMusic.GAME_DAY);
+    
+    // 延迟一点启动，给玩家反应时间
+    this.time.delayedCall(1000, () => {
       this.game.events.emit(GameEvents.GAME_STARTED);
-      this.waveSystem.loadLevel(this.levelData!);
-      this.waveSystem.start();
+      this.economySystem.start(); // 现在才开始掉阳光
+      this.waveSystem.loadLevel(levelConfig);
+      this.waveSystem.start(); // 现在才开始刷僵尸
     });
   }
 
@@ -413,11 +433,8 @@ export class GameScene extends BaseScene {
     let canPlace =
       rules.includes(terrain) ||
       (terrain === 'water' && hasLily && rules.includes('lilypad'));
-
-    // 互斥校验：同一格不能种两个普通植物
     const existing = this.gridSystem.getPlant(row, col);
     if (existing && cfg.id !== 'lilypad') canPlace = false;
-    // 睡莲不能重复种在已有睡莲的格子上
     if (cfg.id === 'lilypad' && hasLily) canPlace = false;
 
     if (!canPlace || !this.economySystem.spend(this.selectedPlantCost)) {
@@ -452,19 +469,16 @@ export class GameScene extends BaseScene {
     const platform = this.platforms.get(key);
 
     if (plant) {
-      // 优先铲除顶层植物
       this.audioManager?.playSfx(SoundEffect.SHOVEL);
       this.gridSystem.removePlant(row, col);
       plant.die();
       this.plants.delete(key);
     } else if (platform) {
-      // 如果顶层没植物，再铲除底层睡莲
       this.audioManager?.playSfx(SoundEffect.SHOVEL);
       this.gridSystem.removePlatform(row, col);
       platform.die();
       this.platforms.delete(key);
     }
-
     this.selectedPlant = null;
     this.plantPreview?.destroy();
   }
@@ -499,18 +513,17 @@ export class GameScene extends BaseScene {
     proj.setRecycleHandler((i) => this.projectilePool.recycle(i as any));
     proj.setPosition(data.x, data.y).setProjectileData(data);
     this.projectileLayer?.add(proj);
-    this.audioManager?.playSfx(SoundEffect.SHOOT);
+    // 确保投射物也在物理系统中
+    this.physics.add.existing(proj);
   }
 
   private showNotification(text: string, duration: number): void {
-    const n = this.add
-      .text(400, 100, text, {
-        fontSize: '24px',
-        color: '#ef4444',
-        stroke: '#000',
-        strokeThickness: 4,
-      })
-      .setOrigin(0.5);
+    const n = this.add.text(400, 100, text, {
+      fontSize: '24px',
+      color: '#ef4444',
+      stroke: '#000',
+      strokeThickness: 4,
+    });
     this.tweens.add({
       targets: n,
       y: 80,
@@ -525,6 +538,7 @@ export class GameScene extends BaseScene {
     this.scene.launch('PauseScene');
     this.scene.pause();
   }
+
   resumeGame(): void {
     this.isPaused = false;
   }
