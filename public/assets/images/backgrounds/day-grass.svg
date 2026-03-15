@@ -9,10 +9,10 @@
     </pattern>
   </defs>
   <rect width="1400" height="600" fill="#166534" />
-  <rect x="260" width="1100" height="600" fill="url(#lawn)" />
+  <rect x="340" width="1100" height="600" fill="url(#lawn)" />
   
   <!-- House on the left -->
-  <g transform="translate(40, 150)">
+  <g transform="translate(120, 150)">
     <rect x="0" y="50" width="100" height="300" fill="#78350F" stroke="#451A03" stroke-width="4" />
     <path d="M-10 60 L50 0 L110 60 Z" fill="#991B1B" stroke="#451A03" stroke-width="4" />
     <rect x="30" y="250" width="40" height="100" fill="#451A03" />
@@ -21,5 +21,5 @@
   </g>
 
   <!-- Yard fence -->
-  <line x1="260" y1="0" x2="260" y2="600" stroke="#1E293B" stroke-width="4" stroke-dasharray="10 10" />
+  <line x1="340" y1="0" x2="340" y2="600" stroke="#1E293B" stroke-width="4" stroke-dasharray="10 10" />
 </svg>

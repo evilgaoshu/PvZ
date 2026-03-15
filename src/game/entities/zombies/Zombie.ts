@@ -110,7 +110,7 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     if (this.isSlowed && time >= this.slowedEndTime) this.removeSlow();
 
     // 检查是否到达房屋
-    if (this.x < 220 && !this.hasReachedHouse) {
+    if (this.x < 300 && !this.hasReachedHouse) {
       this.hasReachedHouse = true;
       this.scene.game.events.emit('zombie:reached_house', this);
       return;

@@ -324,7 +324,7 @@ export class GameScene extends BaseScene {
     for (let row = 0; row < ROWS; row++) {
       if (this.gridSystem.getTerrainType(row, 0) === 'water') continue;
       this.createLawnMower(
-        255,
+        335, // 紧贴 340 虚线
         OFFSET_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2,
         row
       );
@@ -542,7 +542,7 @@ export class GameScene extends BaseScene {
           this.time.delayedCall(1000, () => {
             this.tweens.add({
               targets: this.cameras.main,
-              scrollX: 100, // 滑回到 100，使视角更聚焦在草地上
+              scrollX: 180, // 滑回到 180，使视角更聚焦在草地上
               duration: 1500,
               ease: 'Cubic.easeInOut',
               onComplete: () => {
