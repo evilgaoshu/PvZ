@@ -10,15 +10,15 @@
     </pattern>
   </defs>
   <rect width="1400" height="600" fill="#166534" />
-  <rect x="120" y="0" width="1100" height="200" fill="url(#grass)" />
-  <rect x="120" y="200" width="1100" height="200" fill="url(#water)" />
-  <rect x="120" y="400" width="1100" height="200" fill="url(#grass)" />
+  <rect x="260" y="0" width="1100" height="200" fill="url(#grass)" />
+  <rect x="260" y="200" width="1100" height="200" fill="url(#water)" />
+  <rect x="260" y="400" width="1100" height="200" fill="url(#grass)" />
   
   <!-- House -->
-  <g transform="translate(10, 150)">
+  <g transform="translate(40, 150)">
     <rect x="0" y="50" width="100" height="300" fill="#78350F" stroke="#451A03" stroke-width="4" />
     <path d="M-10 60 L50 0 L110 60 Z" fill="#991B1B" stroke="#451A03" stroke-width="4" />
   </g>
   
-  <line x1="120" y1="0" x2="120" y2="600" stroke="#1E293B" stroke-width="4" stroke-dasharray="10 10" />
+  <line x1="260" y1="0" x2="260" y2="600" stroke="#1E293B" stroke-width="4" stroke-dasharray="10 10" />
 </svg>

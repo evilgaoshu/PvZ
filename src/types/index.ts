@@ -26,7 +26,7 @@ export const GRID_CONFIG = {
   CELL_HEIGHT: 100,
 
   // 网格偏移（相对于游戏场景）
-  OFFSET_X: 250,
+  OFFSET_X: 300,
   OFFSET_Y: 80,
 
   // 草坪颜色

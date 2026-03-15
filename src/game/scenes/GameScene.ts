@@ -323,7 +323,7 @@ export class GameScene extends BaseScene {
     for (let row = 0; row < ROWS; row++) {
       if (this.gridSystem.getTerrainType(row, 0) === 'water') continue;
       this.createLawnMower(
-        180,
+        230,
         OFFSET_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2,
         row
       );

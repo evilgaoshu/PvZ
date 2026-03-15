@@ -107,14 +107,14 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.stateMachine.update(time, delta);
-
     if (this.isSlowed && time >= this.slowedEndTime) this.removeSlow();
 
-    if (this.x < 180 && !this.hasReachedHouse) {
+    // 检查是否到达房屋
+    if (this.x < 220 && !this.hasReachedHouse) {
       this.hasReachedHouse = true;
       this.scene.game.events.emit('zombie:reached_house', this);
+      return;
     }
-
     if (time >= this.nextGroanTime) {
       if (Math.random() < 0.3)
         this.audioManager?.playSfx(SoundEffect.ZOMBIE_GROAN);
