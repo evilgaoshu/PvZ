@@ -323,7 +323,7 @@ export class GameScene extends BaseScene {
     for (let row = 0; row < ROWS; row++) {
       if (this.gridSystem.getTerrainType(row, 0) === 'water') continue;
       this.createLawnMower(
-        230,
+        245,
         OFFSET_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2,
         row
       );
@@ -518,14 +518,14 @@ export class GameScene extends BaseScene {
     this.audioManager?.playBgm(BackgroundMusic.MENU);
     this.cameras.main.scrollX = 0;
 
-    // 在右侧生成一些“预览僵尸”
+    // 在右侧生成一些“预览僵尸”，位置更靠右，展现从草地外进来的感觉
     const previewZombies: Zombie[] = [];
     const zombieTypes = this.levelData.zombieTypes || ['normal'];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 8; i++) {
       const type = zombieTypes[Math.floor(Math.random() * zombieTypes.length)];
       const z = this.zombieFactory.createZombie(type, i % 5);
       if (z) {
-        z.setX(1000 + Math.random() * 150);
+        z.setX(1100 + Math.random() * 200);
         z.setAlpha(0.8);
         previewZombies.push(z);
       }
@@ -534,15 +534,23 @@ export class GameScene extends BaseScene {
     this.time.delayedCall(500, () => {
       this.tweens.add({
         targets: this.cameras.main,
-        scrollX: 400,
-        duration: 1500,
+        scrollX: 600, // 向右滑得更远
+        duration: 2000,
         ease: 'Cubic.easeInOut',
-        yoyo: true,
-        hold: 800,
         onComplete: () => {
-          // 清理预览僵尸
-          previewZombies.forEach((z) => z.destroy());
-          this.showSeedPicker();
+          this.time.delayedCall(1000, () => {
+            this.tweens.add({
+              targets: this.cameras.main,
+              scrollX: 100, // 滑回到 100，使视角更聚焦在草地上
+              duration: 1500,
+              ease: 'Cubic.easeInOut',
+              onComplete: () => {
+                // 清理预览僵尸
+                previewZombies.forEach((z) => z.destroy());
+                this.showSeedPicker();
+              },
+            });
+          });
         },
       });
     });

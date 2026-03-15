@@ -53,7 +53,8 @@ export class ZombieFactory {
     }
 
     // 计算位置
-    const x = 850; // 屏幕右侧外
+    // 基础草坪终点约 1020 (300 + 9*80)，设置在 1150 确保从屏幕外走进来
+    const x = 1150;
     const y =
       GRID_CONFIG.OFFSET_Y +
       row * GRID_CONFIG.CELL_HEIGHT +
