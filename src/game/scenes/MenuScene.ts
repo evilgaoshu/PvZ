@@ -194,13 +194,20 @@ export class MenuScene extends BaseScene {
    */
   private showMiniGames(): void {
     this.audioManager?.playSfx('button_click');
-    
+
     const { width, height } = this.getGameSize();
     const overlay = this.add.container(0, 0);
     overlay.setDepth(100);
 
     // 遮罩
-    const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.8);
+    const bg = this.add.rectangle(
+      width / 2,
+      height / 2,
+      width,
+      height,
+      0x000000,
+      0.8
+    );
     bg.setInteractive();
     overlay.add(bg);
 
@@ -214,31 +221,47 @@ export class MenuScene extends BaseScene {
     panelBg.strokeRoundedRect(-200, -150, 400, 300, 15);
     panel.add(panelBg);
 
-    panel.add(this.add.text(0, -120, '选择关卡', { fontSize: '28px', color: '#fcd34d' }).setOrigin(0.5));
+    panel.add(
+      this.add
+        .text(0, -120, '选择关卡', { fontSize: '28px', color: '#fcd34d' })
+        .setOrigin(0.5)
+    );
 
     const levels = [
       { id: '1-1', name: '1-1 基础教学' },
       { id: '1-4', name: '1-4 泳池挑战' },
-      { id: '1-5', name: '1-5 摩天大楼' }
+      { id: '1-5', name: '1-5 摩天大楼' },
     ];
 
     levels.forEach((lvl, i) => {
-      const btn = new GameButton(this, 0, -50 + i * 60, {
-        text: lvl.name,
-        width: 300,
-        height: 45,
-        backgroundColor: 0x15803d
-      }, () => {
-        this.switchScene('GameScene', { levelId: lvl.id });
-      });
+      const btn = new GameButton(
+        this,
+        0,
+        -50 + i * 60,
+        {
+          text: lvl.name,
+          width: 300,
+          height: 45,
+          backgroundColor: 0x15803d,
+        },
+        () => {
+          this.switchScene('GameScene', { levelId: lvl.id });
+        }
+      );
       panel.add(btn);
     });
 
-    const closeBtn = new GameButton(this, 0, 110, {
-      text: '关闭',
-      width: 100,
-      backgroundColor: 0xef4444
-    }, () => overlay.destroy());
+    const closeBtn = new GameButton(
+      this,
+      0,
+      110,
+      {
+        text: '关闭',
+        width: 100,
+        backgroundColor: 0xef4444,
+      },
+      () => overlay.destroy()
+    );
     panel.add(closeBtn);
   }
 
@@ -247,12 +270,19 @@ export class MenuScene extends BaseScene {
    */
   private showSettings(): void {
     this.audioManager?.playSfx('button_click');
-    
+
     const { width, height } = this.getGameSize();
     const overlay = this.add.container(0, 0);
     overlay.setDepth(100);
 
-    const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.8);
+    const bg = this.add.rectangle(
+      width / 2,
+      height / 2,
+      width,
+      height,
+      0x000000,
+      0.8
+    );
     bg.setInteractive();
     overlay.add(bg);
 
@@ -266,25 +296,41 @@ export class MenuScene extends BaseScene {
     panelBg.strokeRoundedRect(-150, -100, 300, 200, 15);
     panel.add(panelBg);
 
-    panel.add(this.add.text(0, -70, '游戏设置', { fontSize: '24px', color: '#fff' }).setOrigin(0.5));
+    panel.add(
+      this.add
+        .text(0, -70, '游戏设置', { fontSize: '24px', color: '#fff' })
+        .setOrigin(0.5)
+    );
 
     const isMuted = this.audioManager?.getIsMuted() || false;
-    const muteBtn = new GameButton(this, 0, 0, {
-      text: isMuted ? '🔇 开启声音' : '🔊 关闭声音',
-      width: 200,
-      backgroundColor: isMuted ? 0xef4444 : 0x15803d
-    }, () => {
-      this.audioManager?.setMuted(!isMuted);
-      overlay.destroy();
-      this.showSettings(); // 刷新显示
-    });
+    const muteBtn = new GameButton(
+      this,
+      0,
+      0,
+      {
+        text: isMuted ? '🔇 开启声音' : '🔊 关闭声音',
+        width: 200,
+        backgroundColor: isMuted ? 0xef4444 : 0x15803d,
+      },
+      () => {
+        this.audioManager?.setMuted(!isMuted);
+        overlay.destroy();
+        this.showSettings(); // 刷新显示
+      }
+    );
     panel.add(muteBtn);
 
-    const closeBtn = new GameButton(this, 0, 60, {
-      text: '确定',
-      width: 100,
-      backgroundColor: 0x64748b
-    }, () => overlay.destroy());
+    const closeBtn = new GameButton(
+      this,
+      0,
+      60,
+      {
+        text: '确定',
+        width: 100,
+        backgroundColor: 0x64748b,
+      },
+      () => overlay.destroy()
+    );
     panel.add(closeBtn);
   }
 

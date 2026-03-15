@@ -24,7 +24,7 @@ export const gameConfig: PhaserGameConfig = {
     autoCenter: Phaser.Scale.NO_CENTER,
     width: GAME_CONFIG.DESIGN_WIDTH,
     height: GAME_CONFIG.DESIGN_HEIGHT,
-    expandParent: false
+    expandParent: false,
   },
   physics: {
     default: 'arcade',
