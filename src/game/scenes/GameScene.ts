@@ -255,6 +255,7 @@ export class GameScene extends BaseScene {
     this.projectileLayer = this.physics.add.group();
     this.uiLayer = this.add.container(0, 0);
     this.uiLayer.setDepth(100);
+    this.uiLayer.setScrollFactor(0); // 确保 UI 不随镜头滚动
     this.gameContainer.add(this.uiLayer);
   }
 
@@ -323,7 +324,7 @@ export class GameScene extends BaseScene {
     for (let row = 0; row < ROWS; row++) {
       if (this.gridSystem.getTerrainType(row, 0) === 'water') continue;
       this.createLawnMower(
-        245,
+        255,
         OFFSET_Y + row * CELL_HEIGHT + CELL_HEIGHT / 2,
         row
       );
