@@ -69,16 +69,56 @@ const assets = {
 </svg>`,
 
   'backgrounds/day-grass.svg': `
-<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
-  <rect width="800" height="600" fill="#4ADE80" />
+<svg width="1400" height="600" viewBox="0 0 1400 600" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <pattern id="grid" width="160" height="200" patternUnits="userSpaceOnUse">
-      <rect width="80" height="100" fill="#22C55E" />
-      <rect x="80" y="100" width="80" height="100" fill="#22C55E" />
+    <pattern id="lawn" width="160" height="200" patternUnits="userSpaceOnUse">
+      <rect width="80" height="100" fill="#4ADE80" />
+      <rect x="80" y="0" width="80" height="100" fill="#22C55E" />
+      <rect x="0" y="100" width="80" height="100" fill="#22C55E" />
+      <rect x="80" y="100" width="80" height="100" fill="#4ADE80" />
+      <path d="M10 90 L12 80 L14 90" stroke="#166534" stroke-width="1" fill="none" opacity="0.3" />
     </pattern>
   </defs>
-  <rect width="800" height="600" fill="url(#grid)" opacity="0.5" />
-  <line x1="120" y1="0" x2="120" y2="600" stroke="#1E293B" stroke-width="2" stroke-dasharray="10 10" />
+  <rect width="1400" height="600" fill="#166534" />
+  <rect x="120" width="1100" height="600" fill="url(#lawn)" />
+  
+  <!-- House on the left -->
+  <g transform="translate(10, 150)">
+    <rect x="0" y="50" width="100" height="300" fill="#78350F" stroke="#451A03" stroke-width="4" />
+    <path d="M-10 60 L50 0 L110 60 Z" fill="#991B1B" stroke="#451A03" stroke-width="4" />
+    <rect x="30" y="250" width="40" height="100" fill="#451A03" />
+    <rect x="20" y="100" width="25" height="40" fill="#BAE6FD" stroke="#0369A1" stroke-width="2" />
+    <rect x="55" y="100" width="25" height="40" fill="#BAE6FD" stroke="#0369A1" stroke-width="2" />
+  </g>
+
+  <!-- Yard fence -->
+  <line x1="120" y1="0" x2="120" y2="600" stroke="#1E293B" stroke-width="4" stroke-dasharray="10 10" />
+</svg>`,
+
+  'backgrounds/pool.svg': `
+<svg width="1400" height="600" viewBox="0 0 1400 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="grass" width="160" height="100" patternUnits="userSpaceOnUse">
+      <rect width="80" height="100" fill="#4ADE80" />
+      <rect x="80" y="0" width="80" height="100" fill="#22C55E" />
+    </pattern>
+    <pattern id="water" width="100" height="100" patternUnits="userSpaceOnUse">
+      <rect width="100" height="100" fill="#0EA5E9" />
+      <path d="M0 50 Q 25 40 50 50 T 100 50" stroke="#BAE6FD" fill="none" opacity="0.5" stroke-width="2" />
+    </pattern>
+  </defs>
+  <rect width="1400" height="600" fill="#166534" />
+  <rect x="120" y="0" width="1100" height="200" fill="url(#grass)" />
+  <rect x="120" y="200" width="1100" height="200" fill="url(#water)" />
+  <rect x="120" y="400" width="1100" height="200" fill="url(#grass)" />
+  
+  <!-- House -->
+  <g transform="translate(10, 150)">
+    <rect x="0" y="50" width="100" height="300" fill="#78350F" stroke="#451A03" stroke-width="4" />
+    <path d="M-10 60 L50 0 L110 60 Z" fill="#991B1B" stroke="#451A03" stroke-width="4" />
+  </g>
+  
+  <line x1="120" y1="0" x2="120" y2="600" stroke="#1E293B" stroke-width="4" stroke-dasharray="10 10" />
 </svg>`
 };
 

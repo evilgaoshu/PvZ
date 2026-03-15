@@ -242,7 +242,8 @@ export class GameScene extends BaseScene {
     this.gameContainer.add(bgLayer);
 
     const bgKey = this.levelData?.background || 'day-grass';
-    const bgImage = this.add.image(400, 300, bgKey);
+    // 背景图现在是 1400 宽，中心点在 700
+    const bgImage = this.add.image(700, 300, bgKey);
     bgLayer.add(bgImage);
 
     // 显式设置背景深度
@@ -265,21 +266,29 @@ export class GameScene extends BaseScene {
     graphics.setDepth(-5);
 
     for (let row = 0; row < ROWS; row++) {
+      // 绘制行与行之间的深色分割线，增强道路区分度
+      graphics.lineStyle(4, 0x000000, 0.1);
+      graphics.strokeLineShape(
+        new Phaser.Geom.Line(
+          OFFSET_X,
+          OFFSET_Y + row * CELL_HEIGHT,
+          OFFSET_X + COLS * CELL_WIDTH,
+          OFFSET_Y + row * CELL_HEIGHT
+        )
+      );
+
       for (let col = 0; col < COLS; col++) {
         const x = OFFSET_X + col * CELL_WIDTH;
         const y = OFFSET_Y + row * CELL_HEIGHT;
 
-        // 使用更明显的交替色块增强对比度
+        // 使用交替色块，但增加边框感
         if ((row + col) % 2 === 0) {
-          graphics.fillStyle(0x000000, 0.15); // 加深
-          graphics.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
-        } else {
-          graphics.fillStyle(0xffffff, 0.05); // 增加明暗对比
+          graphics.fillStyle(0x000000, 0.1);
           graphics.fillRect(x, y, CELL_WIDTH, CELL_HEIGHT);
         }
 
-        // 绘制更明显的网格线
-        graphics.lineStyle(2, 0x000000, 0.2);
+        // 绘制方块细边框
+        graphics.lineStyle(1, 0x000000, 0.1);
         graphics.strokeRect(x, y, CELL_WIDTH, CELL_HEIGHT);
 
         const cell = this.add.rectangle(
@@ -294,6 +303,18 @@ export class GameScene extends BaseScene {
         cell.on('pointerdown', () => this.onGridCellClick(row, col));
       }
     }
+
+    // 最后一条水平分割线
+    graphics.lineStyle(4, 0x000000, 0.1);
+    graphics.strokeLineShape(
+      new Phaser.Geom.Line(
+        OFFSET_X,
+        OFFSET_Y + ROWS * CELL_HEIGHT,
+        OFFSET_X + COLS * CELL_WIDTH,
+        OFFSET_Y + ROWS * CELL_HEIGHT
+      )
+    );
+
     this.addLawnDecorations();
   }
 
@@ -497,6 +518,19 @@ export class GameScene extends BaseScene {
     this.audioManager?.playBgm(BackgroundMusic.MENU);
     this.cameras.main.scrollX = 0;
 
+    // 在右侧生成一些“预览僵尸”
+    const previewZombies: Zombie[] = [];
+    const zombieTypes = this.levelData.zombieTypes || ['normal'];
+    for (let i = 0; i < 5; i++) {
+      const type = zombieTypes[Math.floor(Math.random() * zombieTypes.length)];
+      const z = this.zombieFactory.createZombie(type, i % 5);
+      if (z) {
+        z.setX(1000 + Math.random() * 150);
+        z.setAlpha(0.8);
+        previewZombies.push(z);
+      }
+    }
+
     this.time.delayedCall(500, () => {
       this.tweens.add({
         targets: this.cameras.main,
@@ -506,6 +540,8 @@ export class GameScene extends BaseScene {
         yoyo: true,
         hold: 800,
         onComplete: () => {
+          // 清理预览僵尸
+          previewZombies.forEach((z) => z.destroy());
           this.showSeedPicker();
         },
       });

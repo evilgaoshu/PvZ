@@ -1,4 +1,4 @@
-<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+<svg width="1400" height="600" viewBox="0 0 1400 600" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <pattern id="grass" width="160" height="100" patternUnits="userSpaceOnUse">
       <rect width="80" height="100" fill="#4ADE80" />
@@ -7,14 +7,18 @@
     <pattern id="water" width="100" height="100" patternUnits="userSpaceOnUse">
       <rect width="100" height="100" fill="#0EA5E9" />
       <path d="M0 50 Q 25 40 50 50 T 100 50" stroke="#BAE6FD" fill="none" opacity="0.5" stroke-width="2" />
-      <path d="M0 80 Q 25 70 50 80 T 100 80" stroke="#BAE6FD" fill="none" opacity="0.3" stroke-width="2" />
     </pattern>
   </defs>
-  <!-- Rows 0, 1 -->
-  <rect x="0" y="0" width="800" height="200" fill="url(#grass)" />
-  <!-- Water Rows 2, 3 -->
-  <rect x="0" y="200" width="800" height="200" fill="url(#water)" />
-  <!-- Rows 4, 5 -->
-  <rect x="0" y="400" width="800" height="200" fill="url(#grass)" />
-  <line x1="120" y1="0" x2="120" y2="600" stroke="#1E293B" stroke-width="2" stroke-dasharray="10 10" />
+  <rect width="1400" height="600" fill="#166534" />
+  <rect x="120" y="0" width="1100" height="200" fill="url(#grass)" />
+  <rect x="120" y="200" width="1100" height="200" fill="url(#water)" />
+  <rect x="120" y="400" width="1100" height="200" fill="url(#grass)" />
+  
+  <!-- House -->
+  <g transform="translate(10, 150)">
+    <rect x="0" y="50" width="100" height="300" fill="#78350F" stroke="#451A03" stroke-width="4" />
+    <path d="M-10 60 L50 0 L110 60 Z" fill="#991B1B" stroke="#451A03" stroke-width="4" />
+  </g>
+  
+  <line x1="120" y1="0" x2="120" y2="600" stroke="#1E293B" stroke-width="4" stroke-dasharray="10 10" />
 </svg>
