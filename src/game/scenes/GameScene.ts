@@ -118,6 +118,9 @@ export class GameScene extends BaseScene {
       this.gridSystem.initializeGrid(this.levelData.background);
     }
 
+    // 设置摄像机边界，这对于正确的坐标映射至关重要
+    this.cameras.main.setBounds(0, 0, 1400, 600);
+
     this.createGridVisuals();
     this.initializeFactories();
     this.createUI();
