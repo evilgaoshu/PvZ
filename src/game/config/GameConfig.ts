@@ -21,10 +21,10 @@ export const gameConfig: PhaserGameConfig = {
   version: '1.0.0',
   scale: {
     mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.NO_CENTER,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
     width: GAME_CONFIG.DESIGN_WIDTH,
     height: GAME_CONFIG.DESIGN_HEIGHT,
-    expandParent: false,
+    expandParent: false
   },
   physics: {
     default: 'arcade',

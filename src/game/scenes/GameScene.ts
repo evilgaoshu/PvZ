@@ -256,7 +256,6 @@ export class GameScene extends BaseScene {
     this.uiLayer = this.add.container(0, 0);
     this.uiLayer.setDepth(100);
     this.uiLayer.setScrollFactor(0); // 确保 UI 不随镜头滚动
-    this.gameContainer.add(this.uiLayer);
   }
 
   private createGridVisuals(): void {
@@ -568,9 +567,10 @@ export class GameScene extends BaseScene {
       };
     });
 
-    new SeedPicker(this, available, (selected) => {
+    const picker = new SeedPicker(this, available, (selected) => {
       this.startLevelFlow(this.levelData!, selected);
     });
+    picker.setScrollFactor(0); // 确保选种界面固定在屏幕中心
   }
 
   private startLevelFlow(
