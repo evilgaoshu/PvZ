@@ -197,11 +197,11 @@ export class BootScene extends BaseScene {
 
     // 其他
     this.load.svg('day-grass', 'assets/images/backgrounds/day-grass.svg', {
-      width: 800,
+      width: 1400,
       height: 600,
     });
     this.load.svg('pool', 'assets/images/backgrounds/pool.svg', {
-      width: 800,
+      width: 1400,
       height: 600,
     });
     this.load.svg('ui/sun', 'assets/images/ui/sun.svg', {

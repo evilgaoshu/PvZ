@@ -611,7 +611,8 @@ export class GameScene extends BaseScene {
     if (!this.plantPreview || !this.selectedPlant) return;
 
     const pointer = this.input.activePointer;
-    const gridPos = this.gridSystem.screenToGrid(pointer.x, pointer.y);
+    // 使用 worldX 和 worldY 替代 x 和 y
+    const gridPos = this.gridSystem.screenToGrid(pointer.worldX, pointer.worldY);
 
     if (gridPos) {
       // Snap to grid
@@ -646,8 +647,8 @@ export class GameScene extends BaseScene {
         rect.fillColor = canPlace ? 0x4ade80 : 0xef4444; // Green for valid, Red for invalid
       }
     } else {
-      // Free follow if out of bounds
-      this.plantPreview.setPosition(pointer.x, pointer.y);
+      // Free follow if out of bounds (using world coordinates)
+      this.plantPreview.setPosition(pointer.worldX, pointer.worldY);
       const rect = this.plantPreview.list[0] as Phaser.GameObjects.Rectangle;
       rect.fillColor = this.selectedPlant === 'shovel' ? 0xffffff : 0xef4444;
     }
