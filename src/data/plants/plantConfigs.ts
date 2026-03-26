@@ -335,7 +335,7 @@ export const plantConfigs: Record<string, PlantConfig> = {
 
 // 为已有植物批量添加默认放置规则
 Object.values(plantConfigs).forEach((p) => {
-  if (!p.placement) p.placement = ['grass', 'lilypad'];
+  if (!p.placement) (p as any).placement = ['grass', 'lilypad'];
 });
 
 /**

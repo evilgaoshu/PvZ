@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { GameEvents } from '@/types/index';
+import { GameEvents, IGameScene } from '@/types/index';
+import { Logger } from '@game/utils/Logger';
 
 /**
  * 战斗系统
@@ -44,13 +45,29 @@ export class CombatSystem {
     this.scene.physics.add.overlap(
       this.projectileGroup,
       this.zombieGroup,
-      (obj1, obj2) => {
-        const projectile = obj1 as Phaser.Physics.Arcade.Image;
-        const zombie = obj2 as Phaser.Physics.Arcade.Sprite;
-        this.onProjectileHit(projectile, zombie);
-      }
+      this.handleProjectileHit,
+      undefined,
+      this
     );
   }
+
+  /**
+   * 处理投射物与僵尸的碰撞
+   */
+  private handleProjectileHit = (
+    obj1:
+      | Phaser.Tilemaps.Tile
+      | Phaser.Types.Physics.Arcade.GameObjectWithBody
+      | any,
+    obj2:
+      | Phaser.Tilemaps.Tile
+      | Phaser.Types.Physics.Arcade.GameObjectWithBody
+      | any
+  ): void => {
+    const projectile = obj1 as Phaser.Physics.Arcade.Image;
+    const zombie = obj2 as Phaser.Physics.Arcade.Sprite;
+    this.onProjectileHit(projectile, zombie);
+  };
 
   /**
    * 设置事件监听
@@ -60,17 +77,23 @@ export class CombatSystem {
     // 避免生成重复的投射物
 
     // 监听僵尸生成
-    this.scene.game.events.on(
+    (this.scene as unknown as IGameScene).game.events.on(
       GameEvents.ZOMBIE_SPAWNED,
-      (data: {
-        zombieType: string;
-        row: number;
-        position: { x: number; y: number };
-      }) => {
-        // 僵尸生成后注册到战斗系统
-        console.log(`CombatSystem registered zombie: ${data.zombieType}`);
-      }
+      this.handleZombieSpawned,
+      this
     );
+  }
+
+  /**
+   * 处理僵尸生成
+   */
+  private handleZombieSpawned(data: {
+    zombieType: string;
+    row: number;
+    position: { x: number; y: number };
+  }): void {
+    // 僵尸生成后注册到战斗系统
+    console.log(`CombatSystem registered zombie: ${data.zombieType}`);
   }
 
   /**
@@ -91,11 +114,14 @@ export class CombatSystem {
     projectile.destroy();
 
     // 发送击中事件
-    this.scene.game.events.emit(GameEvents.PROJECTILE_HIT, {
-      target: zombie,
-      damage,
-      type: projectileType,
-    });
+    (this.scene as unknown as IGameScene).game.events.emit(
+      GameEvents.PROJECTILE_HIT,
+      {
+        target: zombie,
+        damage,
+        type: projectileType,
+      }
+    );
   }
 
   /**
@@ -208,6 +234,13 @@ export class CombatSystem {
    * 清理
    */
   public destroy(): void {
+    // 移除事件监听
+    this.scene.game.events.off(
+      GameEvents.ZOMBIE_SPAWNED,
+      this.handleZombieSpawned,
+      this
+    );
+
     // 销毁组
     this.projectileGroup?.destroy();
     this.zombieGroup?.destroy();

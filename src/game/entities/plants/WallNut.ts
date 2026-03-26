@@ -21,8 +21,8 @@ export class WallNut extends Plant {
   }
 
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new WallNutIdleState(this));
-    this.stateMachine.addState(EntityState.DEAD, new WallNutDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new WallNutIdleState());
+    this.stateMachine.addState(EntityState.DEAD, new WallNutDeadState());
   }
 
   protected onDamageStateChange(state: any): void {
@@ -41,30 +41,28 @@ export class WallNut extends Plant {
   }
 }
 
-class WallNutIdleState implements IState {
-  constructor(private plant: WallNut) {}
-  enter() {
-    this.plant.playAnimation('wallnut_idle', true);
+class WallNutIdleState implements IState<WallNut> {
+  enter(plant: WallNut) {
+    plant.playAnimation('wallnut_idle', true);
   }
-  update() {
-    if (this.plant.getCrackOverlay()) {
-      this.plant.getCrackOverlay()!.setPosition(this.plant.x, this.plant.y);
+  update(plant: WallNut, time: number, delta: number) {
+    if (plant.getCrackOverlay()) {
+      plant.getCrackOverlay()!.setPosition(plant.x, plant.y);
     }
   }
-  exit() {}
+  exit(plant: WallNut) {}
 }
 
-class WallNutDeadState implements IState {
-  constructor(private plant: WallNut) {}
-  enter() {
-    if (this.plant.getCrackOverlay()) this.plant.getCrackOverlay()!.destroy();
-    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class WallNutDeadState implements IState<WallNut> {
+  enter(plant: WallNut) {
+    if (plant.getCrackOverlay()) plant.getCrackOverlay()!.destroy();
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: WallNut, time: number, delta: number) {}
+  exit(plant: WallNut) {}
 }

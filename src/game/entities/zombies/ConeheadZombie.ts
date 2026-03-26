@@ -1,5 +1,6 @@
 import { Zombie } from './Zombie';
 import type { ZombieConfig } from '@/types/config';
+import { IGameScene } from '@/types/index';
 
 /**
  * 路障僵尸
@@ -15,15 +16,12 @@ export class ConeheadZombie extends Zombie {
     this.createConeVisual();
   }
 
-  protected setupAnimations(): void {
-    // 动画设置
-  }
-
   /**
    * 创建路障视觉
    */
   private createConeVisual(): void {
-    this.coneGraphics = this.scene.add.graphics();
+    const gameScene = this.scene as IGameScene;
+    this.coneGraphics = gameScene.add.graphics();
 
     // 绘制橙色路障
     this.coneGraphics.fillStyle(0xff6600, 1);

@@ -3,21 +3,26 @@ import { EntityState } from '@/types/index';
 /**
  * 状态接口
  */
-export interface IState {
-  enter(): void;
-  update(time: number, delta: number): void;
-  exit(): void;
+export interface IState<T> {
+  enter(context: T): void;
+  update(context: T, time: number, delta: number): void;
+  exit(context: T): void;
 }
 
 /**
  * 有限状态机类
  */
-export class StateMachine {
-  private states: Map<EntityState, IState> = new Map();
-  private currentState: IState | null = null;
+export class StateMachine<T> {
+  private states: Map<EntityState, IState<T>> = new Map();
+  private currentState: IState<T> | null = null;
   private currentKey: EntityState | null = null;
+  private context: T;
 
-  public addState(key: EntityState, state: IState): void {
+  constructor(context: T) {
+    this.context = context;
+  }
+
+  public addState(key: EntityState, state: IState<T>): void {
     this.states.set(key, state);
   }
 
@@ -28,17 +33,17 @@ export class StateMachine {
     if (!nextState) return;
 
     if (this.currentState) {
-      this.currentState.exit();
+      this.currentState.exit(this.context);
     }
 
     this.currentKey = key;
     this.currentState = nextState;
-    this.currentState.enter();
+    this.currentState.enter(this.context);
   }
 
   public update(time: number, delta: number): void {
     if (this.currentState) {
-      this.currentState.update(time, delta);
+      this.currentState.update(this.context, time, delta);
     }
   }
 

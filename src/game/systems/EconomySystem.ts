@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
-import { ECONOMY_CONFIG, GameEvents } from '@/types/index';
+import { ECONOMY_CONFIG, GameEvents, IGameScene } from '@/types/index';
 import type { SunSource, SunCollectedEventData } from '@/types/config';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
 import { VisualEffects } from '@utils/VisualEffects';
 import { ObjectPool } from '@game/utils/ObjectPool';
+import { Logger } from '@game/utils/Logger';
 
 type PooledSun = Phaser.GameObjects.Container & {
   sunGraphics: Phaser.GameObjects.Graphics;
@@ -42,7 +43,7 @@ export class EconomySystem {
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.audioManager = this.scene.game.registry.get(
+    this.audioManager = (this.scene as unknown as IGameScene).game.registry.get(
       'audioManager'
     ) as AudioManager;
     this.init();
@@ -73,19 +74,32 @@ export class EconomySystem {
    * 启动自然掉落阳光生成器
    */
   private startFallingSunSpawner(): void {
-    const spawnNextSun = () => {
-      const delay = Phaser.Math.Between(
-        this.fallingSunConfig.MIN_INTERVAL,
-        this.fallingSunConfig.MAX_INTERVAL
-      );
+    this.scheduleNextFallingSun();
+  }
 
-      this.fallingSunTimer = this.scene.time.delayedCall(delay, () => {
-        this.spawnFallingSun();
-        spawnNextSun();
-      });
-    };
+  /**
+   * 调度下一个掉落阳光
+   */
+  private scheduleNextFallingSun(): void {
+    const delay = Phaser.Math.Between(
+      this.fallingSunConfig.MIN_INTERVAL,
+      this.fallingSunConfig.MAX_INTERVAL
+    );
 
-    spawnNextSun();
+    this.fallingSunTimer = this.scene.time.delayedCall(
+      delay,
+      this.handleFallingSunSpawn,
+      undefined,
+      this
+    );
+  }
+
+  /**
+   * 处理掉落阳光生成
+   */
+  private handleFallingSunSpawn(): void {
+    this.spawnFallingSun();
+    this.scheduleNextFallingSun();
   }
 
   /**
@@ -115,9 +129,9 @@ export class EconomySystem {
         // 落地后开始消失倒计时
         this.scene.time.delayedCall(
           this.fallingSunConfig.LIFETIME - this.fallingSunConfig.FALL_DURATION,
-          () => {
-            this.removeSun(sun);
-          }
+          this.removeSun,
+          [sun],
+          this
         );
       },
     });
@@ -154,9 +168,7 @@ export class EconomySystem {
           ease: 'Bounce.easeOut',
           onComplete: () => {
             // 一段时间后消失
-            this.scene.time.delayedCall(8000, () => {
-              this.removeSun(sun);
-            });
+            this.scene.time.delayedCall(8000, this.removeSun, [sun], this);
           },
         });
       },
@@ -208,25 +220,30 @@ export class EconomySystem {
     container.sourceType = 'plant';
     container.isCollected = false;
 
-    hitArea.on('pointerdown', () => {
-      if (container.isCollected || !container.active) return;
-
-      container.isCollected = true;
-      hitArea.disableInteractive();
-
-      VisualEffects.bounceScale(container, 1.3, 150);
-      VisualEffects.createSplat(
-        this.scene,
-        container.x,
-        container.y,
-        0xfef08a,
-        6
-      );
-
-      this.collectSun(container, container.amount, container.sourceType);
-    });
+    hitArea.on('pointerdown', () => this.handleSunClick(container));
 
     return container;
+  }
+
+  /**
+   * 处理阳光点击
+   */
+  private handleSunClick(container: PooledSun): void {
+    if (container.isCollected || !container.active) return;
+
+    container.isCollected = true;
+    container.hitArea.disableInteractive();
+
+    VisualEffects.bounceScale(container, 1.3, 150);
+    VisualEffects.createSplat(
+      this.scene,
+      container.x,
+      container.y,
+      0xfef08a,
+      6
+    );
+
+    this.collectSun(container, container.amount, container.sourceType);
   }
 
   private resetSunObject(sun: PooledSun): void {
@@ -367,9 +384,12 @@ export class EconomySystem {
       amount,
       source,
     };
-    this.scene.game.events.emit(GameEvents.SUN_COLLECTED, eventData);
+    (this.scene as unknown as IGameScene).game.events.emit(
+      GameEvents.SUN_COLLECTED,
+      eventData
+    );
 
-    console.log(`Sun added: ${amount}, total: ${this.sun}`);
+    Logger.debug(`Sun added: ${amount}, total: ${this.sun}`);
   }
 
   /**
@@ -383,7 +403,7 @@ export class EconomySystem {
     this.sun -= amount;
     this.emitSunChanged();
 
-    console.log(`Sun spent: ${amount}, remaining: ${this.sun}`);
+    Logger.debug(`Sun spent: ${amount}, remaining: ${this.sun}`);
     return true;
   }
 
@@ -405,7 +425,10 @@ export class EconomySystem {
    * 发射阳光变化事件
    */
   private emitSunChanged(): void {
-    this.scene.game.events.emit(GameEvents.SUN_CHANGED, this.sun);
+    (this.scene as unknown as IGameScene).game.events.emit(
+      GameEvents.SUN_CHANGED,
+      this.sun
+    );
   }
 
   /**

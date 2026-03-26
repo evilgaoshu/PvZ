@@ -1,4 +1,5 @@
 import { BaseScene } from './BaseScene';
+import { Logger } from '@game/utils/Logger';
 import { GRID_CONFIG } from '@/types/index';
 import { GameButton } from '@ui/components/GameButton';
 import yaml from 'yaml';
@@ -319,11 +320,11 @@ export class EditorScene extends BaseScene {
     };
 
     const yamlStr = yaml.stringify(levelData);
-    console.log(
+    Logger.log(
       '%c--- 导出的关卡配置 (YAML) ---',
       'color: #4ade80; font-weight: bold;'
     );
-    console.log(yamlStr);
+    Logger.log(yamlStr);
 
     // 尝试复制到剪贴板
     navigator.clipboard

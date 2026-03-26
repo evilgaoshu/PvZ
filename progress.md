@@ -56,3 +56,15 @@ Original prompt: 检查一下这个项目，提出具体可落实的优化的建
   - Enabled unit tests and Lint checks in CI.
   - Switched to `npm ci` and enabled dependency caching.
   - Upgraded project to Node.js 22 and forced actions to use Node.js 24 runtime.
+
+2026-03-26
+- Code Quality & Type Safety Refactor:
+  - Refactored `StateMachine` and `IState` to use generics, providing type-safe context access.
+  - Introduced `IGameScene` interface to eliminate `as any` type assertions across the project.
+  - Updated all Plant and Zombie subclasses to the new generic state pattern.
+  - Added `readonly` modifiers to configuration interfaces (`PlantConfig`, `ZombieConfig`) for better immutability.
+  - Implemented a centralized `Logger` utility to manage and filter console output.
+  - Fixed memory leaks by ensuring proper event listener cleanup (`.off()`) in all major game systems.
+- Verification:
+  - `npm run build` succeeds with zero TypeScript errors.
+  - `npm test` passes 31/31 unit tests.

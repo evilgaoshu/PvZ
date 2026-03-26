@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { plantConfigs } from '@data/plants/plantConfigs';
 import type { PlantConfig } from '@/types/config';
 import { GRID_CONFIG } from '@/types/index';
+import { Logger } from '@game/utils/Logger';
 
 // 导入植物类
 import { Plant } from './Plant';
@@ -66,7 +67,7 @@ export class PlantFactory {
   ): Plant | null {
     const config = plantConfigs[plantType];
     if (!config) {
-      console.error(`Unknown plant type: ${plantType}`);
+      Logger.error(`Unknown plant type: ${plantType}`);
       return null;
     }
 

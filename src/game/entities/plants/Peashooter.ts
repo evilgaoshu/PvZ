@@ -12,12 +12,9 @@ export class Peashooter extends Plant {
   }
 
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new PeashooterIdleState(this));
-    this.stateMachine.addState(
-      EntityState.ATTACK,
-      new PeashooterAttackState(this)
-    );
-    this.stateMachine.addState(EntityState.DEAD, new PeashooterDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new PeashooterIdleState());
+    this.stateMachine.addState(EntityState.ATTACK, new PeashooterAttackState());
+    this.stateMachine.addState(EntityState.DEAD, new PeashooterDeadState());
   }
 
   public fire(): void {
@@ -33,58 +30,55 @@ export class Peashooter extends Plant {
   }
 }
 
-class PeashooterIdleState implements IState {
-  constructor(private plant: Peashooter) {}
-  enter() {
-    this.plant.playAnimation(`${this.plant.getConfig().id}_idle`, true);
+class PeashooterIdleState implements IState<Peashooter> {
+  enter(plant: Peashooter) {
+    plant.playAnimation(`${plant.getConfig().id}_idle`, true);
   }
-  update() {
+  update(plant: Peashooter, time: number, delta: number) {
     // 检查是否有目标进入视野
-    this.plant.scene.game.events.emit('plant:check_target', {
-      row: this.plant.getRow(),
-      plant: this.plant,
+    plant.scene.game.events.emit('plant:check_target', {
+      row: plant.getRow(),
+      plant: plant,
     });
   }
-  exit() {}
+  exit(plant: Peashooter) {}
 }
 
-class PeashooterAttackState implements IState {
+class PeashooterAttackState implements IState<Peashooter> {
   private lastFireTime: number = 0;
-  constructor(private plant: Peashooter) {}
-  enter() {
+  enter(plant: Peashooter) {
     this.lastFireTime = 0;
   }
-  update(time: number) {
+  update(plant: Peashooter, time: number, delta: number) {
     // 持续检查目标是否依然存在于该行
-    this.plant.scene.game.events.emit('plant:check_target', {
-      row: this.plant.getRow(),
-      plant: this.plant,
+    plant.scene.game.events.emit('plant:check_target', {
+      row: plant.getRow(),
+      plant: plant,
     });
 
-    if (!this.plant.getAttackTarget()) {
-      this.plant.stateMachine.changeState(EntityState.IDLE);
+    if (!plant.getAttackTarget()) {
+      plant.stateMachine.changeState(EntityState.IDLE);
       return;
     }
 
-    const interval = this.plant.getConfig().attackInterval || 1500;
+    const interval = plant.getConfig().attackInterval || 1500;
     if (time - this.lastFireTime >= interval) {
       this.lastFireTime = time;
-      this.plant.fire();
+      plant.fire();
     }
   }
-  exit() {}
+  exit(plant: Peashooter) {}
 }
 
-class PeashooterDeadState implements IState {
-  constructor(private plant: Peashooter) {}
-  enter() {
-    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class PeashooterDeadState implements IState<Peashooter> {
+  enter(plant: Peashooter) {
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: Peashooter, time: number, delta: number) {}
+  exit(plant: Peashooter) {}
 }

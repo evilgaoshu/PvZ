@@ -114,6 +114,7 @@ export enum EntityState {
   DEAD = 'dead',
   WALK = 'walk',
   EAT = 'eat',
+  VAULT = 'vault',
 }
 
 // 植物类型
@@ -137,9 +138,21 @@ export enum ZombieType {
   SCREENDOOR = 'screendoor',
 }
 
-// 投射物类型
+// Projectile type
 export enum ProjectileType {
   PEA = 'pea',
   SNOW_PEA = 'snow_pea',
   CABBAGE = 'cabbage',
+}
+
+/**
+ * 游戏场景接口 (用于消除 as any)
+ */
+export interface IGameScene extends Phaser.Scene {
+  gridSystem: any;
+  waveSystem: any;
+  economySystem: any;
+  combatSystem: any;
+  zombiesByRow: Map<number, any[]>;
+  spine: any;
 }

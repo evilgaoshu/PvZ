@@ -8,12 +8,9 @@ export class CherryBomb extends Plant {
     super(scene, x, y, config);
   }
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new CherryIdleState(this));
-    this.stateMachine.addState(
-      EntityState.ATTACK,
-      new CherryExplodeState(this)
-    );
-    this.stateMachine.addState(EntityState.DEAD, new CherryDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new CherryIdleState());
+    this.stateMachine.addState(EntityState.ATTACK, new CherryExplodeState());
+    this.stateMachine.addState(EntityState.DEAD, new CherryDeadState());
   }
   public explode(): void {
     this.scene.game.events.emit(GameEvents.PROJECTILE_HIT, {
@@ -26,41 +23,37 @@ export class CherryBomb extends Plant {
   }
 }
 
-class CherryIdleState implements IState {
+class CherryIdleState implements IState<CherryBomb> {
   private timer: number = 0;
-  constructor(private plant: CherryBomb) {}
-  enter() {
-    this.plant.playAnimation('cherry_bomb_idle', true);
+  enter(plant: CherryBomb) {
+    plant.playAnimation('cherry_bomb_idle', true);
     this.timer = 0;
   }
-  update(_t: number, delta: number) {
+  update(plant: CherryBomb, _t: number, delta: number) {
     this.timer += delta;
-    if (this.timer >= 1000)
-      this.plant.stateMachine.changeState(EntityState.ATTACK);
+    if (this.timer >= 1000) plant.stateMachine.changeState(EntityState.ATTACK);
   }
-  exit() {}
+  exit(plant: CherryBomb) {}
 }
 
-class CherryExplodeState implements IState {
-  constructor(private plant: CherryBomb) {}
-  enter() {
-    this.plant.explode();
-    this.plant.stateMachine.changeState(EntityState.DEAD);
+class CherryExplodeState implements IState<CherryBomb> {
+  enter(plant: CherryBomb) {
+    plant.explode();
+    plant.stateMachine.changeState(EntityState.DEAD);
   }
-  update() {}
-  exit() {}
+  update(plant: CherryBomb, time: number, delta: number) {}
+  exit(plant: CherryBomb) {}
 }
 
-class CherryDeadState implements IState {
-  constructor(private plant: CherryBomb) {}
-  enter() {
-    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class CherryDeadState implements IState<CherryBomb> {
+  enter(plant: CherryBomb) {
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: CherryBomb, time: number, delta: number) {}
+  exit(plant: CherryBomb) {}
 }

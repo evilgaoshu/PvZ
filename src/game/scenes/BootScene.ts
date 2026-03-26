@@ -1,4 +1,5 @@
 import { BaseScene } from './BaseScene';
+import { Logger } from '@game/utils/Logger';
 import { GameEvents, GAME_CONFIG } from '@/types/index';
 import { AudioManager } from '@managers/AudioManager';
 

@@ -11,15 +11,9 @@ export class PotatoMine extends Plant {
   }
 
   protected setupStateMachine(): void {
-    this.stateMachine.addState(
-      EntityState.IDLE,
-      new PotatoMineUnarmedState(this)
-    );
-    this.stateMachine.addState(
-      EntityState.ATTACK,
-      new PotatoMineArmedState(this)
-    );
-    this.stateMachine.addState(EntityState.DEAD, new PotatoMineDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new PotatoMineUnarmedState());
+    this.stateMachine.addState(EntityState.ATTACK, new PotatoMineArmedState());
+    this.stateMachine.addState(EntityState.DEAD, new PotatoMineDeadState());
   }
 
   public setArmed(armed: boolean): void {
@@ -41,67 +35,64 @@ export class PotatoMine extends Plant {
   }
 }
 
-class PotatoMineUnarmedState implements IState {
+class PotatoMineUnarmedState implements IState<PotatoMine> {
   private timer: number = 0;
   private readonly ARM_TIME = 15000; // 15 seconds to arm
 
-  constructor(private plant: PotatoMine) {}
-  enter() {
-    this.plant.playAnimation('potato_mine_idle', true);
-    this.plant.setAlpha(0.5); // Visual cue that it's unarmed
+  enter(plant: PotatoMine) {
+    plant.playAnimation('potato_mine_idle', true);
+    plant.setAlpha(0.5); // Visual cue that it's unarmed
     this.timer = 0;
-    this.plant.setArmed(false);
+    plant.setArmed(false);
   }
-  update(_t: number, delta: number) {
+  update(plant: PotatoMine, _t: number, delta: number) {
     this.timer += delta;
     if (this.timer >= this.ARM_TIME) {
-      this.plant.stateMachine.changeState(EntityState.ATTACK);
+      plant.stateMachine.changeState(EntityState.ATTACK);
     }
   }
-  exit() {}
+  exit(plant: PotatoMine) {}
 }
 
-class PotatoMineArmedState implements IState {
-  constructor(private plant: PotatoMine) {}
-  enter() {
-    this.plant.setAlpha(1);
-    this.plant.setArmed(true);
+class PotatoMineArmedState implements IState<PotatoMine> {
+  enter(plant: PotatoMine) {
+    plant.setAlpha(1);
+    plant.setArmed(true);
     // Play a popup animation
-    this.plant.scene.tweens.add({
-      targets: this.plant,
-      y: this.plant.y - 10,
+    plant.scene.tweens.add({
+      targets: plant,
+      y: plant.y - 10,
       duration: 200,
       yoyo: true,
       ease: 'Back.easeOut',
     });
   }
-  update() {
-    this.plant.scene.game.events.emit('plant:check_target', {
-      row: this.plant.getRow(),
-      plant: this.plant,
+  update(plant: PotatoMine, time: number, delta: number) {
+    plant.scene.game.events.emit('plant:check_target', {
+      row: plant.getRow(),
+      plant: plant,
     });
 
-    const target = this.plant.getAttackTarget();
-    if (target && target.active && this.plant.getIsArmed()) {
-      if (Math.abs(target.x - this.plant.x) < 40) {
-        this.plant.explode();
-        this.plant.stateMachine.changeState(EntityState.DEAD);
+    const target = plant.getAttackTarget();
+    if (target && target.active && plant.getIsArmed()) {
+      if (Math.abs(target.x - plant.x) < 40) {
+        plant.explode();
+        plant.stateMachine.changeState(EntityState.DEAD);
       }
     }
   }
-  exit() {}
+  exit(plant: PotatoMine) {}
 }
 
-class PotatoMineDeadState implements IState {
-  constructor(private plant: PotatoMine) {}
-  enter() {
-    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class PotatoMineDeadState implements IState<PotatoMine> {
+  enter(plant: PotatoMine) {
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: PotatoMine, time: number, delta: number) {}
+  exit(plant: PotatoMine) {}
 }

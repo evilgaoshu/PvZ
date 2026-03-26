@@ -1,6 +1,6 @@
 import { Plant } from './Plant';
 import type { PlantConfig } from '@/types/config';
-import { EntityState } from '@/types/index';
+import { EntityState, GameEvents } from '@/types/index';
 import { IState } from '../../utils/StateMachine';
 
 export class Torchwood extends Plant {
@@ -9,30 +9,28 @@ export class Torchwood extends Plant {
   }
 
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new TorchwoodIdleState(this));
-    this.stateMachine.addState(EntityState.DEAD, new TorchwoodDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new TorchwoodIdleState());
+    this.stateMachine.addState(EntityState.DEAD, new TorchwoodDeadState());
   }
 }
 
-class TorchwoodIdleState implements IState {
-  constructor(private plant: Torchwood) {}
-  enter() {
-    this.plant.playAnimation('torchwood_idle', true);
+class TorchwoodIdleState implements IState<Torchwood> {
+  enter(plant: Torchwood) {
+    plant.playAnimation('torchwood_idle', true);
   }
-  update() {}
-  exit() {}
+  update(plant: Torchwood, time: number, delta: number) {}
+  exit(plant: Torchwood) {}
 }
 
-class TorchwoodDeadState implements IState {
-  constructor(private plant: Torchwood) {}
-  enter() {
-    this.plant.scene.game.events.emit('projectile:plant_removed', {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class TorchwoodDeadState implements IState<Torchwood> {
+  enter(plant: Torchwood) {
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: Torchwood, time: number, delta: number) {}
+  exit(plant: Torchwood) {}
 }

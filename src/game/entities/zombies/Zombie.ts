@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { ZombieConfig } from '@/types/config';
-import { GameEvents, EntityState } from '@/types/index';
+import { GameEvents, EntityState, IGameScene } from '@/types/index';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
 import { VisualEffects } from '@utils/VisualEffects';
@@ -16,19 +16,19 @@ import { StateMachine, IState } from '../../utils/StateMachine';
  * 僵尸基类 (重构版：引入 FSM 状态机)
  */
 export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
-  protected config: ZombieConfig;
-  protected renderer: IEntityRenderer | null = null;
-  public stateMachine: StateMachine;
+  public config: ZombieConfig;
+  public renderer: IEntityRenderer | null = null;
+  public stateMachine: StateMachine<Zombie>;
 
   protected currentHealth: number;
-  protected currentSpeed: number;
+  public currentSpeed: number;
   protected isAlive: boolean = true;
-  protected isSlowed: boolean = false;
+  public isSlowed: boolean = false;
   protected slowedEndTime: number = 0;
   protected hasLostHead: boolean = false;
   protected isSwimming: boolean = false;
   protected hasReachedHouse: boolean = false;
-  private duckyTube: Phaser.GameObjects.Image | null = null;
+  protected duckyTube: Phaser.GameObjects.Image | null = null;
 
   public audioManager: AudioManager | null = null;
   protected row: number = 0;
@@ -47,7 +47,7 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
       'audioManager'
     ) as AudioManager;
 
-    this.stateMachine = new StateMachine();
+    this.stateMachine = new StateMachine<Zombie>(this);
     this.initRenderer();
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -57,8 +57,10 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
   }
 
   private initRenderer(): void {
-    const spineKey = (this.config as any).spineKey;
-    if (spineKey && (this.scene as any).spine) {
+    const config = this.config as any;
+    const spineKey = config.spineKey;
+    const gameScene = this.scene as IGameScene;
+    if (spineKey && gameScene.spine) {
       this.renderer = new SpineRenderer(
         this.scene,
         this.x,
@@ -85,10 +87,10 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
     body.allowGravity = false;
   }
 
-  private setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.WALK, new WalkState(this));
-    this.stateMachine.addState(EntityState.ATTACK, new AttackState(this));
-    this.stateMachine.addState(EntityState.DEAD, new DeadState(this));
+  protected setupStateMachine(): void {
+    this.stateMachine.addState(EntityState.WALK, new WalkState());
+    this.stateMachine.addState(EntityState.ATTACK, new AttackState());
+    this.stateMachine.addState(EntityState.DEAD, new DeadState());
   }
 
   public update(time: number, delta: number): void {
@@ -123,7 +125,8 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
   }
 
   private handleWaterLogic(): void {
-    const gridSystem = (this.scene as any).gridSystem;
+    const gameScene = this.scene as IGameScene;
+    const gridSystem = gameScene.gridSystem;
     if (!gridSystem) return;
     const gridPos = gridSystem.screenToGrid(this.x, this.y);
     const inWater = gridPos
@@ -228,49 +231,48 @@ export abstract class Zombie extends Phaser.Physics.Arcade.Sprite {
   public playAnim(key: string, loop: boolean = true) {
     this.renderer?.play(`${this.config.id}_${key}`, loop);
   }
+
+  public getConfig(): ZombieConfig {
+    return this.config;
+  }
 }
 
 /**
  * 状态具体实现
  */
-class WalkState implements IState {
-  constructor(private zombie: Zombie) {}
-  enter() {
-    this.zombie.playAnim('walk', true);
+class WalkState implements IState<Zombie> {
+  enter(zombie: Zombie) {
+    zombie.playAnim('walk', true);
   }
-  update() {
-    const speed = (this.zombie as any).isSlowed
-      ? (this.zombie as any).config.speed * 0.5
-      : (this.zombie as any).config.speed;
-    this.zombie.setVelocityX(-speed);
+  update(zombie: Zombie) {
+    const speed = zombie.isSlowed
+      ? zombie.currentSpeed * 0.5
+      : zombie.currentSpeed;
+    const body = zombie.body as Phaser.Physics.Arcade.Body;
+    if (body) body.setVelocityX(-speed);
   }
   exit() {}
 }
 
-class AttackState implements IState {
+class AttackState implements IState<Zombie> {
   private lastAttackTime: number = 0;
-  constructor(private zombie: Zombie) {}
-  enter() {
-    this.zombie.setVelocityX(0);
-    this.zombie.playAnim('eat', true);
+  enter(zombie: Zombie) {
+    const body = zombie.body as Phaser.Physics.Arcade.Body;
+    if (body) body.setVelocityX(0);
+    zombie.playAnim('eat', true);
   }
-  update(time: number) {
-    const target = this.zombie.attackTarget;
-    if (!target || !target.active || !(target as any).isPlantAlive()) {
-      this.zombie.stateMachine.changeState(EntityState.WALK);
+  update(zombie: Zombie, time: number) {
+    const target = zombie.attackTarget;
+    if (!target || !target.active || !target.isPlantAlive()) {
+      zombie.stateMachine.changeState(EntityState.WALK);
       return;
     }
 
-    if (
-      time - this.lastAttackTime >=
-      (this.zombie as any).config.attackInterval
-    ) {
+    if (time - this.lastAttackTime >= zombie.getConfig().attackInterval) {
       this.lastAttackTime = time;
-      target.takeDamage((this.zombie as any).config.damage);
-      this.zombie.scene.tweens.add({
-        targets:
-          (this.zombie as any).renderer.sprite ||
-          (this.zombie as any).renderer.getObject(),
+      target.takeDamage(zombie.getConfig().damage);
+      zombie.scene.tweens.add({
+        targets: zombie.renderer?.getObject() || zombie,
         x: '+=5',
         duration: 50,
         yoyo: true,
@@ -280,32 +282,33 @@ class AttackState implements IState {
   exit() {}
 }
 
-class DeadState implements IState {
-  constructor(private zombie: Zombie) {}
-  enter() {
-    (this.zombie as any).isAlive = false;
-    this.zombie.setVelocityX(0);
-    this.zombie.audioManager?.playSfx(SoundEffect.ZOMBIE_DIE);
-    this.zombie.playAnim('die', false);
-    if ((this.zombie as any).duckyTube)
-      (this.zombie as any).duckyTube.destroy();
+class DeadState implements IState<Zombie> {
+  enter(zombie: Zombie) {
+    (zombie as any).isAlive = false;
+    const body = zombie.body as Phaser.Physics.Arcade.Body;
+    if (body) body.setVelocityX(0);
+    zombie.audioManager?.playSfx(SoundEffect.ZOMBIE_DIE);
+    zombie.playAnim('die', false);
 
-    this.zombie.scene.tweens.add({
+    const z = zombie as any;
+    if (z.duckyTube) z.duckyTube.destroy();
+
+    zombie.scene.tweens.add({
       targets:
-        (this.zombie as any).renderer instanceof SpriteRenderer
-          ? this.zombie
-          : (this.zombie as any).renderer.getObject(),
+        zombie.renderer instanceof SpriteRenderer
+          ? zombie
+          : zombie.renderer?.getObject(),
       angle: -90,
       alpha: 0,
       duration: 800,
       onComplete: () => {
-        (this.zombie as any).renderer?.destroy();
-        this.zombie.destroy();
+        zombie.renderer?.destroy();
+        zombie.destroy();
       },
     });
 
-    this.zombie.scene.game.events.emit(GameEvents.ZOMBIE_DIED, {
-      row: this.zombie.getRow(),
+    zombie.scene.game.events.emit(GameEvents.ZOMBIE_DIED, {
+      row: zombie.getRow(),
     });
   }
   update() {}

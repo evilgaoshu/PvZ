@@ -1,22 +1,35 @@
 import Phaser from 'phaser';
-import { gameConfig, sceneConfig } from './game/config/GameConfig';
 import { BootScene } from './game/scenes/BootScene';
 import { MenuScene } from './game/scenes/MenuScene';
 import { GameScene } from './game/scenes/GameScene';
 import { PauseScene } from './game/scenes/PauseScene';
 import { GameOverScene } from './game/scenes/GameOverScene';
 import { EditorScene } from './game/scenes/EditorScene';
+import { GAME_CONFIG } from './types/index';
+import { Logger } from '@game/utils/Logger';
 
 /**
  * 游戏主类
  */
-class Game {
-  private game: Phaser.Game;
-
+export class Game extends Phaser.Game {
   constructor() {
-    // 配置游戏
     const config: Phaser.Types.Core.GameConfig = {
-      ...gameConfig,
+      type: Phaser.AUTO,
+      width: GAME_CONFIG.DESIGN_WIDTH,
+      height: GAME_CONFIG.DESIGN_HEIGHT,
+      parent: 'game-container',
+      backgroundColor: '#000000',
+      scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+      },
+      physics: {
+        default: 'arcade',
+        arcade: {
+          gravity: { y: 0, x: 0 },
+          debug: GAME_CONFIG.DEBUG,
+        },
+      },
       scene: [
         BootScene,
         MenuScene,
@@ -27,28 +40,13 @@ class Game {
       ],
     };
 
-    // 创建Phaser游戏实例
-    this.game = new Phaser.Game(config);
-
-    console.log('Game initialized');
-  }
-
-  /**
-   * 获取Phaser游戏实例
-   */
-  public getPhaserGame(): Phaser.Game {
-    return this.game;
+    super(config);
+    Logger.log('Game initialized');
   }
 }
 
-// 启动游戏
-window.addEventListener('DOMContentLoaded', () => {
-  // 移除加载提示
-  const loading = document.getElementById('loading');
-  if (loading) {
-    loading.style.display = 'none';
-  }
-
+// 当页面加载完成后启动游戏
+window.addEventListener('load', () => {
   // 创建游戏实例
   const game = new Game();
 

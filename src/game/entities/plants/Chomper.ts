@@ -8,54 +8,47 @@ export class Chomper extends Plant {
     super(scene, x, y, config);
   }
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new ChomperIdleState(this));
-    this.stateMachine.addState(
-      EntityState.ATTACK,
-      new ChomperAttackState(this)
-    );
-    this.stateMachine.addState(EntityState.DEAD, new ChomperDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new ChomperIdleState());
+    this.stateMachine.addState(EntityState.ATTACK, new ChomperAttackState());
+    this.stateMachine.addState(EntityState.DEAD, new ChomperDeadState());
   }
 }
 
-class ChomperIdleState implements IState {
-  constructor(private plant: Chomper) {}
-  enter() {
-    this.plant.playAnimation('chomper_idle', true);
+class ChomperIdleState implements IState<Chomper> {
+  enter(plant: Chomper) {
+    plant.playAnimation('chomper_idle', true);
   }
-  update() {
-    this.plant.scene.game.events.emit('plant:check_target', {
-      row: this.plant.getRow(),
-      plant: this.plant,
+  update(plant: Chomper, time: number, delta: number) {
+    plant.scene.game.events.emit('plant:check_target', {
+      row: plant.getRow(),
+      plant: plant,
     });
   }
-  exit() {}
+  exit(plant: Chomper) {}
 }
 
-class ChomperAttackState implements IState {
+class ChomperAttackState implements IState<Chomper> {
   private timer: number = 0;
-  constructor(private plant: Chomper) {}
-  enter() {
-    this.plant.playAnimation('chomper_attack', false);
+  enter(plant: Chomper) {
+    plant.playAnimation('chomper_attack', false);
     this.timer = 0;
   }
-  update(_t: number, delta: number) {
+  update(plant: Chomper, _t: number, delta: number) {
     this.timer += delta;
-    if (this.timer >= 2000)
-      this.plant.stateMachine.changeState(EntityState.IDLE);
+    if (this.timer >= 2000) plant.stateMachine.changeState(EntityState.IDLE);
   }
-  exit() {}
+  exit(plant: Chomper) {}
 }
 
-class ChomperDeadState implements IState {
-  constructor(private plant: Chomper) {}
-  enter() {
-    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class ChomperDeadState implements IState<Chomper> {
+  enter(plant: Chomper) {
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: Chomper, time: number, delta: number) {}
+  exit(plant: Chomper) {}
 }

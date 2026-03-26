@@ -1,4 +1,5 @@
 import { BaseScene } from './BaseScene';
+import { Logger } from '@game/utils/Logger';
 import { BackgroundMusic } from '@config/AudioConfig';
 import { AudioManager } from '@managers/AudioManager';
 import { GameButton } from '@ui/components/GameButton';
@@ -15,7 +16,7 @@ export class MenuScene extends BaseScene {
   }
 
   protected onInit(): void {
-    console.log('MenuScene initialized');
+    Logger.log('MenuScene initialized');
     // 从注册表获取音频管理器
     this.audioManager = this.game.registry.get('audioManager') as AudioManager;
   }

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GRID_CONFIG, GameEvents } from '@/types/index';
+import { Logger } from '@game/utils/Logger';
 import type { GridCell, GridPosition, ScreenPosition } from '@/types/config';
 
 /**
@@ -65,7 +66,7 @@ export class GridSystem {
       }
     }
 
-    console.log(`GridSystem initialized with terrain: ${background}`);
+    Logger.log(`GridSystem initialized with terrain: ${background}`);
   }
 
   public getTerrainType(row: number, col: number): 'grass' | 'water' {

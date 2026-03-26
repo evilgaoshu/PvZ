@@ -1,8 +1,15 @@
-<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <rect x="46" y="50" width="8" height="45" fill="#15803D" />
-  <circle cx="40" cy="40" r="25" fill="#4ADE80" stroke="#166534" stroke-width="3" />
-  <rect x="60" cy="30" width="30" height="20" rx="5" fill="#4ADE80" stroke="#166534" stroke-width="3" />
-  <circle cx="90" cy="40" r="8" fill="#064E3B" />
-  <circle cx="35" cy="35" r="4" fill="#000" />
-  <path d="M25 35 Q10 25 5 45 Q15 50 25 35" fill="#166534" />
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stem -->
+  <rect x="28" y="32" width="8" height="32" fill="#15803d" />
+  <!-- Leaf -->
+  <path d="M32 40 C10 40 10 60 32 60" fill="#166534" />
+  <!-- Head -->
+  <circle cx="32" cy="24" r="16" fill="#4ade80" />
+  <!-- Snout -->
+  <rect x="36" y="16" width="24" height="16" rx="4" fill="#4ade80" />
+  <!-- Hole -->
+  <ellipse cx="60" cy="24" rx="4" ry="6" fill="#064e3b" />
+  <!-- Eyes -->
+  <circle cx="36" cy="18" r="3" fill="#000000" />
+  <circle cx="38" cy="17" r="1" fill="#ffffff" />
 </svg>

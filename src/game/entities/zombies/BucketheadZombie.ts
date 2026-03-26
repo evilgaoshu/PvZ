@@ -1,5 +1,6 @@
 import { Zombie } from './Zombie';
 import type { ZombieConfig } from '@/types/config';
+import { IGameScene } from '@/types/index';
 
 /**
  * 铁桶僵尸
@@ -15,15 +16,12 @@ export class BucketheadZombie extends Zombie {
     this.createBucketVisual();
   }
 
-  protected setupAnimations(): void {
-    // 动画设置
-  }
-
   /**
    * 创建铁桶视觉
    */
   private createBucketVisual(): void {
-    this.bucketGraphics = this.scene.add.graphics();
+    const gameScene = this.scene as IGameScene;
+    this.bucketGraphics = gameScene.add.graphics();
 
     // 铁桶主体 - 金属灰色
     this.bucketGraphics.fillStyle(0x888899, 1);

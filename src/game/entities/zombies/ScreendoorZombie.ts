@@ -1,5 +1,6 @@
 import { Zombie } from './Zombie';
 import type { ZombieConfig } from '@/types/config';
+import { IGameScene } from '@/types/index';
 
 /**
  * 铁栅门僵尸
@@ -15,15 +16,12 @@ export class ScreendoorZombie extends Zombie {
     this.createDoorVisual();
   }
 
-  protected setupAnimations(): void {
-    // 动画设置
-  }
-
   /**
    * 创建铁栅门视觉
    */
   private createDoorVisual(): void {
-    this.doorGraphics = this.scene.add.graphics();
+    const gameScene = this.scene as IGameScene;
+    this.doorGraphics = gameScene.add.graphics();
 
     // 门框 - 灰色金属
     this.doorGraphics.lineStyle(3, 0x888888, 1);

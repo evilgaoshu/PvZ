@@ -4,82 +4,83 @@
 
 // 基础配置接口
 export interface BaseConfig {
-  id: string;
-  name: string;
-  description?: string;
+  readonly id: string;
+  readonly name: string;
+  readonly description?: string;
 }
 
 // 动画配置
 export interface AnimationConfig {
-  key: string;
-  frames: {
-    start: number;
-    end: number;
-    prefix?: string;
-    suffix?: string;
+  readonly key: string;
+  readonly frames: {
+    readonly start: number;
+    readonly end: number;
+    readonly prefix?: string;
+    readonly suffix?: string;
   };
-  frameRate: number;
-  repeat: number;
-  yoyo?: boolean;
+  readonly frameRate: number;
+  readonly repeat: number;
+  readonly yoyo?: boolean;
 }
 
 // 植物配置
 export interface PlantConfig extends BaseConfig {
   // 基础属性
-  cost: number;
-  health: number;
-  cooldown: number; // 秒
+  readonly cost: number;
+  readonly health: number;
+  readonly cooldown: number; // 秒
 
   // 攻击属性（可选）
-  attackDamage?: number;
-  attackInterval?: number; // 秒
-  attackRange?: number; // 格子数
-  projectileType?: string;
+  readonly attackDamage?: number;
+  readonly attackInterval?: number; // 秒
+  readonly attackRange?: number; // 格子数
+  readonly projectileType?: string;
 
   // 生产属性（可选）
-  produceAmount?: number;
-  produceInterval?: number; // 秒
+  readonly produceAmount?: number;
+  readonly produceInterval?: number; // 秒
 
   // 防御属性（可选）
-  armor?: number;
-  blockCount?: number;
+  readonly armor?: number;
+  readonly blockCount?: number;
 
   // 特殊效果
-  specialEffects?: string[];
+  readonly specialEffects?: string[];
 
   // 放置规则
-  placement?: ('grass' | 'water' | 'lilypad')[];
+  readonly placement?: ('grass' | 'water' | 'lilypad')[];
 
   // 资源路径
-  spriteSheet: string;
-  animations: AnimationConfig[];
+  readonly spriteSheet: string;
+  readonly spineKey?: string;
+  readonly animations: readonly AnimationConfig[];
 }
 
 // 僵尸配置
 export interface ZombieConfig extends BaseConfig {
   // 基础属性
-  health: number;
-  speed: number; // 像素/秒
-  damage: number;
-  attackInterval: number;
+  readonly health: number;
+  readonly speed: number; // 像素/秒
+  readonly damage: number;
+  readonly attackInterval: number;
 
   // 护甲
-  armor?: number;
-  armorType?: 'cone' | 'bucket' | 'screenDoor';
+  readonly armor?: number;
+  readonly armorType?: 'cone' | 'bucket' | 'screenDoor';
 
   // 特殊能力
-  abilities?: string[];
+  readonly abilities?: readonly string[];
 
   // 掉落
-  loot?: {
-    type: string;
-    chance: number;
-    amount: number;
+  readonly loot?: readonly {
+    readonly type: string;
+    readonly chance: number;
+    readonly amount: number;
   }[];
 
   // 资源路径
-  spriteSheet: string;
-  animations: AnimationConfig[];
+  readonly spriteSheet: string;
+  readonly animations: readonly AnimationConfig[];
 }
 
 // 关卡波次配置

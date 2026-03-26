@@ -1,4 +1,5 @@
 import { BaseScene } from './BaseScene';
+import { Logger } from '@game/utils/Logger';
 import { GridSystem } from '@systems/GridSystem';
 import { EconomySystem } from '@systems/EconomySystem';
 import { WaveSystem } from '@systems/WaveSystem';
@@ -36,9 +37,10 @@ export class GameScene extends BaseScene {
   }> = [];
 
   public gridSystem!: GridSystem;
-  private economySystem!: EconomySystem;
-  private waveSystem!: WaveSystem;
-  private combatSystem!: CombatSystem;
+  public economySystem!: EconomySystem;
+  public waveSystem!: WaveSystem;
+  public combatSystem!: CombatSystem;
+  public spine: any;
 
   private plantFactory!: PlantFactory;
   private zombieFactory!: ZombieFactory;
@@ -54,7 +56,7 @@ export class GameScene extends BaseScene {
   private plants: Map<string, Plant> = new Map();
   private platforms: Map<string, Plant> = new Map(); // 专门存储睡莲等平台
   private zombies: Zombie[] = [];
-  private zombiesByRow: Map<number, Zombie[]> = new Map();
+  public zombiesByRow: Map<number, any[]> = new Map();
   private projectilesByRow: Map<number, any[]> = new Map();
   private lawnMowers: Phaser.GameObjects.Container[] = [];
   private activeMowerRows: Set<number> = new Set();
@@ -615,7 +617,10 @@ export class GameScene extends BaseScene {
 
     const pointer = this.input.activePointer;
     // 使用 worldX 和 worldY 替代 x 和 y
-    const gridPos = this.gridSystem.screenToGrid(pointer.worldX, pointer.worldY);
+    const gridPos = this.gridSystem.screenToGrid(
+      pointer.worldX,
+      pointer.worldY
+    );
 
     if (gridPos) {
       // Snap to grid
@@ -800,7 +805,7 @@ export class GameScene extends BaseScene {
         this.gridSystem.setPlant(row, col, type);
       }
     };
-    console.log(
+    Logger.log(
       '调试命令: spawnZombie(type, row), spawnPlant(type, row, col), addSun(amount), winLevel()'
     );
   }

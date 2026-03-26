@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Logger } from '@game/utils/Logger';
 import { zombieConfigs } from '@data/plants/plantConfigs';
 import type { ZombieConfig } from '@/types/config';
 import { GRID_CONFIG } from '@/types/index';

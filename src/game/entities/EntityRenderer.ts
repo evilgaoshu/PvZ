@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import type { AnimationConfig } from '@/types/config';
 
 /**
  * 渲染器接口，用于解耦 Spine 和普通 Sprite
@@ -11,6 +10,7 @@ export interface IEntityRenderer {
   setTint(color: number): void;
   destroy(): void;
   setVisible(visible: boolean): void;
+  getObject(): any;
 }
 
 /**
@@ -27,7 +27,7 @@ export class SpineRenderer implements IEntityRenderer {
     atlasKey: string
   ) {
     // @ts-ignore - spine plugin mapping
-    this.spineObj = scene.add.spine(x, y, spineKey, atlasKey);
+    this.spineObj = (scene.add as any).spine(x, y, spineKey, atlasKey);
   }
 
   public play(key: string, loop: boolean = true): void {
@@ -86,6 +86,10 @@ export class SpriteRenderer implements IEntityRenderer {
 
   public setVisible(visible: boolean): void {
     this.sprite.setVisible(visible);
+  }
+
+  public getObject(): any {
+    return this.sprite;
   }
 
   public destroy(): void {

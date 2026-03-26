@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { PlantConfig } from '@/types/config';
-import { GameEvents, EntityState } from '@/types/index';
+import { GameEvents, EntityState, IGameScene } from '@/types/index';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
 import { VisualEffects } from '@utils/VisualEffects';
@@ -23,7 +23,7 @@ export enum DamageState {
 export abstract class Plant extends Phaser.GameObjects.Sprite {
   protected config: PlantConfig;
   protected renderer: IEntityRenderer | null = null;
-  public stateMachine: StateMachine; // 改为 public 以便 State 类访问
+  public stateMachine: StateMachine<Plant>; // 改为 public 以便 State 类访问
 
   protected row: number = 0;
   protected col: number = 0;
@@ -34,7 +34,6 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   protected audioManager: AudioManager | null = null;
   protected lastAttackTime: number = 0;
   protected attackTarget: Phaser.GameObjects.Sprite | null = null;
-  protected isCooldown: boolean = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, config: PlantConfig) {
     super(scene, x, y, config.spriteSheet);
@@ -44,7 +43,7 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
       'audioManager'
     ) as AudioManager;
 
-    this.stateMachine = new StateMachine();
+    this.stateMachine = new StateMachine<Plant>(this);
     this.initRenderer();
     scene.add.existing(this);
 
@@ -53,8 +52,9 @@ export abstract class Plant extends Phaser.GameObjects.Sprite {
   }
 
   private initRenderer(): void {
-    const spineKey = (this.config as any).spineKey;
-    if (spineKey && (this.scene as any).spine) {
+    const spineKey = this.config.spineKey;
+    const gameScene = this.scene as unknown as IGameScene;
+    if (spineKey && gameScene.spine) {
       this.renderer = new SpineRenderer(
         this.scene,
         this.x,

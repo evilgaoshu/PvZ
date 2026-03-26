@@ -5,6 +5,7 @@ import {
   SFX_CONFIGS,
   BGM_CONFIGS,
 } from '../config/AudioConfig';
+import { Logger } from '@game/utils/Logger';
 import { ProceduralAudio } from '../utils/ProceduralAudio';
 
 /**
@@ -99,7 +100,7 @@ export class AudioManager {
       this.bgm.set(config.key, sound);
     });
 
-    console.log('AudioManager initialized');
+    Logger.log('AudioManager initialized');
   }
 
   /**

@@ -1,6 +1,6 @@
 import { Zombie } from './Zombie';
 import type { ZombieConfig } from '@/types/config';
-import { EntityState } from '@/types/index';
+import { EntityState, IGameScene } from '@/types/index';
 import { SoundEffect } from '@config/AudioConfig';
 
 /**
@@ -18,24 +18,21 @@ export class NewspaperZombie extends Zombie {
     this.createNewspaperVisual();
   }
 
-  protected setupAnimations(): void {
-    // 动画设置
-  }
-
   /**
    * 创建报纸视觉
    */
   private createNewspaperVisual(): void {
-    this.newspaperGraphics = this.scene.add.container(0, 0);
+    const gameScene = this.scene as IGameScene;
+    this.newspaperGraphics = gameScene.add.container(0, 0);
 
     // 报纸背景
-    const paper = this.scene.add.rectangle(0, 0, 30, 40, 0xf5f5dc, 1);
+    const paper = gameScene.add.rectangle(0, 0, 30, 40, 0xf5f5dc, 1);
     paper.setStrokeStyle(1, 0xcccccc);
     this.newspaperGraphics.add(paper);
 
     // 报纸文字线条
     for (let i = 0; i < 6; i++) {
-      const line = this.scene.add.rectangle(
+      const line = gameScene.add.rectangle(
         0,
         -15 + i * 5,
         25,
@@ -47,7 +44,7 @@ export class NewspaperZombie extends Zombie {
     }
 
     // 标题大字
-    const headline = this.scene.add.rectangle(0, -12, 20, 6, 0x000000, 0.8);
+    const headline = gameScene.add.rectangle(0, -12, 20, 6, 0x000000, 0.8);
     this.newspaperGraphics.add(headline);
   }
 
@@ -161,7 +158,6 @@ export class NewspaperZombie extends Zombie {
 
     // 加速（速度翻倍）
     this.currentSpeed *= 2;
-    this.setVelocityX(-this.currentSpeed);
 
     // 狂暴表情 - 愤怒符号
     const rageMark = this.scene.add.text(this.x, this.y - 60, '💢', {

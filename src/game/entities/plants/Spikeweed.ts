@@ -1,6 +1,6 @@
 import { Plant } from './Plant';
 import type { PlantConfig } from '@/types/config';
-import { GameEvents, EntityState } from '@/types/index';
+import { GameEvents, EntityState, IGameScene } from '@/types/index';
 import { IState } from '../../utils/StateMachine';
 
 export class Spikeweed extends Plant {
@@ -10,27 +10,25 @@ export class Spikeweed extends Plant {
   }
 
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new SpikeweedIdleState(this));
-    this.stateMachine.addState(EntityState.DEAD, new SpikeweedDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new SpikeweedIdleState());
+    this.stateMachine.addState(EntityState.DEAD, new SpikeweedDeadState());
   }
 }
 
-class SpikeweedIdleState implements IState {
+class SpikeweedIdleState implements IState<Spikeweed> {
   private lastAttackTime: number = 0;
-  constructor(private plant: Spikeweed) {}
-  enter() {
-    this.plant.playAnimation('spikeweed_idle', true);
+  enter(plant: Spikeweed) {
+    plant.playAnimation('spikeweed_idle', true);
   }
-  update(time: number) {
+  update(plant: Spikeweed, time: number, delta: number) {
     // Damage zombies walking over it
     if (time - this.lastAttackTime >= 1000) {
       let hit = false;
-      const zombies = (this.plant.scene as any).zombiesByRow?.get(
-        this.plant.getRow()
-      );
+      const gameScene = plant.scene as unknown as IGameScene;
+      const zombies = gameScene.zombiesByRow?.get(plant.getRow());
       if (zombies) {
         for (const z of zombies) {
-          if (Math.abs(z.x - this.plant.x) < 40) {
+          if (Math.abs(z.x - plant.x) < 40) {
             z.takeDamage(20, 'normal'); // Deal damage
             hit = true;
           }
@@ -39,8 +37,8 @@ class SpikeweedIdleState implements IState {
       if (hit) {
         this.lastAttackTime = time;
         // Small spike animation
-        this.plant.scene.tweens.add({
-          targets: this.plant,
+        plant.scene.tweens.add({
+          targets: plant,
           scaleY: 1.2,
           duration: 100,
           yoyo: true,
@@ -48,19 +46,18 @@ class SpikeweedIdleState implements IState {
       }
     }
   }
-  exit() {}
+  exit(plant: Spikeweed) {}
 }
 
-class SpikeweedDeadState implements IState {
-  constructor(private plant: Spikeweed) {}
-  enter() {
-    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class SpikeweedDeadState implements IState<Spikeweed> {
+  enter(plant: Spikeweed) {
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: Spikeweed, time: number, delta: number) {}
+  exit(plant: Spikeweed) {}
 }

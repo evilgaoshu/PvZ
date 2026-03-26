@@ -1,4 +1,5 @@
 import { BaseScene } from './BaseScene';
+import { Logger } from '@game/utils/Logger';
 import { AudioManager } from '@managers/AudioManager';
 
 /**
@@ -15,7 +16,7 @@ export class GameOverScene extends BaseScene {
   init(data: { isVictory?: boolean }): void {
     super.init();
     this.isVictory = data?.isVictory ?? false;
-    console.log('GameOverScene initialized, isVictory:', this.isVictory);
+    Logger.log('GameOverScene initialized, isVictory:', this.isVictory);
 
     // 获取音频管理器
     this.audioManager = this.game.registry.get('audioManager') as AudioManager;

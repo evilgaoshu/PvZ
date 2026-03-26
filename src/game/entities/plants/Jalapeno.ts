@@ -9,12 +9,9 @@ export class Jalapeno extends Plant {
   }
 
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new JalapenoIdleState(this));
-    this.stateMachine.addState(
-      EntityState.ATTACK,
-      new JalapenoExplodeState(this)
-    );
-    this.stateMachine.addState(EntityState.DEAD, new JalapenoDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new JalapenoIdleState());
+    this.stateMachine.addState(EntityState.ATTACK, new JalapenoExplodeState());
+    this.stateMachine.addState(EntityState.DEAD, new JalapenoDeadState());
   }
 
   public explode(): void {
@@ -29,43 +26,40 @@ export class Jalapeno extends Plant {
   }
 }
 
-class JalapenoIdleState implements IState {
+class JalapenoIdleState implements IState<Jalapeno> {
   private timer: number = 0;
-  constructor(private plant: Jalapeno) {}
-  enter() {
-    this.plant.playAnimation('jalapeno_idle', true);
+  enter(plant: Jalapeno) {
+    plant.playAnimation('jalapeno_idle', true);
     this.timer = 0;
   }
-  update(_t: number, delta: number) {
+  update(plant: Jalapeno, _t: number, delta: number) {
     this.timer += delta;
     if (this.timer >= 800) {
       // 稍微延迟爆炸
-      this.plant.stateMachine.changeState(EntityState.ATTACK);
+      plant.stateMachine.changeState(EntityState.ATTACK);
     }
   }
-  exit() {}
+  exit(plant: Jalapeno) {}
 }
 
-class JalapenoExplodeState implements IState {
-  constructor(private plant: Jalapeno) {}
-  enter() {
-    this.plant.explode();
-    this.plant.stateMachine.changeState(EntityState.DEAD);
+class JalapenoExplodeState implements IState<Jalapeno> {
+  enter(plant: Jalapeno) {
+    plant.explode();
+    plant.stateMachine.changeState(EntityState.DEAD);
   }
-  update() {}
-  exit() {}
+  update(plant: Jalapeno, time: number, delta: number) {}
+  exit(plant: Jalapeno) {}
 }
 
-class JalapenoDeadState implements IState {
-  constructor(private plant: Jalapeno) {}
-  enter() {
-    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class JalapenoDeadState implements IState<Jalapeno> {
+  enter(plant: Jalapeno) {
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: Jalapeno, time: number, delta: number) {}
+  exit(plant: Jalapeno) {}
 }

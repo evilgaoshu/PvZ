@@ -8,16 +8,15 @@ export class LilyPad extends Plant {
     super(scene, x, y, config);
   }
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new LilyIdleState(this));
-    this.stateMachine.addState(EntityState.DEAD, new LilyDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new LilyIdleState());
+    this.stateMachine.addState(EntityState.DEAD, new LilyDeadState());
   }
 }
 
-class LilyIdleState implements IState {
-  constructor(private plant: LilyPad) {}
-  enter() {
-    this.plant.scene.tweens.add({
-      targets: this.plant,
+class LilyIdleState implements IState<LilyPad> {
+  enter(plant: LilyPad) {
+    plant.scene.tweens.add({
+      targets: plant,
       scaleX: 1.05,
       scaleY: 0.95,
       duration: 1000,
@@ -26,20 +25,19 @@ class LilyIdleState implements IState {
       ease: 'Sine.easeInOut',
     });
   }
-  update() {}
-  exit() {}
+  update(plant: LilyPad, time: number, delta: number) {}
+  exit(plant: LilyPad) {}
 }
 
-class LilyDeadState implements IState {
-  constructor(private plant: LilyPad) {}
-  enter() {
-    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class LilyDeadState implements IState<LilyPad> {
+  enter(plant: LilyPad) {
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: LilyPad, time: number, delta: number) {}
+  exit(plant: LilyPad) {}
 }

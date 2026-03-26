@@ -1,4 +1,5 @@
 import { BaseScene } from './BaseScene';
+import { Logger } from '@game/utils/Logger';
 import { AudioManager } from '@managers/AudioManager';
 
 /**
@@ -13,7 +14,7 @@ export class PauseScene extends BaseScene {
   }
 
   protected onInit(): void {
-    console.log('PauseScene initialized');
+    Logger.log('PauseScene initialized');
     // 获取音频管理器
     this.audioManager = this.game.registry.get('audioManager') as AudioManager;
   }

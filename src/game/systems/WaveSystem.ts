@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { WAVE_CONFIG, GameEvents } from '@/types/index';
+import { WAVE_CONFIG, GameEvents, IGameScene } from '@/types/index';
 import type {
   LevelConfig,
   WaveConfig,
@@ -7,13 +7,14 @@ import type {
 } from '@/types/config';
 import { AudioManager } from '@managers/AudioManager';
 import { SoundEffect } from '@config/AudioConfig';
+import { Logger } from '@game/utils/Logger';
 
 /**
  * 波次系统
  * 管理僵尸波次的生成和进度
  */
 export class WaveSystem {
-  private scene: Phaser.Scene;
+  private scene: IGameScene;
   private audioManager: AudioManager | null = null;
 
   // 当前波次
@@ -50,7 +51,7 @@ export class WaveSystem {
   // 僵尸生成定时器列表
   private spawnTimers: Phaser.Time.TimerEvent[] = [];
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: IGameScene) {
     this.scene = scene;
     this.audioManager = this.scene.game.registry.get(
       'audioManager'
@@ -93,9 +94,9 @@ export class WaveSystem {
     // 准备时间后开始第一波
     this.waveTimer = this.scene.time.delayedCall(
       WAVE_CONFIG.PREPARATION_TIME,
-      () => {
-        this.startWave();
-      }
+      this.startWave,
+      undefined,
+      this
     );
   }
 
@@ -164,23 +165,38 @@ export class WaveSystem {
     this.waveSpawnComplete = false;
 
     // 所有僵尸生成完成后标记为完成
-    this.scene.time.delayedCall(totalDelay + 1000, () => {
-      this.waveSpawnComplete = true;
-    });
+    this.scene.time.delayedCall(
+      totalDelay + 1000,
+      this.markSpawnComplete,
+      undefined,
+      this
+    );
 
     // 波次结束后检查
     this.checkInterval = this.scene.time.addEvent({
       delay: 1000,
-      callback: () => {
-        if (this.checkWaveComplete()) {
-          this.checkInterval?.remove();
-          this.checkInterval = null;
-          this.onWaveComplete();
-        }
-      },
+      callback: this.handleWaveCheck,
       callbackScope: this,
       loop: true,
     });
+  }
+
+  /**
+   * 标记生成完成
+   */
+  private markSpawnComplete(): void {
+    this.waveSpawnComplete = true;
+  }
+
+  /**
+   * 处理波次检查
+   */
+  private handleWaveCheck(): void {
+    if (this.checkWaveComplete()) {
+      this.checkInterval?.remove();
+      this.checkInterval = null;
+      this.onWaveComplete();
+    }
   }
 
   /**
@@ -222,7 +238,7 @@ export class WaveSystem {
   public onWaveComplete(): void {
     this.isWaveInProgress = false;
 
-    console.log(`Wave ${this.currentWave} completed`);
+    Logger.log(`Wave ${this.currentWave} completed`);
 
     // 发送波次完成事件
     this.scene.game.events.emit(GameEvents.WAVE_COMPLETED, {
@@ -241,9 +257,12 @@ export class WaveSystem {
         this.showNotification('一大波僵尸正在接近！', 3000);
       }
 
-      this.waveTimer = this.scene.time.delayedCall(nextWaveDelay, () => {
-        this.startWave();
-      });
+      this.waveTimer = this.scene.time.delayedCall(
+        nextWaveDelay,
+        this.startWave,
+        undefined,
+        this
+      );
     } else {
       this.onAllWavesComplete();
     }
@@ -303,19 +322,29 @@ export class WaveSystem {
     });
 
     // 自动消失
-    this.scene.time.delayedCall(duration, () => {
-      if (this.warningText) {
-        this.scene.tweens.add({
-          targets: this.warningText,
-          alpha: 0,
-          duration: 300,
-          onComplete: () => {
-            this.warningText?.destroy();
-            this.warningText = null;
-          },
-        });
-      }
-    });
+    this.scene.time.delayedCall(
+      duration,
+      this.hideNotification,
+      undefined,
+      this
+    );
+  }
+
+  /**
+   * 隐藏通知文字
+   */
+  private hideNotification(): void {
+    if (this.warningText) {
+      this.scene.tweens.add({
+        targets: this.warningText,
+        alpha: 0,
+        duration: 300,
+        onComplete: () => {
+          this.warningText?.destroy();
+          this.warningText = null;
+        },
+      });
+    }
   }
 
   /**

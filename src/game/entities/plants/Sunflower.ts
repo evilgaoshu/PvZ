@@ -12,8 +12,8 @@ export class Sunflower extends Plant {
   }
 
   protected setupStateMachine(): void {
-    this.stateMachine.addState(EntityState.IDLE, new SunflowerIdleState(this));
-    this.stateMachine.addState(EntityState.DEAD, new SunflowerDeadState(this));
+    this.stateMachine.addState(EntityState.IDLE, new SunflowerIdleState());
+    this.stateMachine.addState(EntityState.DEAD, new SunflowerDeadState());
   }
 
   /**
@@ -40,32 +40,30 @@ export class Sunflower extends Plant {
   }
 }
 
-class SunflowerIdleState implements IState {
+class SunflowerIdleState implements IState<Sunflower> {
   private lastProduceTime: number = 0;
-  constructor(private plant: Sunflower) {}
-  enter() {
-    this.plant.playAnimation(`${this.plant.getConfig().id}_idle`, true);
-    this.lastProduceTime = this.plant.scene.time.now;
+  enter(plant: Sunflower) {
+    plant.playAnimation(`${plant.getConfig().id}_idle`, true);
+    this.lastProduceTime = plant.scene.time.now;
   }
-  update(time: number) {
-    if (time - this.lastProduceTime >= this.plant.getProduceInterval()) {
+  update(plant: Sunflower, time: number, delta: number) {
+    if (time - this.lastProduceTime >= plant.getProduceInterval()) {
       this.lastProduceTime = time;
-      this.plant.produceSun();
+      plant.produceSun();
     }
   }
-  exit() {}
+  exit(plant: Sunflower) {}
 }
 
-class SunflowerDeadState implements IState {
-  constructor(private plant: Sunflower) {}
-  enter() {
-    this.plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
-      row: this.plant.getRow(),
-      col: this.plant.getCol(),
-      plant: this.plant,
+class SunflowerDeadState implements IState<Sunflower> {
+  enter(plant: Sunflower) {
+    plant.scene.game.events.emit(GameEvents.PLANT_REMOVED, {
+      row: plant.getRow(),
+      col: plant.getCol(),
+      plant: plant,
     });
-    this.plant.destroy();
+    plant.destroy();
   }
-  update() {}
-  exit() {}
+  update(plant: Sunflower, time: number, delta: number) {}
+  exit(plant: Sunflower) {}
 }
